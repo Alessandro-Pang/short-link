@@ -265,10 +265,10 @@
                                         >
                                             <template #cell="{ record }">
                                                 <a-link
-                                                    :href="`${origin}/${record.short}`"
+                                                    :href="`${origin}/u/${record.short}`"
                                                     target="_blank"
                                                     class="font-medium text-blue-600"
-                                                    >{{ origin }}/{{
+                                                    >{{ origin }}/u/{{
                                                         record.short
                                                     }}</a-link
                                                 >
@@ -319,8 +319,12 @@
                                 >
                                     <div class="flex items-center gap-4">
                                         <a-input-search
+                                            v-model="searchKeyword"
                                             placeholder="搜索链接..."
                                             class="w-64 bg-white!"
+                                            @search="handleSearch"
+                                            @clear="handleSearch"
+                                            allow-clear
                                         />
                                     </div>
                                     <a-button type="primary" @click="goToHome">
@@ -330,7 +334,7 @@
                                 </div>
 
                                 <a-table
-                                    :data="links"
+                                    :data="filteredLinks"
                                     :pagination="{
                                         pageSize: 10,
                                         showTotal: true,
@@ -351,10 +355,10 @@
                                                         class="flex items-center gap-2 mb-1"
                                                     >
                                                         <a-link
-                                                            :href="`${origin}/${record.short}`"
+                                                            :href="`${origin}/u/${record.short}`"
                                                             target="_blank"
                                                             class="font-bold text-blue-600 text-base"
-                                                            >{{ origin }}/{{
+                                                            >{{ origin }}/u/{{
                                                                 record.short
                                                             }}</a-link
                                                         >
@@ -379,13 +383,91 @@
                                                     >
                                                         {{ record.link }}
                                                     </div>
+                                                    <!-- 配置标签 -->
+                                                    <div
+                                                        v-if="
+                                                            hasAdvancedConfig(
+                                                                record,
+                                                            )
+                                                        "
+                                                        class="flex flex-wrap gap-1 mt-2"
+                                                    >
+                                                        <a-tag
+                                                            v-if="
+                                                                record.redirect_type &&
+                                                                record.redirect_type !==
+                                                                    302
+                                                            "
+                                                            size="small"
+                                                            color="arcoblue"
+                                                        >
+                                                            {{
+                                                                record.redirect_type
+                                                            }}重定向
+                                                        </a-tag>
+                                                        <a-tag
+                                                            v-if="
+                                                                record.expiration_date
+                                                            "
+                                                            size="small"
+                                                            :color="
+                                                                isExpired(
+                                                                    record.expiration_date,
+                                                                )
+                                                                    ? 'red'
+                                                                    : 'orange'
+                                                            "
+                                                        >
+                                                            {{
+                                                                isExpired(
+                                                                    record.expiration_date,
+                                                                )
+                                                                    ? "已过期"
+                                                                    : "有时效"
+                                                            }}
+                                                        </a-tag>
+                                                        <a-tag
+                                                            v-if="
+                                                                record.max_clicks
+                                                            "
+                                                            size="small"
+                                                            color="green"
+                                                        >
+                                                            {{
+                                                                record.click_count
+                                                            }}/{{
+                                                                record.max_clicks
+                                                            }}次
+                                                        </a-tag>
+                                                        <a-tag
+                                                            v-if="
+                                                                record.pass_query_params
+                                                            "
+                                                            size="small"
+                                                            color="purple"
+                                                        >
+                                                            参数透传
+                                                        </a-tag>
+                                                        <a-tag
+                                                            v-if="
+                                                                record.access_restrictions &&
+                                                                Object.keys(
+                                                                    record.access_restrictions,
+                                                                ).length > 0
+                                                            "
+                                                            size="small"
+                                                            color="red"
+                                                        >
+                                                            访问限制
+                                                        </a-tag>
+                                                    </div>
                                                 </div>
                                             </template>
                                         </a-table-column>
                                         <a-table-column
                                             title="数据统计"
                                             data-index="click_count"
-                                            :width="150"
+                                            :width="120"
                                         >
                                             <template #cell="{ record }">
                                                 <div class="flex flex-col">
@@ -408,37 +490,36 @@
                                             :width="120"
                                         >
                                             <template #cell="{ record }">
-                                                <a-tag
-                                                    :color="
-                                                        record.is_active
-                                                            ? 'green'
-                                                            : 'red'
+                                                <a-switch
+                                                    v-model="record.is_active"
+                                                    :checked-value="true"
+                                                    :unchecked-value="false"
+                                                    :loading="
+                                                        togglingIds.includes(
+                                                            record.id,
+                                                        )
                                                     "
-                                                    bordered
-                                                    class="rounded-full px-3"
+                                                    @change="
+                                                        (val) =>
+                                                            handleToggleStatus(
+                                                                record,
+                                                                val,
+                                                            )
+                                                    "
                                                 >
-                                                    <template #icon>
-                                                        <div
-                                                            class="w-1.5 h-1.5 rounded-full mr-1"
-                                                            :class="
-                                                                record.is_active
-                                                                    ? 'bg-green-600'
-                                                                    : 'bg-red-600'
-                                                            "
-                                                        ></div>
-                                                    </template>
-                                                    {{
-                                                        record.is_active
-                                                            ? "运行中"
-                                                            : "已停用"
-                                                    }}
-                                                </a-tag>
+                                                    <template #checked
+                                                        >启用</template
+                                                    >
+                                                    <template #unchecked
+                                                        >禁用</template
+                                                    >
+                                                </a-switch>
                                             </template>
                                         </a-table-column>
                                         <a-table-column
                                             title="创建时间"
                                             data-index="created_at"
-                                            :width="180"
+                                            :width="160"
                                         >
                                             <template #cell="{ record }">
                                                 <span class="text-gray-500">{{
@@ -450,7 +531,7 @@
                                         </a-table-column>
                                         <a-table-column
                                             title="操作"
-                                            :width="120"
+                                            :width="140"
                                             align="center"
                                         >
                                             <template #cell="{ record }">
@@ -477,6 +558,11 @@
                                                             size="small"
                                                             shape="circle"
                                                             class="hover:bg-gray-100"
+                                                            @click="
+                                                                openEditDrawer(
+                                                                    record,
+                                                                )
+                                                            "
                                                         >
                                                             <template #icon
                                                                 ><icon-edit
@@ -484,6 +570,30 @@
                                                             /></template>
                                                         </a-button>
                                                     </a-tooltip>
+                                                    <a-popconfirm
+                                                        content="确定要删除这个链接吗？"
+                                                        type="warning"
+                                                        @ok="
+                                                            handleDeleteLink(
+                                                                record.id,
+                                                            )
+                                                        "
+                                                    >
+                                                        <a-tooltip
+                                                            content="删除"
+                                                        >
+                                                            <a-button
+                                                                size="small"
+                                                                shape="circle"
+                                                                class="hover:bg-red-50"
+                                                            >
+                                                                <template #icon
+                                                                    ><icon-delete
+                                                                        class="text-red-500"
+                                                                /></template>
+                                                            </a-button>
+                                                        </a-tooltip>
+                                                    </a-popconfirm>
                                                 </a-space>
                                             </template>
                                         </a-table-column>
@@ -521,7 +631,8 @@
                             class="text-gray-700 text-sm truncate mr-4 font-medium"
                             >{{ currentQrUrl }}</span
                         >
-                        <a-link @click="copyLink(currentQrUrl.split('/').pop())"
+                        <a-link
+                            @click="copyLink(currentQrUrl.split('/u/').pop())"
                             >复制</a-link
                         >
                     </div>
@@ -536,11 +647,19 @@
                 </a-button>
             </div>
         </a-modal>
+
+        <!-- Link Edit Drawer -->
+        <LinkEditDrawer
+            v-model:visible="editDrawerVisible"
+            :link-id="editingLinkId"
+            @success="handleEditSuccess"
+            @delete="handleEditDelete"
+        />
     </a-layout>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
@@ -558,10 +677,13 @@ import {
     IconDashboard,
     IconArrowRise,
     IconEdit,
+    IconDelete,
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
 import { getCurrentUser, signOut } from "@/services/auth.js";
 import { getUserLinkStats, getUserLinks } from "@/services/dashboard.js";
+import { toggleLinkStatus, deleteLink } from "@/services/api.js";
+import LinkEditDrawer from "@/components/LinkEditDrawer.vue";
 
 const router = useRouter();
 const origin = ref(window.location.origin);
@@ -581,6 +703,24 @@ const links = ref([]);
 const qrcodeModalVisible = ref(false);
 const currentQrUrl = ref("");
 const qrcodeCanvas = ref(null);
+const searchKeyword = ref("");
+const togglingIds = ref([]);
+
+// Edit drawer state
+const editDrawerVisible = ref(false);
+const editingLinkId = ref(null);
+
+// Computed
+const filteredLinks = computed(() => {
+    if (!searchKeyword.value) return links.value;
+    const keyword = searchKeyword.value.toLowerCase();
+    return links.value.filter(
+        (link) =>
+            link.link.toLowerCase().includes(keyword) ||
+            link.short.toLowerCase().includes(keyword) ||
+            (link.title && link.title.toLowerCase().includes(keyword)),
+    );
+});
 
 // Methods
 const onCollapse = (val) => {
@@ -632,7 +772,7 @@ const loadData = async () => {
 
         // Load links
         const { links: userLinks } = await getUserLinks({
-            limit: 50,
+            limit: 100,
             orderBy: "created_at",
             ascending: false,
         });
@@ -645,8 +785,12 @@ const loadData = async () => {
     }
 };
 
+const handleSearch = () => {
+    // Search is handled by computed property
+};
+
 const copyLink = async (short) => {
-    const url = `${origin.value}/${short}`;
+    const url = `${origin.value}/u/${short}`;
     try {
         await navigator.clipboard.writeText(url);
         Message.success("链接已复制到剪贴板");
@@ -656,7 +800,7 @@ const copyLink = async (short) => {
 };
 
 const showQRCode = async (short) => {
-    const url = `${origin.value}/${short}`;
+    const url = `${origin.value}/u/${short}`;
     currentQrUrl.value = url;
     qrcodeModalVisible.value = true;
     await nextTick();
@@ -682,6 +826,65 @@ const formatDate = (dateString) => {
         hour: "2-digit",
         minute: "2-digit",
     });
+};
+
+const isExpired = (dateString) => {
+    if (!dateString) return false;
+    return new Date(dateString) < new Date();
+};
+
+const hasAdvancedConfig = (record) => {
+    return (
+        (record.redirect_type && record.redirect_type !== 302) ||
+        record.expiration_date ||
+        record.max_clicks ||
+        record.pass_query_params ||
+        record.forward_headers ||
+        (record.access_restrictions &&
+            Object.keys(record.access_restrictions).length > 0)
+    );
+};
+
+// Toggle link status
+const handleToggleStatus = async (record, newValue) => {
+    togglingIds.value.push(record.id);
+    try {
+        await toggleLinkStatus(record.id, newValue);
+        Message.success(newValue ? "链接已启用" : "链接已禁用");
+    } catch (error) {
+        // Revert the change
+        record.is_active = !newValue;
+        Message.error(error.message || "操作失败");
+    } finally {
+        togglingIds.value = togglingIds.value.filter((id) => id !== record.id);
+    }
+};
+
+// Delete link
+const handleDeleteLink = async (linkId) => {
+    try {
+        await deleteLink(linkId);
+        links.value = links.value.filter((link) => link.id !== linkId);
+        stats.value.total_links = Math.max(0, stats.value.total_links - 1);
+        Message.success("链接已删除");
+    } catch (error) {
+        Message.error(error.message || "删除失败");
+    }
+};
+
+// Edit drawer
+const openEditDrawer = (record) => {
+    editingLinkId.value = record.id;
+    editDrawerVisible.value = true;
+};
+
+const handleEditSuccess = () => {
+    loadData();
+};
+
+const handleEditDelete = (linkId) => {
+    links.value = links.value.filter((link) => link.id !== linkId);
+    stats.value.total_links = Math.max(0, stats.value.total_links - 1);
 };
 
 onMounted(() => {

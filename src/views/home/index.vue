@@ -146,8 +146,23 @@
                                                 />
                                             </template>
                                         </a-input-search>
-                                        <div class="mt-2 text-xs text-gray-400">
-                                            示例：https://example.com/path?utm_source=...
+                                        <div
+                                            class="mt-2 flex items-center justify-between"
+                                        >
+                                            <span class="text-xs text-gray-400">
+                                                示例：https://example.com/path?utm_source=...
+                                            </span>
+                                            <a-button
+                                                type="text"
+                                                size="mini"
+                                                @click="showConfigDrawer = true"
+                                                class="text-blue-500!"
+                                            >
+                                                <template #icon
+                                                    ><icon-settings
+                                                /></template>
+                                                高级配置
+                                            </a-button>
                                         </div>
                                     </div>
 
@@ -198,6 +213,88 @@
                                                         二维码
                                                     </a-button>
                                                 </a-space>
+                                            </div>
+                                            <!-- 显示配置摘要 -->
+                                            <div
+                                                v-if="hasAdvancedConfig"
+                                                class="mt-4 pt-4 border-t border-blue-100"
+                                            >
+                                                <div
+                                                    class="text-sm text-gray-600"
+                                                >
+                                                    <span class="font-medium"
+                                                        >已应用配置：</span
+                                                    >
+                                                    <div
+                                                        class="mt-2 flex flex-wrap gap-2"
+                                                    >
+                                                        <a-tag
+                                                            v-if="
+                                                                linkConfig.redirect_type !==
+                                                                302
+                                                            "
+                                                            color="arcoblue"
+                                                            size="small"
+                                                        >
+                                                            {{
+                                                                redirectTypeLabel
+                                                            }}
+                                                        </a-tag>
+                                                        <a-tag
+                                                            v-if="
+                                                                linkConfig.expiration_option_id
+                                                            "
+                                                            color="orange"
+                                                            size="small"
+                                                        >
+                                                            <icon-clock-circle
+                                                                class="mr-1"
+                                                            />有效期限制
+                                                        </a-tag>
+                                                        <a-tag
+                                                            v-if="
+                                                                linkConfig.max_clicks
+                                                            "
+                                                            color="green"
+                                                            size="small"
+                                                        >
+                                                            <icon-thunderbolt
+                                                                class="mr-1"
+                                                            />{{
+                                                                linkConfig.max_clicks
+                                                            }}次点击限制
+                                                        </a-tag>
+                                                        <a-tag
+                                                            v-if="
+                                                                linkConfig.pass_query_params
+                                                            "
+                                                            color="purple"
+                                                            size="small"
+                                                        >
+                                                            参数透传
+                                                        </a-tag>
+                                                        <a-tag
+                                                            v-if="
+                                                                linkConfig.forward_headers
+                                                            "
+                                                            color="cyan"
+                                                            size="small"
+                                                        >
+                                                            Header转发
+                                                        </a-tag>
+                                                        <a-tag
+                                                            v-if="
+                                                                hasAccessRestrictions
+                                                            "
+                                                            color="red"
+                                                            size="small"
+                                                        >
+                                                            <icon-safe
+                                                                class="mr-1"
+                                                            />访问限制
+                                                        </a-tag>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </transition>
@@ -406,11 +503,33 @@
                 </div>
             </div>
         </a-modal>
+
+        <!-- 高级配置抽屉 -->
+        <a-drawer
+            v-model:visible="showConfigDrawer"
+            title="高级配置"
+            :width="420"
+            placement="right"
+            :footer="true"
+            class="config-drawer"
+        >
+            <div class="drawer-content">
+                <LinkConfigForm v-model="linkConfig" />
+            </div>
+            <template #footer>
+                <div class="drawer-footer">
+                    <a-button @click="resetConfig">重置配置</a-button>
+                    <a-button type="primary" @click="showConfigDrawer = false">
+                        确定
+                    </a-button>
+                </div>
+            </template>
+        </a-drawer>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import {
     IconGithub,
@@ -423,13 +542,16 @@ import {
     IconClockCircle,
     IconDown,
     IconExport,
-    IconCheckCircleFill,
+    IconSettings,
+    IconThunderbolt,
+    IconSafe,
 } from "@arco-design/web-vue/es/icon";
 import { Message } from "@arco-design/web-vue";
 import QRCode from "qrcode";
-import { addUrl } from "@/services/api.js";
+import { addUrl, REDIRECT_TYPE_OPTIONS } from "@/services/api.js";
 import { getCurrentUser, signOut } from "@/services/auth.js";
 import { validateUrl } from "@/utils/validator.js";
+import LinkConfigForm from "@/components/LinkConfigForm.vue";
 
 const router = useRouter();
 const user = ref(null);
@@ -438,6 +560,69 @@ const currentShortUrl = ref("");
 const isLoading = ref(false);
 const qrcodeModalVisible = ref(false);
 const qrcodeCanvas = ref(null);
+const showConfigDrawer = ref(false);
+
+// 链接配置 - 使用 ref 而不是 reactive，以便正确接收子组件的更新
+const linkConfig = ref({
+    title: "",
+    expiration_option_id: null,
+    redirect_type: 302,
+    max_clicks: null,
+    pass_query_params: false,
+    forward_headers: false,
+    forward_header_list: [],
+    access_restrictions: null,
+});
+
+// 计算是否有高级配置
+const hasAdvancedConfig = computed(() => {
+    const config = linkConfig.value;
+    return (
+        config.redirect_type !== 302 ||
+        config.expiration_option_id ||
+        config.max_clicks ||
+        config.pass_query_params ||
+        config.forward_headers ||
+        hasAccessRestrictions.value
+    );
+});
+
+// 计算是否有访问限制
+const hasAccessRestrictions = computed(() => {
+    const config = linkConfig.value;
+    if (!config.access_restrictions) return false;
+    const r = config.access_restrictions;
+    return (
+        (r.ip_whitelist && r.ip_whitelist.length > 0) ||
+        (r.ip_blacklist && r.ip_blacklist.length > 0) ||
+        (r.allowed_devices && r.allowed_devices.length > 0) ||
+        (r.allowed_referrers && r.allowed_referrers.length > 0) ||
+        (r.blocked_referrers && r.blocked_referrers.length > 0) ||
+        (r.allowed_countries && r.allowed_countries.length > 0)
+    );
+});
+
+// 获取重定向类型标签
+const redirectTypeLabel = computed(() => {
+    const option = REDIRECT_TYPE_OPTIONS.find(
+        (o) => o.value === linkConfig.value.redirect_type,
+    );
+    return option ? option.label : "302 临时重定向";
+});
+
+// 重置配置
+const resetConfig = () => {
+    linkConfig.value = {
+        title: "",
+        expiration_option_id: null,
+        redirect_type: 302,
+        max_clicks: null,
+        pass_query_params: false,
+        forward_headers: false,
+        forward_header_list: [],
+        access_restrictions: null,
+    };
+};
 
 onMounted(async () => {
     try {
@@ -480,7 +665,42 @@ const generateShortLink = async () => {
     currentShortUrl.value = "";
 
     try {
-        const data = await addUrl(inputUrl);
+        // 构建配置选项
+        const config = linkConfig.value;
+        const options = {};
+
+        if (config.title) {
+            options.title = config.title;
+        }
+        if (config.expiration_option_id) {
+            options.expiration_option_id = config.expiration_option_id;
+        }
+        // 始终传递 redirect_type
+        options.redirect_type = config.redirect_type || 302;
+
+        // 修复：使用更严格的判断，允许数字 0 以外的值
+        if (
+            config.max_clicks !== null &&
+            config.max_clicks !== undefined &&
+            config.max_clicks !== "" &&
+            config.max_clicks > 0
+        ) {
+            options.max_clicks = parseInt(config.max_clicks, 10);
+        }
+        if (config.pass_query_params) {
+            options.pass_query_params = true;
+        }
+        if (config.forward_headers) {
+            options.forward_headers = true;
+            if (config.forward_header_list?.length > 0) {
+                options.forward_header_list = config.forward_header_list;
+            }
+        }
+        if (hasAccessRestrictions.value && config.access_restrictions) {
+            options.access_restrictions = config.access_restrictions;
+        }
+
+        const data = await addUrl(inputUrl, options);
         currentShortUrl.value = window.location.origin + data.url;
         Message.success("短链接生成成功");
     } catch (error) {
@@ -529,5 +749,26 @@ const showQRCodeModal = async () => {
 .fade-leave-to {
     opacity: 0;
     transform: translateY(-10px);
+}
+
+/* 抽屉样式 */
+.drawer-content {
+    padding: 4px 8px;
+}
+
+.drawer-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+:deep(.config-drawer .arco-drawer-body) {
+    padding: 16px 20px;
+    background-color: #fafafa;
+}
+
+:deep(.config-drawer .arco-drawer-footer) {
+    padding: 12px 20px;
+    border-top: 1px solid #e5e6eb;
 }
 </style>
