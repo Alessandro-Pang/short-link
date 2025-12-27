@@ -297,17 +297,52 @@ export async function getUrl(short, visitorInfo = {}) {
  */
 export async function addUrl(link, userId = null, options = {}) {
   try {
+    if (userId) {
+      // 已登录用户：检查该用户是否已创建过相同链接
+      const { data: existingUserLinks, error: err1 } = await supabase
+        .from("links")
+        .select("*")
+        .eq("link", link)
+        .eq("user_id", userId)
+        .limit(1);
+
+      if (existingUserLinks && existingUserLinks.length > 0) {
+        // 用户已创建过该链接，返回错误提示去控制台管理
+        return {
+          data: null,
+          error: {
+            code: "DUPLICATE_LINK",
+            message: "您已创建过该链接的短链接，请前往控制台管理",
+            existingLink: existingUserLinks[0],
+          },
+        };
+      }
+    } else {
+      // 未登录用户：检查是否存在相同的匿名链接（user_id 为 null）
+      const { data: existingAnonymousLinks, error: err2 } = await supabase
+        .from("links")
+        .select("*")
+        .eq("link", link)
+        .is("user_id", null)
+        .limit(1);
+
+      if (existingAnonymousLinks && existingAnonymousLinks.length > 0) {
+        // 直接返回已存在的短链接，不创建新的
+        return { data: existingAnonymousLinks[0], error: null };
+      }
+    }
+
     // 生成短链接哈希
     const short = generatorHash(link);
 
-    // 检查是否已存在
-    const { data: existing } = await supabase
+    // 检查短链接哈希是否已存在（防止哈希冲突）
+    const { data: existingShort } = await supabase
       .from("links")
       .select("*")
       .eq("short", short)
       .maybeSingle();
 
-    if (existing) {
+    if (existingShort) {
       // 如果已存在相同哈希，重新生成
       return addUrl(link, userId, options);
     }

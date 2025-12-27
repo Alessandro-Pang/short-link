@@ -181,6 +181,26 @@ app.post(
   async (req, reply) => {
     const { url, options = {} } = req.body || {};
     const inputUrl = url || req.body?.url;
+    const userId = req.user?.id || null;
+
+    // 未登录用户不允许使用高级配置
+    if (!userId) {
+      const hasAdvancedOptions =
+        options.title ||
+        options.expiration_option_id ||
+        options.redirect_type !== 302 ||
+        options.max_clicks ||
+        options.pass_query_params ||
+        options.forward_headers ||
+        options.access_restrictions;
+
+      if (hasAdvancedOptions) {
+        return reply.send({
+          code: 401,
+          msg: "登录后才能使用高级配置功能",
+        });
+      }
+    }
 
     if (!inputUrl) {
       return reply.send({
@@ -266,10 +286,17 @@ app.post(
     }
 
     try {
-      const userId = req.user?.id || null;
       const result = await linkService.addUrl(inputUrl, userId, options);
 
       if (result.error) {
+        // 处理重复链接的特殊错误码
+        if (result.error.code === "DUPLICATE_LINK") {
+          return reply.send({
+            code: 409, // Conflict
+            msg: result.error.message,
+            existingLink: result.error.existingLink,
+          });
+        }
         return reply.send({
           code: 401,
           msg: result.error.message || "未知错误",

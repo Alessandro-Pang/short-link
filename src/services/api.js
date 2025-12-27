@@ -32,6 +32,12 @@ async function fetchApi(url, { method = "GET", body, headers = {} } = {}) {
 
     if (data.code === 200) {
       return data;
+    } else if (data.code === 409) {
+      // 处理重复链接的特殊错误
+      const error = new Error(data.msg || "链接已存在");
+      error.code = "DUPLICATE_LINK";
+      error.existingLink = data.existingLink;
+      throw error;
     } else {
       throw new Error(data.msg || "请求失败");
     }

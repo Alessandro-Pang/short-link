@@ -152,7 +152,24 @@
                                             <span class="text-xs text-gray-400">
                                                 示例：https://example.com/path?utm_source=...
                                             </span>
+                                            <a-tooltip
+                                                v-if="!user"
+                                                content="登录后可使用高级配置"
+                                            >
+                                                <a-button
+                                                    type="text"
+                                                    size="mini"
+                                                    class="text-gray-400!"
+                                                    disabled
+                                                >
+                                                    <template #icon
+                                                        ><icon-settings
+                                                    /></template>
+                                                    高级配置
+                                                </a-button>
+                                            </a-tooltip>
                                             <a-button
+                                                v-else
                                                 type="text"
                                                 size="mini"
                                                 @click="showConfigDrawer = true"
@@ -214,9 +231,9 @@
                                                     </a-button>
                                                 </a-space>
                                             </div>
-                                            <!-- 显示配置摘要 -->
+                                            <!-- 显示配置摘要（仅登录用户可见） -->
                                             <div
-                                                v-if="hasAdvancedConfig"
+                                                v-if="user && hasAdvancedConfig"
                                                 class="mt-4 pt-4 border-t border-blue-100"
                                             >
                                                 <div
@@ -531,6 +548,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
+import { Modal } from "@arco-design/web-vue";
 import {
     IconGithub,
     IconLink,
@@ -665,46 +683,62 @@ const generateShortLink = async () => {
     currentShortUrl.value = "";
 
     try {
-        // 构建配置选项
-        const config = linkConfig.value;
+        // 构建配置选项 - 仅登录用户可使用高级配置
         const options = {};
 
-        if (config.title) {
-            options.title = config.title;
-        }
-        if (config.expiration_option_id) {
-            options.expiration_option_id = config.expiration_option_id;
-        }
-        // 始终传递 redirect_type
-        options.redirect_type = config.redirect_type || 302;
+        if (user.value) {
+            const config = linkConfig.value;
 
-        // 修复：使用更严格的判断，允许数字 0 以外的值
-        if (
-            config.max_clicks !== null &&
-            config.max_clicks !== undefined &&
-            config.max_clicks !== "" &&
-            config.max_clicks > 0
-        ) {
-            options.max_clicks = parseInt(config.max_clicks, 10);
-        }
-        if (config.pass_query_params) {
-            options.pass_query_params = true;
-        }
-        if (config.forward_headers) {
-            options.forward_headers = true;
-            if (config.forward_header_list?.length > 0) {
-                options.forward_header_list = config.forward_header_list;
+            if (config.title) {
+                options.title = config.title;
             }
-        }
-        if (hasAccessRestrictions.value && config.access_restrictions) {
-            options.access_restrictions = config.access_restrictions;
+            if (config.expiration_option_id) {
+                options.expiration_option_id = config.expiration_option_id;
+            }
+            // 始终传递 redirect_type
+            options.redirect_type = config.redirect_type || 302;
+
+            // 修复：使用更严格的判断，允许数字 0 以外的值
+            if (
+                config.max_clicks !== null &&
+                config.max_clicks !== undefined &&
+                config.max_clicks !== "" &&
+                config.max_clicks > 0
+            ) {
+                options.max_clicks = parseInt(config.max_clicks, 10);
+            }
+            if (config.pass_query_params) {
+                options.pass_query_params = true;
+            }
+            if (config.forward_headers) {
+                options.forward_headers = true;
+                if (config.forward_header_list?.length > 0) {
+                    options.forward_header_list = config.forward_header_list;
+                }
+            }
+            if (hasAccessRestrictions.value && config.access_restrictions) {
+                options.access_restrictions = config.access_restrictions;
+            }
         }
 
         const data = await addUrl(inputUrl, options);
         currentShortUrl.value = window.location.origin + data.url;
         Message.success("短链接生成成功");
     } catch (error) {
-        Message.error(`生成失败: ${error.message || "未知错误"}`);
+        // 处理重复链接的特殊错误
+        if (error.code === "DUPLICATE_LINK" && error.existingLink) {
+            Modal.confirm({
+                title: "链接已存在",
+                content: "您已创建过该链接的短链接，是否前往控制台管理？",
+                okText: "前往控制台",
+                cancelText: "取消",
+                onOk: () => {
+                    router.push("/dashboard");
+                },
+            });
+        } else {
+            Message.error(`生成失败: ${error.message || "未知错误"}`);
+        }
     } finally {
         isLoading.value = false;
     }
