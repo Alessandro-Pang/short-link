@@ -78,13 +78,29 @@ export async function getUserLinks(userId, options = {}) {
     offset = 0,
     orderBy = "created_at",
     ascending = false,
+    linkId = null,
+    keyword = null,
   } = options;
 
   try {
-    const { data, error, count } = await supabase
+    let query = supabase
       .from("links")
       .select("*", { count: "exact" })
-      .eq("user_id", userId)
+      .eq("user_id", userId);
+
+    // 按 linkId 精确过滤
+    if (linkId) {
+      query = query.eq("id", linkId);
+    }
+
+    // 按关键词模糊搜索（搜索 link、short、title 字段）
+    if (keyword) {
+      query = query.or(
+        `link.ilike.%${keyword}%,short.ilike.%${keyword}%,title.ilike.%${keyword}%`,
+      );
+    }
+
+    const { data, error, count } = await query
       .order(orderBy, { ascending })
       .range(offset, offset + limit - 1);
 

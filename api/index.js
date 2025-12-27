@@ -463,6 +463,8 @@ app.get(
         offset = 0,
         orderBy = "created_at",
         ascending = false,
+        linkId,
+        keyword,
       } = req.query;
 
       const result = await dashboardService.getUserLinks(req.user.id, {
@@ -470,6 +472,8 @@ app.get(
         offset: parseInt(offset),
         orderBy,
         ascending: ascending === "true",
+        linkId: linkId || null,
+        keyword: keyword || null,
       });
 
       return reply.send({

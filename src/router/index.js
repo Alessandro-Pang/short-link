@@ -50,6 +50,21 @@ const routes = [
     name: "dashboard",
     component: DashboardPage,
     meta: { requiresAuth: true },
+    redirect: "/dashboard/stats",
+    children: [
+      {
+        path: "stats",
+        name: "dashboard-stats",
+        component: () => import("@/views/dashboard/stats/index.vue"),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: "links",
+        name: "dashboard-links",
+        component: () => import("@/views/dashboard/links/index.vue"),
+        meta: { requiresAuth: true },
+      },
+    ],
   },
 ];
 

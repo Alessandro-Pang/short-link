@@ -584,6 +584,7 @@ const showConfigDrawer = ref(false);
 const linkConfig = ref({
     title: "",
     expiration_option_id: null,
+    expiration_date: null,
     redirect_type: 302,
     max_clicks: null,
     pass_query_params: false,
@@ -598,6 +599,7 @@ const hasAdvancedConfig = computed(() => {
     return (
         config.redirect_type !== 302 ||
         config.expiration_option_id ||
+        config.expiration_date ||
         config.max_clicks ||
         config.pass_query_params ||
         config.forward_headers ||
@@ -633,6 +635,7 @@ const resetConfig = () => {
     linkConfig.value = {
         title: "",
         expiration_option_id: null,
+        expiration_date: null,
         redirect_type: 302,
         max_clicks: null,
         pass_query_params: false,
@@ -692,8 +695,11 @@ const generateShortLink = async () => {
             if (config.title) {
                 options.title = config.title;
             }
+            // 有效期：优先使用预设选项，其次使用自定义时间
             if (config.expiration_option_id) {
                 options.expiration_option_id = config.expiration_option_id;
+            } else if (config.expiration_date) {
+                options.expiration_date = config.expiration_date;
             }
             // 始终传递 redirect_type
             options.redirect_type = config.redirect_type || 302;
@@ -727,13 +733,17 @@ const generateShortLink = async () => {
     } catch (error) {
         // 处理重复链接的特殊错误
         if (error.code === "DUPLICATE_LINK" && error.existingLink) {
+            const existingLinkId = error.existingLink.id;
             Modal.confirm({
                 title: "链接已存在",
                 content: "您已创建过该链接的短链接，是否前往控制台管理？",
                 okText: "前往控制台",
                 cancelText: "取消",
                 onOk: () => {
-                    router.push("/dashboard");
+                    router.push({
+                        path: "/dashboard/links",
+                        query: { linkId: existingLinkId },
+                    });
                 },
             });
         } else {

@@ -106,6 +106,8 @@ export async function getDashboardLinks(options = {}) {
     offset = 0,
     orderBy = "created_at",
     ascending = false,
+    linkId = null,
+    keyword = null,
   } = options;
 
   const params = new URLSearchParams({
@@ -114,6 +116,14 @@ export async function getDashboardLinks(options = {}) {
     orderBy,
     ascending: ascending.toString(),
   });
+
+  // 添加可选的过滤参数
+  if (linkId) {
+    params.append("linkId", linkId);
+  }
+  if (keyword) {
+    params.append("keyword", keyword);
+  }
 
   return fetchApi(`/api/dashboard/links?${params.toString()}`);
 }

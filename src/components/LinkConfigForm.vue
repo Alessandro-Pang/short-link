@@ -18,11 +18,22 @@
                 <!-- 有效期 -->
                 <div class="form-item">
                     <div class="form-label">有效期</div>
+                    <a-radio-group
+                        v-model="expirationMode"
+                        type="button"
+                        class="mb-2 w-full"
+                    >
+                        <a-radio value="preset">预设选项</a-radio>
+                        <a-radio value="custom">自定义时间</a-radio>
+                        <a-radio value="none">不限制</a-radio>
+                    </a-radio-group>
+
                     <a-select
+                        v-if="expirationMode === 'preset'"
                         v-model="formData.expiration_option_id"
                         placeholder="选择有效期"
                         allow-clear
-                        class="w-full"
+                        class="w-full mt-2"
                     >
                         <a-option
                             v-for="option in expirationOptions"
@@ -32,6 +43,20 @@
                             {{ option.name }}
                         </a-option>
                     </a-select>
+
+                    <a-date-picker
+                        v-else-if="expirationMode === 'custom'"
+                        v-model="formData.expiration_date"
+                        show-time
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="选择过期时间"
+                        class="w-full! mt-2"
+                        :disabled-date="(current) => current < new Date()"
+                    />
+
+                    <div v-if="expirationMode === 'none'" class="form-tip mt-2">
+                        链接将永久有效
+                    </div>
                 </div>
 
                 <!-- 重定向方式 -->
@@ -268,10 +293,14 @@ const emit = defineEmits(["update:modelValue"]);
 const expirationOptions = ref([]);
 const redirectTypeOptions = REDIRECT_TYPE_OPTIONS;
 
+// 有效期模式: preset, custom, none
+const expirationMode = ref("none");
+
 // 表单数据
 const formData = reactive({
     title: "",
     expiration_option_id: null,
+    expiration_date: null,
     redirect_type: 302,
     max_clicks: null,
     pass_query_params: false,
@@ -308,12 +337,22 @@ watch(
             Object.assign(formData, {
                 title: newVal.title || "",
                 expiration_option_id: newVal.expiration_option_id || null,
+                expiration_date: newVal.expiration_date || null,
                 redirect_type: newVal.redirect_type || 302,
                 max_clicks: newVal.max_clicks || null,
                 pass_query_params: newVal.pass_query_params || false,
                 forward_headers: newVal.forward_headers || false,
                 forward_header_list: newVal.forward_header_list || [],
             });
+
+            // 设置有效期模式
+            if (newVal.expiration_date) {
+                expirationMode.value = "custom";
+            } else if (newVal.expiration_option_id) {
+                expirationMode.value = "preset";
+            } else {
+                expirationMode.value = "none";
+            }
 
             if (newVal.access_restrictions) {
                 Object.assign(accessRestrictions, newVal.access_restrictions);
@@ -322,6 +361,19 @@ watch(
     },
     { immediate: true, deep: true },
 );
+
+// 监听有效期模式变化，清理相关数据
+watch(expirationMode, (newMode) => {
+    if (newMode === "preset") {
+        formData.expiration_date = null;
+    } else if (newMode === "custom") {
+        formData.expiration_option_id = null;
+    } else {
+        // none
+        formData.expiration_option_id = null;
+        formData.expiration_date = null;
+    }
+});
 
 // 监听表单变化，向上传递
 watch(
@@ -473,6 +525,14 @@ function cleanAccessRestrictions(restrictions) {
     width: 100%;
 }
 
+.mb-2 {
+    margin-bottom: 8px;
+}
+
+.mt-2 {
+    margin-top: 8px;
+}
+
 /* 覆盖 arco 组件默认样式 */
 :deep(.arco-input-wrapper) {
     width: 100%;
@@ -496,5 +556,19 @@ function cleanAccessRestrictions(restrictions) {
 
 :deep(.arco-switch) {
     flex-shrink: 0;
+}
+
+:deep(.arco-radio-group) {
+    display: flex;
+    width: 100%;
+}
+
+:deep(.arco-radio-group .arco-radio-button) {
+    flex: 1;
+    text-align: center;
+}
+
+:deep(.arco-picker) {
+    width: 100%;
 }
 </style>
