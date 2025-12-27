@@ -2,57 +2,89 @@
  * @Author: zi.yang
  * @Date: 2025-06-10 00:20:19
  * @LastEditors: zi.yang
- * @LastEditTime: 2025-06-10 14:33:57
- * @Description: 
+ * @LastEditTime: 2025-12-27 20:00:00
+ * @Description: 路由配置和认证守卫
  * @FilePath: /short-link/src/router/index.js
  */
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from "vue-router";
+import { getSession } from "@/services/auth.js";
 
-import DashboardPage from '@/views/dashboard/index.vue';
-import HomePage from '@/views/home/index.vue';
-import LoginPage from '@/views/login/index.vue';
+import DashboardPage from "@/views/dashboard/index.vue";
+import HomePage from "@/views/home/index.vue";
+import LoginPage from "@/views/login/index.vue";
+import RegisterPage from "@/views/register/index.vue";
 
 const routes = [
   {
-    path: '/',
-    name: 'home',
-    component: HomePage
+    path: "/",
+    name: "home",
+    component: HomePage,
+    meta: { requiresAuth: false },
   },
   {
-    path: '/login',
-    name: 'login',
-    component: LoginPage
+    path: "/login",
+    name: "login",
+    component: LoginPage,
+    meta: { requiresAuth: false, redirectIfAuthenticated: true },
   },
   {
-    path: '/dashboard',
-    name: 'dashboard',
+    path: "/register",
+    name: "register",
+    component: RegisterPage,
+    meta: { requiresAuth: false, redirectIfAuthenticated: true },
+  },
+  {
+    path: "/dashboard",
+    name: "dashboard",
     component: DashboardPage,
-    // 将来可以添加路由守卫，检查用户是否已登录
-    // meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  // 将来可以添加404页面
-  // {
-  //   path: '/:pathMatch(.*)*',
-  //   name: 'not-found',
-  //   component: NotFound
-  // }
-]
+];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes,
+});
 
-// 将来可以添加全局路由守卫
-// router.beforeEach((to, from, next) => {
-//   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-//   const isAuthenticated = localStorage.getItem('user')
-//
-//   if (requiresAuth && !isAuthenticated) {
-//     next('/login')
-//   } else {
-//     next()
-//   }
-// })
+// 全局路由守卫 - 认证保护
+router.beforeEach(async (to, from, next) => {
+  // 检查路由是否需要认证
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
 
-export default router
+  // 检查路由是否需要在已认证时重定向
+  const redirectIfAuthenticated = to.matched.some(
+    (record) => record.meta.redirectIfAuthenticated,
+  );
+
+  try {
+    // 获取当前会话
+    const session = await getSession();
+    const isAuthenticated = !!session;
+
+    if (requiresAuth && !isAuthenticated) {
+      // 需要认证但未登录，重定向到登录页
+      next({
+        path: "/login",
+        query: { redirect: to.fullPath }, // 保存原始路径，登录后可以重定向回来
+      });
+    } else if (redirectIfAuthenticated && isAuthenticated) {
+      // 已登录用户访问登录/注册页，重定向到 dashboard
+      next("/dashboard");
+    } else {
+      // 允许访问
+      next();
+    }
+  } catch (error) {
+    console.error("认证检查失败:", error);
+
+    if (requiresAuth) {
+      // 如果需要认证但检查失败，重定向到登录页
+      next("/login");
+    } else {
+      // 否则允许访问
+      next();
+    }
+  }
+});
+
+export default router;

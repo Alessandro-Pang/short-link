@@ -3,39 +3,44 @@
  * @Date: 2025-06-09 19:48:21
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-06-10 14:19:50
- * @Description: 
+ * @Description:
  * @FilePath: /short-link/vite.config.js
  */
-import { fileURLToPath, URL } from 'node:url';
+import { fileURLToPath, URL } from "node:url";
 
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from "vite";
 
-import vue from '@vitejs/plugin-vue';
+import vue from "@vitejs/plugin-vue";
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [
-    vue(),
-  ],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
-  },
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true
-  },
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  return {
+    plugins: [vue()],
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("./src", import.meta.url)),
       },
-      '/u': {
-        target: 'http://localhost:3000',
-        changeOrigin: true
-      }
-    }
-  }
-})
+    },
+    build: {
+      outDir: "dist",
+      emptyOutDir: true,
+    },
+    server: {
+      proxy: {
+        "/api": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+        },
+        "/u": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+        },
+      },
+    },
+    define: {
+      __SUPABASE_URL__: JSON.stringify(env.SUPABASE_URL),
+      __SUPABASE_ANON_KEY__: JSON.stringify(env.SUPABASE_ANON_KEY),
+    },
+  };
+});

@@ -1,11 +1,25 @@
 <template>
-    <div class="login-wrapper">
-        <div class="login-card">
-            <h1 class="login-title">登录</h1>
-            <p class="login-subtitle">登录以管理您的短链接</p>
+    <div class="register-wrapper">
+        <div class="register-card">
+            <h1 class="register-title">注册</h1>
+            <p class="register-subtitle">创建账号以管理您的短链接</p>
 
-            <!-- Email 登录表单 -->
-            <form class="login-form" @submit.prevent="handleEmailLogin">
+            <!-- Email 注册表单 -->
+            <form class="register-form" @submit.prevent="handleEmailRegister">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input
+                        type="text"
+                        id="username"
+                        v-model="username"
+                        placeholder="请输入用户名"
+                        required
+                        minlength="3"
+                        maxlength="20"
+                    />
+                    <span class="form-hint">用户名长度为 3-20 个字符</span>
+                </div>
+
                 <div class="form-group">
                     <label for="email">邮箱</label>
                     <input
@@ -25,36 +39,40 @@
                         v-model="password"
                         placeholder="请输入密码"
                         required
+                        minlength="6"
                     />
+                    <span class="form-hint">密码长度至少 6 个字符</span>
                 </div>
 
-                <div class="form-extras">
-                    <a
-                        href="#"
-                        @click.prevent="handleForgotPassword"
-                        class="forgot-password"
-                        >忘记密码?</a
-                    >
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码</label>
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        v-model="confirmPassword"
+                        placeholder="请再次输入密码"
+                        required
+                    />
                 </div>
 
                 <div class="form-actions">
                     <button
                         type="submit"
-                        class="login-button"
+                        class="register-button"
                         :disabled="isLoading"
                     >
                         <LoadingSpinner v-if="isLoading" :active="true" />
-                        <span v-else>登录</span>
+                        <span v-else>注册</span>
                     </button>
                 </div>
             </form>
 
-            <!-- OAuth 登录按钮 -->
+            <!-- OAuth 注册按钮 -->
             <div class="oauth-buttons">
                 <button
                     type="button"
                     class="oauth-button github"
-                    @click="handleGithubLogin"
+                    @click="handleGithubRegister"
                     :disabled="isLoading"
                 >
                     <svg
@@ -73,7 +91,7 @@
                 <button
                     type="button"
                     class="oauth-button google"
-                    @click="handleGoogleLogin"
+                    @click="handleGoogleRegister"
                     :disabled="isLoading"
                 >
                     <svg viewBox="0 0 24 24" width="20" height="20">
@@ -98,10 +116,9 @@
                 </button>
             </div>
 
-            <div class="login-footer">
+            <div class="register-footer">
                 <p>
-                    还没有账号？
-                    <a href="#" @click.prevent="goToRegister">注册</a>
+                    已有账号？ <a href="#" @click.prevent="goToLogin">登录</a>
                 </p>
                 <p><a href="#" @click.prevent="goToHome">返回首页</a></p>
             </div>
@@ -117,19 +134,21 @@ import { showError, showMessage } from "@/utils/message.js";
 import {
     signInWithGithub,
     signInWithGoogle,
-    signInWithEmail,
+    signUpWithEmail,
 } from "@/services/auth.js";
 
 // 响应式状态
+const username = ref("");
 const email = ref("");
 const password = ref("");
+const confirmPassword = ref("");
 const isLoading = ref(false);
 
 // 路由
 const router = useRouter();
 
-// 处理 GitHub 登录
-async function handleGithubLogin() {
+// 处理 GitHub 注册
+async function handleGithubRegister() {
     if (isLoading.value) return;
 
     isLoading.value = true;
@@ -138,13 +157,13 @@ async function handleGithubLogin() {
         // OAuth 会自动重定向，无需手动处理
     } catch (error) {
         isLoading.value = false;
-        console.error("GitHub 登录失败:", error);
-        showError(error.message || "GitHub 登录失败，请稍后再试");
+        console.error("GitHub 注册失败:", error);
+        showError(error.message || "GitHub 注册失败，请稍后再试");
     }
 }
 
-// 处理 Google 登录
-async function handleGoogleLogin() {
+// 处理 Google 注册
+async function handleGoogleRegister() {
     if (isLoading.value) return;
 
     isLoading.value = true;
@@ -153,56 +172,74 @@ async function handleGoogleLogin() {
         // OAuth 会自动重定向，无需手动处理
     } catch (error) {
         isLoading.value = false;
-        console.error("Google 登录失败:", error);
-        showError(error.message || "Google 登录失败，请稍后再试");
+        console.error("Google 注册失败:", error);
+        showError(error.message || "Google 注册失败，请稍后再试");
     }
 }
 
-// 处理邮箱登录
-async function handleEmailLogin() {
-    if (!email.value || !password.value) {
-        showError("请输入邮箱和密码");
+// 处理邮箱注册
+async function handleEmailRegister() {
+    // 验证表单
+    if (
+        !username.value ||
+        !email.value ||
+        !password.value ||
+        !confirmPassword.value
+    ) {
+        showError("请填写所有字段");
+        return;
+    }
+
+    if (username.value.length < 3 || username.value.length > 20) {
+        showError("用户名长度为 3-20 个字符");
+        return;
+    }
+
+    if (password.value.length < 6) {
+        showError("密码长度至少 6 个字符");
+        return;
+    }
+
+    if (password.value !== confirmPassword.value) {
+        showError("两次输入的密码不一致");
         return;
     }
 
     isLoading.value = true;
 
     try {
-        const { user, session } = await signInWithEmail(
+        const { user, session } = await signUpWithEmail(
             email.value,
             password.value,
+            { username: username.value },
         );
 
-        showMessage("登录成功！", "success");
+        showMessage("注册成功！请查收邮箱验证邮件", "success");
 
-        // 登录成功后重定向到统计面板
+        // 注册成功后跳转到登录页面
         setTimeout(() => {
-            router.push("/dashboard");
-        }, 500);
+            router.push("/login");
+        }, 2000);
     } catch (error) {
         isLoading.value = false;
-        console.error("邮箱登录失败:", error);
+        console.error("邮箱注册失败:", error);
 
         // 处理不同类型的错误
-        if (error.message.includes("Invalid login credentials")) {
-            showError("邮箱或密码错误");
-        } else if (error.message.includes("Email not confirmed")) {
-            showError("请先验证您的邮箱");
+        if (error.message.includes("User already registered")) {
+            showError("该邮箱已被注册");
+        } else if (
+            error.message.includes("Password should be at least 6 characters")
+        ) {
+            showError("密码长度至少 6 个字符");
         } else {
-            showError(error.message || "登录失败，请稍后再试");
+            showError(error.message || "注册失败，请稍后再试");
         }
     }
 }
 
-// 处理忘记密码
-function handleForgotPassword() {
-    showMessage("密码重置功能即将上线", "info");
-    // TODO: 实现密码重置功能
-}
-
-// 跳转到注册页面
-function goToRegister() {
-    router.push("/register");
+// 跳转到登录页面
+function goToLogin() {
+    router.push("/login");
 }
 
 // 跳转到首页
@@ -212,7 +249,7 @@ function goToHome() {
 </script>
 
 <style scoped>
-.login-wrapper {
+.register-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -221,7 +258,7 @@ function goToHome() {
     padding: 20px;
 }
 
-.login-card {
+.register-card {
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -233,7 +270,7 @@ function goToHome() {
     overflow: hidden;
 }
 
-.login-card::before {
+.register-card::before {
     content: "";
     position: absolute;
     top: 0;
@@ -243,14 +280,14 @@ function goToHome() {
     background: linear-gradient(90deg, #4776e6, #8e54e9);
 }
 
-.login-title {
+.register-title {
     font-size: 28px;
     font-weight: 700;
     color: #2d3436;
     margin-bottom: 8px;
 }
 
-.login-subtitle {
+.register-subtitle {
     color: #636e72;
     margin-bottom: 30px;
     font-size: 14px;
@@ -336,7 +373,7 @@ function goToHome() {
     font-size: 13px;
 }
 
-.login-form {
+.register-form {
     text-align: left;
 }
 
@@ -369,29 +406,18 @@ function goToHome() {
     background-color: #fff;
 }
 
-.form-extras {
-    margin-bottom: 20px;
-    text-align: right;
-}
-
-.forgot-password {
-    color: #6c5ce7;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-.forgot-password:hover {
-    text-decoration: underline;
-    color: #4834d4;
+.form-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #636e72;
 }
 
 .form-actions {
     margin-top: 24px;
 }
 
-.login-button {
+.register-button {
     width: 100%;
     padding: 14px;
     background: linear-gradient(90deg, #4776e6, #8e54e9);
@@ -408,36 +434,36 @@ function goToHome() {
     align-items: center;
 }
 
-.login-button:not(:disabled):hover {
+.register-button:not(:disabled):hover {
     background: linear-gradient(90deg, #3d68d8, #7c48d5);
     transform: translateY(-2px);
     box-shadow: 0 6px 15px rgba(108, 92, 231, 0.3);
 }
 
-.login-button:disabled {
+.register-button:disabled {
     opacity: 0.7;
     cursor: not-allowed;
 }
 
-.login-footer {
+.register-footer {
     margin-top: 24px;
     font-size: 14px;
     color: #636e72;
 }
 
-.login-footer a {
+.register-footer a {
     color: #6c5ce7;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.2s ease;
 }
 
-.login-footer a:hover {
+.register-footer a:hover {
     text-decoration: underline;
     color: #4834d4;
 }
 
-.login-footer p {
+.register-footer p {
     margin: 8px 0;
 }
 </style>
