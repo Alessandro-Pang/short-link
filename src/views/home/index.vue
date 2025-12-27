@@ -2,159 +2,323 @@
     <div class="min-h-screen bg-gray-50 flex flex-col">
         <!-- Header / Nav -->
         <header
-            class="w-full bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-50"
+            class="w-full bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/75 border-b border-gray-100 sticky top-0 z-50"
         >
-            <div class="flex items-center gap-2">
-                <div
-                    class="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 cursor-pointer"
-                    @click="$router.push('/')"
-                >
-                    Short Link
+            <div
+                class="mx-auto w-full max-w-7xl px-4 sm:px-6 py-3 flex justify-between items-center"
+            >
+                <div class="flex items-center gap-3 min-w-0">
+                    <div
+                        class="text-xl font-semibold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 cursor-pointer truncate"
+                        @click="$router.push('/')"
+                    >
+                        Short Link
+                    </div>
+                    <span
+                        class="hidden sm:inline-flex items-center rounded-full border border-gray-200 bg-white px-2 py-0.5 text-xs text-gray-500"
+                    >
+                        企业级短链服务
+                    </span>
                 </div>
-            </div>
-            <div class="flex items-center gap-4">
-                <a
-                    href="https://github.com/Alessandro-Pang/short-link"
-                    target="_blank"
-                    class="text-gray-600 hover:text-gray-900 transition-colors flex items-center"
-                >
-                    <icon-github class="text-xl" />
-                </a>
-                <template v-if="user">
-                    <a-dropdown @select="handleDropdownSelect">
-                        <a-button type="text" class="text-gray-700! px-2!">
-                            {{ user.email }}
-                            <icon-down class="ml-2" />
-                        </a-button>
-                        <template #content>
-                            <a-doption value="dashboard">
-                                <template #icon><icon-dashboard /></template>
-                                控制台
-                            </a-doption>
-                            <a-doption value="logout">
-                                <template #icon><icon-export /></template>
-                                退出登录
-                            </a-doption>
-                        </template>
-                    </a-dropdown>
-                </template>
-                <template v-else>
-                    <a-space>
-                        <a-button type="text" @click="$router.push('/login')"
-                            >登录</a-button
-                        >
-                        <a-button
-                            type="primary"
-                            @click="$router.push('/register')"
-                            >注册</a-button
-                        >
-                    </a-space>
-                </template>
+
+                <div class="flex items-center gap-3 sm:gap-4">
+                    <a
+                        href="https://github.com/Alessandro-Pang/short-link"
+                        target="_blank"
+                        class="text-gray-600 hover:text-gray-900 transition-colors flex items-center"
+                        aria-label="GitHub"
+                    >
+                        <icon-github class="text-xl" />
+                    </a>
+
+                    <template v-if="user">
+                        <a-dropdown @select="handleDropdownSelect">
+                            <a-button type="text" class="text-gray-700! px-2!">
+                                <span
+                                    class="max-w-[160px] sm:max-w-[240px] truncate inline-block align-bottom"
+                                >
+                                    {{ user.email }}
+                                </span>
+                                <icon-down class="ml-2" />
+                            </a-button>
+                            <template #content>
+                                <a-doption value="dashboard">
+                                    <template #icon
+                                        ><icon-dashboard
+                                    /></template>
+                                    控制台
+                                </a-doption>
+                                <a-doption value="logout">
+                                    <template #icon><icon-export /></template>
+                                    退出登录
+                                </a-doption>
+                            </template>
+                        </a-dropdown>
+                    </template>
+
+                    <template v-else>
+                        <a-space>
+                            <a-button
+                                type="text"
+                                @click="$router.push('/login')"
+                                >登录</a-button
+                            >
+                            <a-button
+                                type="primary"
+                                @click="$router.push('/register')"
+                                >注册</a-button
+                            >
+                        </a-space>
+                    </template>
+                </div>
             </div>
         </header>
 
         <!-- Main Content -->
-        <main
-            class="flex-1 flex flex-col items-center justify-center p-4 w-full"
-        >
-            <div class="w-full max-w-3xl">
-                <!-- Hero Section -->
-                <div class="text-center mb-12 mt-8">
-                    <h1
-                        class="text-4xl md:text-5xl font-bold text-gray-800 mb-6 tracking-tight"
-                    >
-                        让链接更短，让分享更简单
-                    </h1>
-                    <p
-                        class="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto"
-                    >
-                        高效、稳定、安全的短链接生成服务，助您轻松管理和追踪每一个链接。
-                    </p>
-                </div>
-
-                <!-- Main Card -->
-                <a-card
-                    class="shadow-xl rounded-2xl border-0 overflow-hidden"
-                    :body-style="{ padding: '40px' }"
+        <main class="flex-1 w-full">
+            <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 py-10 sm:py-14">
+                <div
+                    class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start"
                 >
-                    <a-space direction="vertical" size="large" class="w-full">
-                        <div class="relative">
-                            <a-input-search
-                                v-model="urlInput"
-                                placeholder="请输入需要缩短的链接 (http://, https://)"
-                                button-text="生成短链接"
-                                search-button
-                                size="large"
-                                :loading="isLoading"
-                                @search="generateShortLink"
-                                @press-enter="generateShortLink"
-                                allow-clear
-                                class="h-12"
+                    <!-- Left: Hero + Input -->
+                    <section class="lg:col-span-7">
+                        <!-- Hero Section -->
+                        <div class="text-left mb-8 sm:mb-10">
+                            <h1
+                                class="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight leading-tight"
                             >
-                                <template #prefix>
-                                    <icon-link class="text-gray-400" />
-                                </template>
-                            </a-input-search>
+                                让链接更短，
+                                <span
+                                    class="bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600"
+                                >
+                                    让分享更简单
+                                </span>
+                            </h1>
+                            <p
+                                class="mt-4 text-gray-600 text-base md:text-lg max-w-2xl"
+                            >
+                                高效、稳定、安全的短链接生成与管理平台，支持统计分析、有效期与批量管理，适配团队与企业场景。
+                            </p>
+
+                            <div class="mt-6 flex flex-wrap gap-2">
+                                <span
+                                    class="inline-flex items-center rounded-full bg-gray-900 text-white text-xs px-3 py-1"
+                                    >稳定可用</span
+                                >
+                                <span
+                                    class="inline-flex items-center rounded-full bg-white border border-gray-200 text-gray-700 text-xs px-3 py-1"
+                                    >可追踪统计</span
+                                >
+                                <span
+                                    class="inline-flex items-center rounded-full bg-white border border-gray-200 text-gray-700 text-xs px-3 py-1"
+                                    >安全可控</span
+                                >
+                            </div>
                         </div>
 
-                        <!-- Result Area -->
-                        <transition name="fade">
-                            <div
-                                v-if="currentShortUrl"
-                                class="bg-blue-50 p-6 rounded-xl border border-blue-100 mt-4"
-                            >
-                                <div
-                                    class="flex flex-col md:flex-row items-center justify-between gap-4"
+                        <!-- Main Card -->
+                        <a-card
+                            class="rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+                            :body-style="{ padding: '0' }"
+                        >
+                            <div class="p-6 sm:p-8">
+                                <a-space
+                                    direction="vertical"
+                                    size="large"
+                                    class="w-full"
                                 >
-                                    <div
-                                        class="flex items-center gap-3 overflow-hidden w-full md:w-auto"
-                                    >
-                                        <div
-                                            class="bg-green-500 p-1.5 rounded-full text-white shrink-0"
+                                    <div class="relative">
+                                        <a-input-search
+                                            v-model="urlInput"
+                                            placeholder="粘贴原始链接（支持 http:// / https://）"
+                                            button-text="生成短链接"
+                                            search-button
+                                            size="large"
+                                            :loading="isLoading"
+                                            @search="generateShortLink"
+                                            @press-enter="generateShortLink"
+                                            allow-clear
+                                            class="h-12"
                                         >
-                                            <icon-check />
+                                            <template #prefix>
+                                                <icon-link
+                                                    class="text-gray-400"
+                                                />
+                                            </template>
+                                        </a-input-search>
+                                        <div class="mt-2 text-xs text-gray-400">
+                                            示例：https://example.com/path?utm_source=...
                                         </div>
-                                        <a
-                                            :href="currentShortUrl"
-                                            target="_blank"
-                                            class="text-lg font-medium text-blue-600 truncate hover:underline block"
-                                        >
-                                            {{ currentShortUrl }}
-                                        </a>
                                     </div>
-                                    <a-space class="shrink-0">
-                                        <a-button
-                                            type="secondary"
-                                            size="small"
-                                            @click="copyLink"
+
+                                    <!-- Result Area -->
+                                    <transition name="fade">
+                                        <div
+                                            v-if="currentShortUrl"
+                                            class="bg-blue-50 p-6 rounded-xl border border-blue-100 mt-4"
                                         >
-                                            <template #icon
-                                                ><icon-copy
-                                            /></template>
-                                            复制
-                                        </a-button>
-                                        <a-button
-                                            type="secondary"
-                                            size="small"
-                                            @click="showQRCodeModal"
-                                        >
-                                            <template #icon
-                                                ><icon-qrcode
-                                            /></template>
-                                            二维码
-                                        </a-button>
-                                    </a-space>
+                                            <div
+                                                class="flex flex-col md:flex-row items-center justify-between gap-4"
+                                            >
+                                                <div
+                                                    class="flex items-center gap-3 overflow-hidden w-full md:w-auto"
+                                                >
+                                                    <div
+                                                        class="bg-green-500 p-1.5 rounded-full text-white shrink-0"
+                                                    >
+                                                        <icon-check />
+                                                    </div>
+                                                    <a
+                                                        :href="currentShortUrl"
+                                                        target="_blank"
+                                                        class="text-lg font-medium text-blue-600 truncate hover:underline block"
+                                                    >
+                                                        {{ currentShortUrl }}
+                                                    </a>
+                                                </div>
+                                                <a-space class="shrink-0">
+                                                    <a-button
+                                                        type="secondary"
+                                                        size="small"
+                                                        @click="copyLink"
+                                                    >
+                                                        <template #icon
+                                                            ><icon-copy
+                                                        /></template>
+                                                        复制
+                                                    </a-button>
+                                                    <a-button
+                                                        type="secondary"
+                                                        size="small"
+                                                        @click="showQRCodeModal"
+                                                    >
+                                                        <template #icon
+                                                            ><icon-qrcode
+                                                        /></template>
+                                                        二维码
+                                                    </a-button>
+                                                </a-space>
+                                            </div>
+                                        </div>
+                                    </transition>
+                                </a-space>
+                            </div>
+                        </a-card>
+                    </section>
+
+                    <!-- Right: Enterprise value props -->
+                    <aside class="lg:col-span-5">
+                        <div
+                            class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 sm:p-8"
+                        >
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <div class="text-sm text-gray-500">
+                                        企业级能力
+                                    </div>
+                                    <div
+                                        class="mt-1 text-xl font-semibold text-gray-900 tracking-tight"
+                                    >
+                                        更稳定、更可控的短链平台
+                                    </div>
+                                </div>
+                                <div
+                                    class="hidden sm:flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600"
+                                >
+                                    SLA Ready
                                 </div>
                             </div>
-                        </transition>
-                    </a-space>
-                </a-card>
+
+                            <div class="mt-6 space-y-4">
+                                <div class="flex gap-3">
+                                    <div
+                                        class="mt-0.5 w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"
+                                    >
+                                        <icon-dashboard />
+                                    </div>
+                                    <div>
+                                        <div
+                                            class="font-semibold text-gray-900"
+                                        >
+                                            统一管理与审计
+                                        </div>
+                                        <div
+                                            class="mt-1 text-sm text-gray-600 leading-relaxed"
+                                        >
+                                            在控制台集中管理短链、备注、分组与状态，便于团队协作与审计追踪。
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-3">
+                                    <div
+                                        class="mt-0.5 w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"
+                                    >
+                                        <icon-bar-chart />
+                                    </div>
+                                    <div>
+                                        <div
+                                            class="font-semibold text-gray-900"
+                                        >
+                                            数据统计与洞察
+                                        </div>
+                                        <div
+                                            class="mt-1 text-sm text-gray-600 leading-relaxed"
+                                        >
+                                            监控点击量与趋势，帮助你评估投放效果，快速定位高价值渠道与内容。
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-3">
+                                    <div
+                                        class="mt-0.5 w-9 h-9 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0"
+                                    >
+                                        <icon-clock-circle />
+                                    </div>
+                                    <div>
+                                        <div
+                                            class="font-semibold text-gray-900"
+                                        >
+                                            安全策略与有效期
+                                        </div>
+                                        <div
+                                            class="mt-1 text-sm text-gray-600 leading-relaxed"
+                                        >
+                                            支持短链有效期管理与风险控制，降低长期暴露带来的安全隐患。
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                                <a-button
+                                    type="primary"
+                                    long
+                                    class="h-11! rounded-lg! font-medium!"
+                                    @click="$router.push('/dashboard')"
+                                >
+                                    进入控制台
+                                </a-button>
+                                <a-button
+                                    type="secondary"
+                                    long
+                                    class="h-11! rounded-lg! font-medium!"
+                                    @click="$router.push('/login')"
+                                >
+                                    登录查看我的链接
+                                </a-button>
+                            </div>
+
+                            <div class="mt-4 text-xs text-gray-400">
+                                提示：登录后可查看历史记录、统计分析并管理你的短链接资产。
+                            </div>
+                        </div>
+                    </aside>
+                </div>
 
                 <!-- Login Reminder / Features -->
-                <div
-                    v-if="!user"
-                    class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6"
-                >
+                <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div
                         class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1"
                     >
@@ -201,36 +365,26 @@
                         </p>
                     </div>
                 </div>
-
-                <div v-else class="mt-10 text-center">
-                    <a-alert
-                        type="success"
-                        class="inline-block text-left max-w-2xl shadow-sm border-green-200 bg-green-50"
-                    >
-                        <template #icon
-                            ><icon-check-circle-fill class="text-green-500"
-                        /></template>
-                        您已登录！现在可以前往
-                        <a-link
-                            @click="$router.push('/dashboard')"
-                            class="font-bold"
-                            >控制台</a-link
-                        >
-                        查看详细访问数据和管理您的链接。
-                    </a-alert>
-                </div>
             </div>
         </main>
 
         <!-- Footer -->
-        <footer
-            class="py-8 text-center text-gray-400 text-sm bg-white border-t border-gray-100 mt-auto"
-        >
-            <div class="mb-2">
-                © {{ new Date().getFullYear() }} Short Link Service. All rights
-                reserved.
+        <footer class="mt-10 border-t border-gray-100 bg-white">
+            <div
+                class="mx-auto w-full max-w-7xl px-4 sm:px-6 py-8 text-sm text-gray-500"
+            >
+                <div
+                    class="flex flex-col sm:flex-row items-center justify-between gap-3"
+                >
+                    <div>
+                        © {{ new Date().getFullYear() }} Short Link Service.
+                        All rights reserved.
+                    </div>
+                    <div class="text-gray-400">
+                        Powered by Vue 3, Arco Design & Tailwind CSS
+                    </div>
+                </div>
             </div>
-            <div>Powered by Vue 3, Arco Design & Tailwind CSS</div>
         </footer>
 
         <!-- QR Code Modal -->

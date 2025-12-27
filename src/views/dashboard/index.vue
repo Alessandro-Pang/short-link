@@ -2,69 +2,90 @@
     <a-layout class="h-screen bg-gray-50">
         <a-layout-sider
             breakpoint="lg"
-            :width="220"
+            :width="240"
             collapsible
             :collapsed="collapsed"
             @collapse="onCollapse"
-            class="bg-white! shadow-sm z-10"
+            class="bg-white! shadow-sm z-20 border-r border-gray-100"
         >
             <div
-                class="h-16 flex items-center justify-center border-b border-gray-100"
+                class="h-16 flex items-center justify-center border-b border-gray-50"
             >
                 <div
-                    class="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 cursor-pointer flex items-center gap-2"
+                    class="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 cursor-pointer flex items-center gap-2 transition-all duration-300 hover:opacity-80"
                     @click="goToHome"
                 >
-                    <span v-if="!collapsed">Short Link</span>
-                    <span v-else>SL</span>
+                    <div
+                        class="w-8 h-8 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-md shrink-0"
+                    >
+                        <icon-link v-if="collapsed" />
+                        <icon-dashboard v-else />
+                    </div>
+                    <span
+                        v-if="!collapsed"
+                        class="tracking-tight text-gray-800! font-bold"
+                        >Short Link</span
+                    >
                 </div>
             </div>
             <a-menu
                 :default-selected-keys="['stats']"
                 :selected-keys="[currentView]"
                 @menu-item-click="handleMenuClick"
-                class="mt-2"
+                class="mt-4 px-2"
             >
-                <a-menu-item key="stats">
+                <a-menu-item key="stats" class="rounded-lg! mb-1">
                     <template #icon><icon-bar-chart /></template>
                     数据概览
                 </a-menu-item>
-                <a-menu-item key="links">
+                <a-menu-item key="links" class="rounded-lg! mb-1">
                     <template #icon><icon-link /></template>
                     链接管理
                 </a-menu-item>
             </a-menu>
         </a-layout-sider>
 
-        <a-layout>
+        <a-layout class="flex flex-col h-screen overflow-hidden">
             <a-layout-header
-                class="h-16 bg-white shadow-sm px-6 flex justify-between items-center z-10"
+                class="h-16 bg-white border-b border-gray-100 px-6 flex justify-between items-center z-10 shrink-0"
             >
-                <div class="text-lg font-medium text-gray-800">
-                    {{ currentView === "stats" ? "数据概览" : "链接管理" }}
+                <div class="flex items-center gap-4">
+                    <h2 class="text-lg font-semibold text-gray-800">
+                        {{ currentView === "stats" ? "数据概览" : "链接管理" }}
+                    </h2>
                 </div>
                 <div class="flex items-center gap-4">
                     <a-tooltip content="刷新数据">
                         <a-button
                             shape="circle"
+                            type="text"
                             size="small"
                             @click="loadData"
                             :loading="isLoading"
+                            class="text-gray-500 hover:bg-gray-100"
                         >
                             <template #icon><icon-refresh /></template>
                         </a-button>
                     </a-tooltip>
+                    <div class="h-6 w-px bg-gray-200 mx-1"></div>
                     <a-dropdown @select="handleUserDropdown">
                         <div
-                            class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded transition-colors"
+                            class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-gray-100"
                         >
-                            <a-avatar :size="32" class="bg-blue-500">{{
+                            <a-avatar :size="32" class="bg-blue-600">{{
                                 userEmail?.[0]?.toUpperCase()
                             }}</a-avatar>
-                            <span class="text-gray-700 hidden sm:block">{{
-                                userEmail
-                            }}</span>
-                            <icon-down class="text-gray-400" />
+                            <div class="hidden sm:flex flex-col items-start">
+                                <span
+                                    class="text-sm font-medium text-gray-700 leading-none"
+                                    >{{ userEmail?.split("@")[0] }}</span
+                                >
+                                <span
+                                    class="text-xs text-gray-400 leading-none mt-1"
+                                    >Pro Plan</span
+                                >
+                            </div>
+                            <icon-down class="text-gray-400 text-xs ml-1" />
                         </div>
                         <template #content>
                             <a-doption value="home">
@@ -80,253 +101,399 @@
                 </div>
             </a-layout-header>
 
-            <a-layout-content class="p-6 overflow-y-auto">
-                <a-spin :loading="isLoading" class="w-full min-h-50">
-                    <!-- Stats View -->
-                    <div v-if="currentView === 'stats'" class="space-y-6">
-                        <div
-                            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-                        >
-                            <a-card
-                                class="rounded-xl shadow-sm hover:shadow-md transition-shadow border-none"
+            <a-layout-content class="flex-1 overflow-y-auto bg-gray-50 p-6">
+                <div class="max-w-7xl mx-auto">
+                    <a-spin :loading="isLoading" class="w-full min-h-50">
+                        <!-- Stats View -->
+                        <div v-if="currentView === 'stats'" class="space-y-6">
+                            <!-- Stats Grid -->
+                            <div
+                                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
                             >
-                                <a-statistic
-                                    title="总链接数"
-                                    :value="stats.total_links"
-                                    show-group-separator
-                                    animation
+                                <div
+                                    class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
                                 >
-                                    <template #prefix
-                                        ><icon-link class="text-blue-500"
-                                    /></template>
-                                </a-statistic>
-                            </a-card>
-                            <a-card
-                                class="rounded-xl shadow-sm hover:shadow-md transition-shadow border-none"
-                            >
-                                <a-statistic
-                                    title="总点击数"
-                                    :value="stats.total_clicks"
-                                    show-group-separator
-                                    animation
-                                >
-                                    <template #prefix
-                                        ><icon-thunderbolt
-                                            class="text-orange-500"
-                                    /></template>
-                                </a-statistic>
-                            </a-card>
-                            <a-card
-                                class="rounded-xl shadow-sm hover:shadow-md transition-shadow border-none"
-                            >
-                                <a-statistic
-                                    title="本周新增"
-                                    :value="stats.weekly_new_links"
-                                    show-group-separator
-                                    animation
-                                >
-                                    <template #prefix
-                                        ><icon-plus-circle
-                                            class="text-green-500"
-                                    /></template>
-                                </a-statistic>
-                            </a-card>
-                            <a-card
-                                class="rounded-xl shadow-sm hover:shadow-md transition-shadow border-none"
-                            >
-                                <a-statistic
-                                    title="平均点击"
-                                    :value="Number(stats.avg_clicks_per_link)"
-                                    :precision="1"
-                                    animation
-                                >
-                                    <template #prefix
-                                        ><icon-bar-chart
-                                            class="text-purple-500"
-                                    /></template>
-                                </a-statistic>
-                            </a-card>
-                        </div>
-
-                        <!-- Recent Links Preview in Stats -->
-                        <a-card
-                            class="rounded-xl shadow-sm border-none"
-                            title="最近创建"
-                        >
-                            <template #extra>
-                                <a-link @click="currentView = 'links'"
-                                    >查看全部</a-link
-                                >
-                            </template>
-                            <a-table
-                                :data="links.slice(0, 5)"
-                                :pagination="false"
-                                :bordered="false"
-                            >
-                                <template #columns>
-                                    <a-table-column
-                                        title="原始链接"
-                                        data-index="link"
-                                        ellipsis
-                                        tooltip
-                                    ></a-table-column>
-                                    <a-table-column
-                                        title="短链接"
-                                        data-index="short"
+                                    <div
+                                        class="flex items-center justify-between mb-4"
                                     >
-                                        <template #cell="{ record }">
-                                            <a-link
-                                                :href="`${origin}/${record.short}`"
-                                                target="_blank"
-                                                >{{ origin }}/{{
-                                                    record.short
-                                                }}</a-link
-                                            >
-                                        </template>
-                                    </a-table-column>
-                                    <a-table-column
-                                        title="点击数"
-                                        data-index="click_count"
-                                    ></a-table-column>
-                                    <a-table-column
-                                        title="创建时间"
-                                        data-index="created_at"
+                                        <span class="text-gray-500 text-sm"
+                                            >总链接数</span
+                                        >
+                                        <div
+                                            class="p-2 bg-blue-50 rounded-lg text-blue-600"
+                                        >
+                                            <icon-link />
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="text-2xl font-bold text-gray-900"
                                     >
-                                        <template #cell="{ record }">
-                                            {{ formatDate(record.created_at) }}
-                                        </template>
-                                    </a-table-column>
-                                </template>
-                            </a-table>
-                        </a-card>
-                    </div>
+                                        {{ stats.total_links }}
+                                    </div>
+                                    <div
+                                        class="mt-2 text-xs text-green-600 flex items-center"
+                                    >
+                                        <icon-arrow-rise class="mr-1" />
+                                        <span>持续增长中</span>
+                                    </div>
+                                </div>
 
-                    <!-- Links View -->
-                    <div v-else class="space-y-6">
-                        <a-card class="rounded-xl shadow-sm border-none">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-medium">链接列表</h3>
-                                <a-button type="primary" @click="goToHome">
-                                    <template #icon><icon-plus /></template>
-                                    创建新链接
-                                </a-button>
+                                <div
+                                    class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                                >
+                                    <div
+                                        class="flex items-center justify-between mb-4"
+                                    >
+                                        <span class="text-gray-500 text-sm"
+                                            >总点击数</span
+                                        >
+                                        <div
+                                            class="p-2 bg-orange-50 rounded-lg text-orange-600"
+                                        >
+                                            <icon-thunderbolt />
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="text-2xl font-bold text-gray-900"
+                                    >
+                                        {{ stats.total_clicks }}
+                                    </div>
+                                    <div class="mt-2 text-xs text-gray-400">
+                                        累计所有链接点击
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                                >
+                                    <div
+                                        class="flex items-center justify-between mb-4"
+                                    >
+                                        <span class="text-gray-500 text-sm"
+                                            >本周新增</span
+                                        >
+                                        <div
+                                            class="p-2 bg-green-50 rounded-lg text-green-600"
+                                        >
+                                            <icon-plus-circle />
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="text-2xl font-bold text-gray-900"
+                                    >
+                                        {{ stats.weekly_new_links }}
+                                    </div>
+                                    <div class="mt-2 text-xs text-gray-400">
+                                        最近7天创建
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                                >
+                                    <div
+                                        class="flex items-center justify-between mb-4"
+                                    >
+                                        <span class="text-gray-500 text-sm"
+                                            >平均点击</span
+                                        >
+                                        <div
+                                            class="p-2 bg-purple-50 rounded-lg text-purple-600"
+                                        >
+                                            <icon-bar-chart />
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="text-2xl font-bold text-gray-900"
+                                    >
+                                        {{ stats.avg_clicks_per_link }}
+                                    </div>
+                                    <div class="mt-2 text-xs text-gray-400">
+                                        每条链接平均点击
+                                    </div>
+                                </div>
                             </div>
 
-                            <a-table
-                                :data="links"
-                                :pagination="{ pageSize: 10 }"
-                                :bordered="{ wrapper: true, cell: true }"
+                            <!-- Recent Links Preview -->
+                            <div
+                                class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
                             >
-                                <template #columns>
-                                    <a-table-column
-                                        title="原始链接"
-                                        data-index="link"
-                                        ellipsis
-                                        tooltip
-                                    ></a-table-column>
-                                    <a-table-column
-                                        title="短链接"
-                                        data-index="short"
-                                        :width="280"
+                                <div
+                                    class="px-6 py-4 border-b border-gray-100 flex justify-between items-center"
+                                >
+                                    <h3 class="font-semibold text-gray-800">
+                                        最近创建
+                                    </h3>
+                                    <a-link
+                                        @click="currentView = 'links'"
+                                        class="text-sm"
+                                        >查看全部</a-link
                                     >
-                                        <template #cell="{ record }">
-                                            <div
-                                                class="flex items-center gap-2"
-                                            >
+                                </div>
+                                <a-table
+                                    :data="links.slice(0, 5)"
+                                    :pagination="false"
+                                    :bordered="false"
+                                    :hoverable="true"
+                                >
+                                    <template #columns>
+                                        <a-table-column
+                                            title="原始链接"
+                                            data-index="link"
+                                            ellipsis
+                                            tooltip
+                                        >
+                                            <template #cell="{ record }">
+                                                <div
+                                                    class="flex items-center gap-2"
+                                                >
+                                                    <div
+                                                        class="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-500 shrink-0"
+                                                    >
+                                                        <icon-link />
+                                                    </div>
+                                                    <span
+                                                        class="truncate text-gray-600"
+                                                        >{{ record.link }}</span
+                                                    >
+                                                </div>
+                                            </template>
+                                        </a-table-column>
+                                        <a-table-column
+                                            title="短链接"
+                                            data-index="short"
+                                        >
+                                            <template #cell="{ record }">
                                                 <a-link
                                                     :href="`${origin}/${record.short}`"
                                                     target="_blank"
-                                                    class="truncate"
+                                                    class="font-medium text-blue-600"
                                                     >{{ origin }}/{{
                                                         record.short
                                                     }}</a-link
                                                 >
-                                                <a-button
-                                                    size="mini"
-                                                    type="text"
-                                                    @click="
-                                                        copyLink(record.short)
-                                                    "
+                                            </template>
+                                        </a-table-column>
+                                        <a-table-column
+                                            title="点击数"
+                                            data-index="click_count"
+                                            align="right"
+                                        >
+                                            <template #cell="{ record }">
+                                                <span
+                                                    class="font-mono text-gray-700"
+                                                    >{{
+                                                        record.click_count
+                                                    }}</span
                                                 >
-                                                    <template #icon
-                                                        ><icon-copy
-                                                    /></template>
-                                                </a-button>
-                                            </div>
-                                        </template>
-                                    </a-table-column>
-                                    <a-table-column
-                                        title="点击数"
-                                        data-index="click_count"
-                                        :width="100"
-                                        align="center"
-                                    ></a-table-column>
-                                    <a-table-column
-                                        title="状态"
-                                        data-index="is_active"
-                                        :width="100"
-                                        align="center"
-                                    >
-                                        <template #cell="{ record }">
-                                            <a-tag
-                                                :color="
-                                                    record.is_active
-                                                        ? 'green'
-                                                        : 'red'
-                                                "
-                                            >
-                                                {{
-                                                    record.is_active
-                                                        ? "启用"
-                                                        : "禁用"
-                                                }}
-                                            </a-tag>
-                                        </template>
-                                    </a-table-column>
-                                    <a-table-column
-                                        title="创建时间"
-                                        data-index="created_at"
-                                        :width="180"
-                                    >
-                                        <template #cell="{ record }">
-                                            {{ formatDate(record.created_at) }}
-                                        </template>
-                                    </a-table-column>
-                                    <a-table-column
-                                        title="操作"
-                                        :width="120"
-                                        align="center"
-                                    >
-                                        <template #cell="{ record }">
-                                            <a-space>
-                                                <a-tooltip content="二维码">
-                                                    <a-button
-                                                        size="small"
-                                                        shape="circle"
-                                                        @click="
-                                                            showQRCode(
-                                                                record.short,
-                                                            )
-                                                        "
-                                                    >
-                                                        <template #icon
-                                                            ><icon-qrcode
-                                                        /></template>
-                                                    </a-button>
-                                                </a-tooltip>
-                                            </a-space>
-                                        </template>
-                                    </a-table-column>
-                                </template>
-                            </a-table>
-                        </a-card>
-                    </div>
-                </a-spin>
-            </a-layout-content>
+                                            </template>
+                                        </a-table-column>
+                                        <a-table-column
+                                            title="创建时间"
+                                            data-index="created_at"
+                                            align="right"
+                                        >
+                                            <template #cell="{ record }">
+                                                <span
+                                                    class="text-gray-400 text-sm"
+                                                    >{{
+                                                        formatDate(
+                                                            record.created_at,
+                                                        )
+                                                    }}</span
+                                                >
+                                            </template>
+                                        </a-table-column>
+                                    </template>
+                                </a-table>
+                            </div>
+                        </div>
 
-            <a-layout-footer class="text-center py-4 text-gray-400 text-sm">
-                © {{ new Date().getFullYear() }} Short Link Service.
-            </a-layout-footer>
+                        <!-- Links View -->
+                        <div v-else class="space-y-6">
+                            <div
+                                class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+                            >
+                                <div
+                                    class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50"
+                                >
+                                    <div class="flex items-center gap-4">
+                                        <a-input-search
+                                            placeholder="搜索链接..."
+                                            class="w-64 bg-white!"
+                                        />
+                                    </div>
+                                    <a-button type="primary" @click="goToHome">
+                                        <template #icon><icon-plus /></template>
+                                        创建新链接
+                                    </a-button>
+                                </div>
+
+                                <a-table
+                                    :data="links"
+                                    :pagination="{
+                                        pageSize: 10,
+                                        showTotal: true,
+                                        showJumper: true,
+                                    }"
+                                    :bordered="{ wrapper: false, cell: false }"
+                                    :hoverable="true"
+                                    row-key="id"
+                                >
+                                    <template #columns>
+                                        <a-table-column
+                                            title="链接信息"
+                                            data-index="link"
+                                        >
+                                            <template #cell="{ record }">
+                                                <div class="py-2">
+                                                    <div
+                                                        class="flex items-center gap-2 mb-1"
+                                                    >
+                                                        <a-link
+                                                            :href="`${origin}/${record.short}`"
+                                                            target="_blank"
+                                                            class="font-bold text-blue-600 text-base"
+                                                            >{{ origin }}/{{
+                                                                record.short
+                                                            }}</a-link
+                                                        >
+                                                        <a-button
+                                                            size="mini"
+                                                            type="text"
+                                                            class="text-gray-400 hover:text-blue-600"
+                                                            @click="
+                                                                copyLink(
+                                                                    record.short,
+                                                                )
+                                                            "
+                                                        >
+                                                            <template #icon
+                                                                ><icon-copy
+                                                            /></template>
+                                                        </a-button>
+                                                    </div>
+                                                    <div
+                                                        class="text-gray-400 text-sm truncate max-w-md"
+                                                        :title="record.link"
+                                                    >
+                                                        {{ record.link }}
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </a-table-column>
+                                        <a-table-column
+                                            title="数据统计"
+                                            data-index="click_count"
+                                            :width="150"
+                                        >
+                                            <template #cell="{ record }">
+                                                <div class="flex flex-col">
+                                                    <span
+                                                        class="text-lg font-bold text-gray-800"
+                                                        >{{
+                                                            record.click_count
+                                                        }}</span
+                                                    >
+                                                    <span
+                                                        class="text-xs text-gray-400"
+                                                        >总点击</span
+                                                    >
+                                                </div>
+                                            </template>
+                                        </a-table-column>
+                                        <a-table-column
+                                            title="状态"
+                                            data-index="is_active"
+                                            :width="120"
+                                        >
+                                            <template #cell="{ record }">
+                                                <a-tag
+                                                    :color="
+                                                        record.is_active
+                                                            ? 'green'
+                                                            : 'red'
+                                                    "
+                                                    bordered
+                                                    class="rounded-full px-3"
+                                                >
+                                                    <template #icon>
+                                                        <div
+                                                            class="w-1.5 h-1.5 rounded-full mr-1"
+                                                            :class="
+                                                                record.is_active
+                                                                    ? 'bg-green-600'
+                                                                    : 'bg-red-600'
+                                                            "
+                                                        ></div>
+                                                    </template>
+                                                    {{
+                                                        record.is_active
+                                                            ? "运行中"
+                                                            : "已停用"
+                                                    }}
+                                                </a-tag>
+                                            </template>
+                                        </a-table-column>
+                                        <a-table-column
+                                            title="创建时间"
+                                            data-index="created_at"
+                                            :width="180"
+                                        >
+                                            <template #cell="{ record }">
+                                                <span class="text-gray-500">{{
+                                                    formatDate(
+                                                        record.created_at,
+                                                    )
+                                                }}</span>
+                                            </template>
+                                        </a-table-column>
+                                        <a-table-column
+                                            title="操作"
+                                            :width="120"
+                                            align="center"
+                                        >
+                                            <template #cell="{ record }">
+                                                <a-space>
+                                                    <a-tooltip content="二维码">
+                                                        <a-button
+                                                            size="small"
+                                                            shape="circle"
+                                                            class="hover:bg-gray-100"
+                                                            @click="
+                                                                showQRCode(
+                                                                    record.short,
+                                                                )
+                                                            "
+                                                        >
+                                                            <template #icon
+                                                                ><icon-qrcode
+                                                                    class="text-gray-600"
+                                                            /></template>
+                                                        </a-button>
+                                                    </a-tooltip>
+                                                    <a-tooltip content="编辑">
+                                                        <a-button
+                                                            size="small"
+                                                            shape="circle"
+                                                            class="hover:bg-gray-100"
+                                                        >
+                                                            <template #icon
+                                                                ><icon-edit
+                                                                    class="text-gray-600"
+                                                            /></template>
+                                                        </a-button>
+                                                    </a-tooltip>
+                                                </a-space>
+                                            </template>
+                                        </a-table-column>
+                                    </template>
+                                </a-table>
+                            </div>
+                        </div>
+                    </a-spin>
+                </div>
+            </a-layout-content>
         </a-layout>
 
         <!-- QR Code Modal -->
@@ -334,18 +501,39 @@
             v-model:visible="qrcodeModalVisible"
             title="链接二维码"
             :footer="false"
-            :width="300"
+            :width="340"
+            modal-class="rounded-xl!"
         >
-            <div class="flex flex-col items-center p-4">
-                <canvas
-                    ref="qrcodeCanvas"
-                    class="rounded-lg shadow-sm border border-gray-100"
-                ></canvas>
+            <div class="flex flex-col items-center p-6">
                 <div
-                    class="text-center text-gray-500 mt-4 text-sm break-all px-2 bg-gray-50 py-2 rounded w-full"
+                    class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6"
                 >
-                    {{ currentQrUrl }}
+                    <canvas ref="qrcodeCanvas" class="block"></canvas>
                 </div>
+                <div class="w-full">
+                    <div class="text-xs text-gray-400 mb-2 text-center">
+                        短链接地址
+                    </div>
+                    <div
+                        class="flex items-center justify-between bg-gray-50 px-4 py-3 rounded-lg border border-gray-100"
+                    >
+                        <span
+                            class="text-gray-700 text-sm truncate mr-4 font-medium"
+                            >{{ currentQrUrl }}</span
+                        >
+                        <a-link @click="copyLink(currentQrUrl.split('/').pop())"
+                            >复制</a-link
+                        >
+                    </div>
+                </div>
+                <a-button
+                    type="primary"
+                    long
+                    class="mt-6 rounded-lg!"
+                    @click="qrcodeModalVisible = false"
+                >
+                    完成
+                </a-button>
             </div>
         </a-modal>
     </a-layout>
@@ -367,6 +555,9 @@ import {
     IconPlus,
     IconCopy,
     IconQrcode,
+    IconDashboard,
+    IconArrowRise,
+    IconEdit,
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
 import { getCurrentUser, signOut } from "@/services/auth.js";
