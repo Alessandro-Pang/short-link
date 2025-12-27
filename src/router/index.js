@@ -34,6 +34,18 @@ const routes = [
     meta: { requiresAuth: false, redirectIfAuthenticated: true },
   },
   {
+    path: "/forgot-password",
+    name: "forgot-password",
+    component: () => import("@/views/forgot-password/index.vue"),
+    meta: { requiresAuth: false, redirectIfAuthenticated: true },
+  },
+  {
+    path: "/reset-password",
+    name: "reset-password",
+    component: () => import("@/views/reset-password/index.vue"),
+    meta: { requiresAuth: false },
+  },
+  {
     path: "/dashboard",
     name: "dashboard",
     component: DashboardPage,

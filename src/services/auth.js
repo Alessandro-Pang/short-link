@@ -71,6 +71,22 @@ export async function signUpWithEmail(email, password, metadata = {}) {
   });
 
   if (error) throw error;
+
+  const user = data?.user;
+  const identities = user?.identities;
+
+  const looksLikeAlreadyRegistered =
+    // 常见：user 存在但 identities 为空数组
+    (Array.isArray(identities) && identities.length === 0) ||
+    // 兜底：既没有 user 也没有 session
+    (!data?.user && !data?.session);
+
+  if (looksLikeAlreadyRegistered) {
+    const err = new Error("User already registered");
+    err.code = "USER_ALREADY_REGISTERED";
+    throw err;
+  }
+
   return data;
 }
 

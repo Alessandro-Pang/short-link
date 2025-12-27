@@ -100,10 +100,7 @@
                     <a-form-item
                         field="password"
                         label="密码"
-                        :rules="[
-                            { required: true, message: '请输入密码' },
-                            { minLength: 6, message: '密码长度至少 6 个字符' },
-                        ]"
+                        :rules="passwordRules"
                     >
                         <a-input-password
                             v-model="form.password"
@@ -215,7 +212,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
+import { computed, ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
@@ -232,6 +229,7 @@ import {
     signInWithGoogle,
     signUpWithEmail,
 } from "@/services/auth.js";
+import { makePasswordRules } from "@/utils/validator.js";
 
 const router = useRouter();
 const isLoading = ref(false);
@@ -241,6 +239,14 @@ const form = reactive({
     password: "",
     confirmPassword: "",
 });
+
+const passwordRules = computed(() =>
+    makePasswordRules({
+        getUsername: () => form.username,
+        getEmail: () => form.email,
+        requiredMessage: "请输入密码",
+    }),
+);
 
 // 处理 GitHub 注册
 async function handleGithubRegister() {

@@ -241,7 +241,7 @@ async function handleEmailLogin({ errors }) {
 }
 
 function handleForgotPassword() {
-    Message.info("密码重置功能即将上线");
+    router.push("/forgot-password");
 }
 
 function goToRegister() {
