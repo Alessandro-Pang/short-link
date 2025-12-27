@@ -1,9 +1,10 @@
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-import './assets/main.css'
+import { createApp } from "vue";
+import App from "./App.vue";
+import router from "./router";
+import "@arco-design/web-vue/dist/arco.css";
+import "./assets/main.css";
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.use(router)
-app.mount('#app')
+app.use(router);
+app.mount("#app");

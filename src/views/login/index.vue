@@ -1,443 +1,207 @@
 <template>
-    <div class="login-wrapper">
-        <div class="login-card">
-            <h1 class="login-title">登录</h1>
-            <p class="login-subtitle">登录以管理您的短链接</p>
-
-            <!-- Email 登录表单 -->
-            <form class="login-form" @submit.prevent="handleEmailLogin">
-                <div class="form-group">
-                    <label for="email">邮箱</label>
-                    <input
-                        type="email"
-                        id="email"
-                        v-model="email"
-                        placeholder="请输入邮箱"
-                        required
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label for="password">密码</label>
-                    <input
-                        type="password"
-                        id="password"
-                        v-model="password"
-                        placeholder="请输入密码"
-                        required
-                    />
-                </div>
-
-                <div class="form-extras">
-                    <a
-                        href="#"
-                        @click.prevent="handleForgotPassword"
-                        class="forgot-password"
-                        >忘记密码?</a
-                    >
-                </div>
-
-                <div class="form-actions">
-                    <button
-                        type="submit"
-                        class="login-button"
-                        :disabled="isLoading"
-                    >
-                        <LoadingSpinner v-if="isLoading" :active="true" />
-                        <span v-else>登录</span>
-                    </button>
-                </div>
-            </form>
-
-            <!-- OAuth 登录按钮 -->
-            <div class="oauth-buttons">
-                <button
-                    type="button"
-                    class="oauth-button github"
-                    @click="handleGithubLogin"
-                    :disabled="isLoading"
-                >
-                    <svg
-                        viewBox="0 0 24 24"
-                        width="20"
-                        height="20"
-                        fill="currentColor"
-                    >
-                        <path
-                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                        />
-                    </svg>
-                    <span> GitHub </span>
-                </button>
-
-                <button
-                    type="button"
-                    class="oauth-button google"
-                    @click="handleGoogleLogin"
-                    :disabled="isLoading"
-                >
-                    <svg viewBox="0 0 24 24" width="20" height="20">
-                        <path
-                            fill="#4285F4"
-                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                        />
-                        <path
-                            fill="#34A853"
-                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                        />
-                        <path
-                            fill="#FBBC05"
-                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                        />
-                        <path
-                            fill="#EA4335"
-                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                        />
-                    </svg>
-                    <span> Google </span>
-                </button>
+    <div
+        class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
+    >
+        <div
+            class="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-lg border border-gray-100"
+        >
+            <div class="text-center">
+                <h2 class="mt-6 text-3xl font-extrabold text-gray-900">登录</h2>
+                <p class="mt-2 text-sm text-gray-600">登录以管理您的短链接</p>
             </div>
 
-            <div class="login-footer">
-                <p>
-                    还没有账号？
-                    <a href="#" @click.prevent="goToRegister">注册</a>
-                </p>
-                <p><a href="#" @click.prevent="goToHome">返回首页</a></p>
+            <a-form
+                :model="form"
+                layout="vertical"
+                @submit="handleEmailLogin"
+                class="mt-8"
+            >
+                <a-form-item
+                    field="email"
+                    label="邮箱"
+                    :rules="[
+                        { required: true, message: '请输入邮箱' },
+                        { type: 'email', message: '请输入有效的邮箱地址' },
+                    ]"
+                >
+                    <a-input
+                        v-model="form.email"
+                        placeholder="请输入邮箱"
+                        allow-clear
+                        size="large"
+                    >
+                        <template #prefix>
+                            <icon-email />
+                        </template>
+                    </a-input>
+                </a-form-item>
+
+                <a-form-item
+                    field="password"
+                    label="密码"
+                    :rules="[{ required: true, message: '请输入密码' }]"
+                >
+                    <a-input-password
+                        v-model="form.password"
+                        placeholder="请输入密码"
+                        allow-clear
+                        size="large"
+                    >
+                        <template #prefix>
+                            <icon-lock />
+                        </template>
+                    </a-input-password>
+                </a-form-item>
+
+                <div class="flex items-center justify-end mb-6">
+                    <a-link @click="handleForgotPassword" class="text-sm"
+                        >忘记密码?</a-link
+                    >
+                </div>
+
+                <a-button
+                    type="primary"
+                    html-type="submit"
+                    long
+                    size="large"
+                    :loading="isLoading"
+                >
+                    登录
+                </a-button>
+            </a-form>
+
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white text-gray-500">
+                        或者使用以下方式登录
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <a-button
+                    long
+                    size="large"
+                    @click="handleGithubLogin"
+                    :loading="isLoading"
+                >
+                    <template #icon>
+                        <icon-github />
+                    </template>
+                    GitHub
+                </a-button>
+                <a-button
+                    long
+                    size="large"
+                    @click="handleGoogleLogin"
+                    :loading="isLoading"
+                >
+                    <template #icon>
+                        <icon-google />
+                    </template>
+                    Google
+                </a-button>
+            </div>
+
+            <div class="text-center mt-6 space-y-2">
+                <div>
+                    <span class="text-gray-600 text-sm">还没有账号？</span>
+                    <a-link @click="goToRegister">立即注册</a-link>
+                </div>
+                <div>
+                    <a-link
+                        @click="goToHome"
+                        class="text-gray-500! hover:text-gray-700! text-sm"
+                        >返回首页</a-link
+                    >
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
-import LoadingSpinner from "@/components/base/LoadingSpinner.vue";
-import { showError, showMessage } from "@/utils/message.js";
+import { Message } from "@arco-design/web-vue";
+import {
+    IconGithub,
+    IconGoogle,
+    IconEmail,
+    IconLock,
+} from "@arco-design/web-vue/es/icon";
 import {
     signInWithGithub,
     signInWithGoogle,
     signInWithEmail,
 } from "@/services/auth.js";
 
-// 响应式状态
-const email = ref("");
-const password = ref("");
-const isLoading = ref(false);
-
-// 路由
 const router = useRouter();
+const isLoading = ref(false);
+const form = reactive({
+    email: "",
+    password: "",
+});
 
 // 处理 GitHub 登录
 async function handleGithubLogin() {
     if (isLoading.value) return;
-
     isLoading.value = true;
     try {
         await signInWithGithub();
-        // OAuth 会自动重定向，无需手动处理
     } catch (error) {
         isLoading.value = false;
-        console.error("GitHub 登录失败:", error);
-        showError(error.message || "GitHub 登录失败，请稍后再试");
+        Message.error(error.message || "GitHub 登录失败，请稍后再试");
     }
 }
 
 // 处理 Google 登录
 async function handleGoogleLogin() {
     if (isLoading.value) return;
-
     isLoading.value = true;
     try {
         await signInWithGoogle();
-        // OAuth 会自动重定向，无需手动处理
     } catch (error) {
         isLoading.value = false;
-        console.error("Google 登录失败:", error);
-        showError(error.message || "Google 登录失败，请稍后再试");
+        Message.error(error.message || "Google 登录失败，请稍后再试");
     }
 }
 
 // 处理邮箱登录
-async function handleEmailLogin() {
-    if (!email.value || !password.value) {
-        showError("请输入邮箱和密码");
-        return;
-    }
+async function handleEmailLogin({ errors }) {
+    if (errors) return;
 
     isLoading.value = true;
-
     try {
-        const { user, session } = await signInWithEmail(
-            email.value,
-            password.value,
-        );
-
-        showMessage("登录成功！", "success");
-
-        // 登录成功后重定向到统计面板
+        await signInWithEmail(form.email, form.password);
+        Message.success("登录成功！");
         setTimeout(() => {
             router.push("/dashboard");
         }, 500);
     } catch (error) {
         isLoading.value = false;
-        console.error("邮箱登录失败:", error);
-
-        // 处理不同类型的错误
         if (error.message.includes("Invalid login credentials")) {
-            showError("邮箱或密码错误");
+            Message.error("邮箱或密码错误");
         } else if (error.message.includes("Email not confirmed")) {
-            showError("请先验证您的邮箱");
+            Message.error("请先验证您的邮箱");
         } else {
-            showError(error.message || "登录失败，请稍后再试");
+            Message.error(error.message || "登录失败，请稍后再试");
         }
     }
 }
 
-// 处理忘记密码
 function handleForgotPassword() {
-    showMessage("密码重置功能即将上线", "info");
-    // TODO: 实现密码重置功能
+    Message.info("密码重置功能即将上线");
 }
 
-// 跳转到注册页面
 function goToRegister() {
     router.push("/register");
 }
 
-// 跳转到首页
 function goToHome() {
     router.push("/");
 }
 </script>
-
-<style scoped>
-.login-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-    padding: 20px;
-}
-
-.login-card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    width: 100%;
-    max-width: 450px;
-    padding: 40px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.login-card::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 6px;
-    background: linear-gradient(90deg, #4776e6, #8e54e9);
-}
-
-.login-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #2d3436;
-    margin-bottom: 8px;
-}
-
-.login-subtitle {
-    color: #636e72;
-    margin-bottom: 30px;
-    font-size: 14px;
-}
-
-.oauth-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-}
-
-.oauth-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background-color: #fff;
-}
-
-.oauth-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.oauth-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.oauth-button.github {
-    color: #24292e;
-    border-color: #24292e;
-}
-
-.oauth-button.github:hover:not(:disabled) {
-    background-color: #24292e;
-    color: #fff;
-}
-
-.oauth-button.google {
-    color: #4285f4;
-    border-color: #4285f4;
-}
-
-.oauth-button.google:hover:not(:disabled) {
-    background-color: #4285f4;
-    color: #fff;
-}
-
-.oauth-button.google:hover:not(:disabled) svg path {
-    fill: #fff;
-}
-
-.divider {
-    position: relative;
-    text-align: center;
-    margin: 24px 0;
-}
-
-.divider::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background-color: #e0e0e0;
-}
-
-.divider span {
-    position: relative;
-    background-color: #fff;
-    padding: 0 16px;
-    color: #636e72;
-    font-size: 13px;
-}
-
-.login-form {
-    text-align: left;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #2d3436;
-    font-weight: 600;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    background-color: #f9f9f9;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: #6c5ce7;
-    box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.15);
-    background-color: #fff;
-}
-
-.form-extras {
-    margin-bottom: 20px;
-    text-align: right;
-}
-
-.forgot-password {
-    color: #6c5ce7;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-.forgot-password:hover {
-    text-decoration: underline;
-    color: #4834d4;
-}
-
-.form-actions {
-    margin-top: 24px;
-}
-
-.login-button {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(90deg, #4776e6, #8e54e9);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.login-button:not(:disabled):hover {
-    background: linear-gradient(90deg, #3d68d8, #7c48d5);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(108, 92, 231, 0.3);
-}
-
-.login-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.login-footer {
-    margin-top: 24px;
-    font-size: 14px;
-    color: #636e72;
-}
-
-.login-footer a {
-    color: #6c5ce7;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-.login-footer a:hover {
-    text-decoration: underline;
-    color: #4834d4;
-}
-
-.login-footer p {
-    margin: 8px 0;
-}
-</style>
