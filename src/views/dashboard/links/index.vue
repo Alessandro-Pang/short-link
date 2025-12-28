@@ -13,76 +13,54 @@ import {
     IconClose,
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
-import { toggleLinkStatus, deleteLink } from "@/services/api.js";
-import {
-    getUserLinks,
-    batchRemoveLinks,
-    batchEnableLinks,
-    batchDisableLinks,
-} from "@/services/dashboard.js";
+import { useLinksStore } from "@/stores";
 import LinkEditDrawer from "@/components/LinkEditDrawer.vue";
 
 const router = useRouter();
 const route = useRoute();
 const origin = window.location.origin;
 
-// State
-const isLoading = ref(false);
-const links = ref([]);
-const total = ref(0);
-const searchKeyword = ref("");
+// Store
+const linksStore = useLinksStore();
+
+// Local State
 const searchInput = ref(""); // 用于输入框的临时值
-const togglingIds = ref([]);
 const qrcodeModalVisible = ref(false);
 const currentQrUrl = ref("");
 const qrcodeCanvas = ref(null);
 const editDrawerVisible = ref(false);
 const editingLinkId = ref(null);
-const filterLinkId = ref(null);
 
-// 批量选择相关状态
-const selectedRowKeys = ref([]);
-const isBatchOperating = ref(false);
-
-// 分页
-const pagination = ref({
-    current: 1,
-    pageSize: 10,
+// Computed from store
+const isLoading = computed(() => linksStore.isLoading);
+const links = computed(() => linksStore.links);
+const total = computed(() => linksStore.total);
+const pagination = computed(() => linksStore.pagination);
+const searchKeyword = computed(() => linksStore.searchKeyword);
+const filterLinkId = computed(() => linksStore.filterLinkId);
+const selectedRowKeys = computed({
+    get: () => linksStore.selectedLinkIds,
+    set: (val) => linksStore.setSelectedLinkIds(val),
 });
-
-// 计算属性：是否有选中的行
-const hasSelected = computed(() => selectedRowKeys.value.length > 0);
-const selectedCount = computed(() => selectedRowKeys.value.length);
+const hasSelected = computed(() => linksStore.hasSelected);
+const selectedCount = computed(() => linksStore.selectedCount);
+const isBatchOperating = computed(() => linksStore.isBatchOperating);
+const togglingIds = computed(() => Array.from(linksStore.togglingIds));
 
 // 加载数据
 const loadData = async () => {
-    isLoading.value = true;
     try {
-        const result = await getUserLinks({
-            limit: pagination.value.pageSize,
-            offset: (pagination.value.current - 1) * pagination.value.pageSize,
-            orderBy: "created_at",
-            ascending: false,
-            linkId: filterLinkId.value || null,
-            keyword: searchKeyword.value || null,
-        });
-
-        links.value = result.links || [];
-        total.value = result.total || 0;
-        // 清空选择
-        selectedRowKeys.value = [];
+        await linksStore.fetchLinks();
     } catch (error) {
         console.error("加载链接列表失败:", error);
         Message.error("加载链接列表失败");
-    } finally {
-        isLoading.value = false;
     }
 };
 
 // 从路由参数获取筛选 ID
 onMounted(() => {
     if (route.query.linkId) {
-        filterLinkId.value = route.query.linkId;
+        linksStore.setFilterLinkId(route.query.linkId);
     }
     loadData();
 });
@@ -92,10 +70,8 @@ watch(
     () => route.query.linkId,
     (newLinkId) => {
         const oldLinkId = filterLinkId.value;
-        filterLinkId.value = newLinkId || null;
-        // 只有当 linkId 变化时才重新加载
         if (oldLinkId !== newLinkId) {
-            pagination.value.current = 1;
+            linksStore.setFilterLinkId(newLinkId || null);
             loadData();
         }
     },
@@ -107,28 +83,25 @@ const goToHome = () => {
 };
 
 const handleSearch = () => {
-    searchKeyword.value = searchInput.value;
-    pagination.value.current = 1;
+    linksStore.setSearchKeyword(searchInput.value);
     loadData();
 };
 
 const handleClear = () => {
     searchInput.value = "";
-    searchKeyword.value = "";
-    pagination.value.current = 1;
+    linksStore.setSearchKeyword("");
     loadData();
 };
 
 const clearFilter = () => {
-    filterLinkId.value = null;
-    pagination.value.current = 1;
+    linksStore.setFilterLinkId(null);
     // 移除 URL 中的 linkId 参数
     router.replace({ query: {} });
     loadData();
 };
 
 const handlePageChange = (page) => {
-    pagination.value.current = page;
+    linksStore.setPagination(page);
     loadData();
 };
 
@@ -177,39 +150,26 @@ const isExpired = (dateString) => {
 };
 
 const hasAdvancedConfig = (record) => {
-    return (
-        (record.redirect_type && record.redirect_type !== 302) ||
-        record.expiration_date ||
-        record.max_clicks ||
-        record.pass_query_params ||
-        record.forward_headers ||
-        (record.access_restrictions &&
-            Object.keys(record.access_restrictions).length > 0)
-    );
+    return linksStore.utils.hasAdvancedConfig(record);
 };
 
 // Toggle link status
 const handleToggleStatus = async (record, newValue) => {
-    togglingIds.value.push(record.id);
     try {
-        await toggleLinkStatus(record.id, newValue);
+        await linksStore.toggleLinkStatus(record.id, newValue);
         Message.success(newValue ? "链接已启用" : "链接已禁用");
     } catch (error) {
         // Revert the change
         record.is_active = !newValue;
         Message.error(error.message || "操作失败");
-    } finally {
-        togglingIds.value = togglingIds.value.filter((id) => id !== record.id);
     }
 };
 
 // Delete link
 const handleDeleteLink = async (linkId) => {
     try {
-        await deleteLink(linkId);
+        await linksStore.deleteLink(linkId);
         Message.success("链接已删除");
-        // 重新加载数据
-        loadData();
     } catch (error) {
         Message.error(error.message || "删除失败");
     }
@@ -231,7 +191,7 @@ const handleEditDelete = () => {
 
 // 清空选择
 const clearSelection = () => {
-    selectedRowKeys.value = [];
+    linksStore.clearSelection();
 };
 
 // 批量删除
@@ -241,17 +201,12 @@ const handleBatchDelete = async () => {
         return;
     }
 
-    isBatchOperating.value = true;
     try {
-        const result = await batchRemoveLinks(selectedRowKeys.value);
-        Message.success(
-            `成功删除 ${result.success} 个链接${result.failed > 0 ? `，${result.failed} 个链接无权限操作` : ""}`,
-        );
+        await linksStore.batchDelete();
+        Message.success("批量删除成功");
         loadData();
     } catch (error) {
         Message.error(error.message || "批量删除失败");
-    } finally {
-        isBatchOperating.value = false;
     }
 };
 
@@ -262,17 +217,11 @@ const handleBatchEnable = async () => {
         return;
     }
 
-    isBatchOperating.value = true;
     try {
-        const result = await batchEnableLinks(selectedRowKeys.value);
-        Message.success(
-            `成功启用 ${result.success} 个链接${result.failed > 0 ? `，${result.failed} 个链接无权限操作` : ""}`,
-        );
-        loadData();
+        await linksStore.batchEnable();
+        Message.success("批量启用成功");
     } catch (error) {
         Message.error(error.message || "批量启用失败");
-    } finally {
-        isBatchOperating.value = false;
     }
 };
 
@@ -283,17 +232,11 @@ const handleBatchDisable = async () => {
         return;
     }
 
-    isBatchOperating.value = true;
     try {
-        const result = await batchDisableLinks(selectedRowKeys.value);
-        Message.success(
-            `成功禁用 ${result.success} 个链接${result.failed > 0 ? `，${result.failed} 个链接无权限操作` : ""}`,
-        );
-        loadData();
+        await linksStore.batchDisable();
+        Message.success("批量禁用成功");
     } catch (error) {
         Message.error(error.message || "批量禁用失败");
-    } finally {
-        isBatchOperating.value = false;
     }
 };
 
@@ -652,7 +595,7 @@ defineExpose({
             :width="340"
             modal-class="rounded-xl!"
         >
-            <div class="flex flex-col items-center p-6">
+            <div class="flex flex-col items-center">
                 <div
                     class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6"
                 >
@@ -666,10 +609,12 @@ defineExpose({
                         class="flex items-center justify-between bg-gray-50 px-4 py-3 rounded-lg border border-gray-100"
                     >
                         <span
+                            style="width: calc(100% - 40px)"
                             class="text-gray-700 text-sm truncate mr-4 font-medium"
                             >{{ currentQrUrl }}</span
                         >
                         <a-link
+                            class="w-[38px]! px-0!"
                             @click="copyLink(currentQrUrl.split('/u/').pop())"
                             >复制</a-link
                         >
@@ -678,7 +623,7 @@ defineExpose({
                 <a-button
                     type="primary"
                     long
-                    class="mt-6 rounded-lg!"
+                    class="mt-4! rounded-lg!"
                     @click="qrcodeModalVisible = false"
                 >
                     完成
@@ -695,6 +640,7 @@ defineExpose({
         />
     </div>
 </template>
+
 <style lang="css" scoped>
 ::v-deep(.arco-table-pagination) {
     margin-right: 10px;

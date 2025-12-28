@@ -548,7 +548,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Message, Modal } from "@arco-design/web-vue";
 import {
@@ -563,7 +563,7 @@ import {
     IconInfoCircle,
     IconExclamationCircle,
 } from "@arco-design/web-vue/es/icon";
-import { getCurrentUser, updateUserProfile, signOut } from "@/services/auth.js";
+import { useUserStore } from "@/stores";
 import {
     getUserIdentities,
     linkGithubAccount,
@@ -574,13 +574,16 @@ import {
 } from "@/services/account.js";
 
 const router = useRouter();
+const userStore = useUserStore();
 
 // State
-const isLoading = ref(false);
 const isSaving = ref(false);
 const formRef = ref(null);
-const userInfo = ref(null);
 const avatarError = ref(false);
+
+// 从 store 获取用户信息
+const userInfo = computed(() => userStore.user);
+const isLoading = computed(() => userStore.isLoading);
 
 // 账号绑定相关状态
 const loadingIdentities = ref(false);
@@ -668,33 +671,31 @@ const handleAvatarError = () => {
     avatarError.value = true;
 };
 
-// 加载用户信息
-const loadUserInfo = async () => {
-    isLoading.value = true;
-    try {
-        const user = await getCurrentUser();
-        if (!user) {
-            Message.error("获取用户信息失败");
-            return;
-        }
-
-        userInfo.value = user;
-        formData.email = user.email || "";
-        formData.name = user.user_metadata?.name || "";
-        formData.bio = user.user_metadata?.bio || "";
-        formData.avatar_url = user.user_metadata?.avatar_url || "";
+// 同步 store 中的用户信息到表单
+const syncUserToForm = () => {
+    if (userStore.user) {
+        formData.email = userStore.userEmail || "";
+        formData.name = userStore.userName || "";
+        formData.bio = userStore.userBio || "";
+        formData.avatar_url = userStore.userAvatar || "";
 
         // 备份原始数据
         originalData.name = formData.name;
         originalData.bio = formData.bio;
         originalData.avatar_url = formData.avatar_url;
-    } catch (error) {
-        console.error("加载用户信息失败:", error);
-        Message.error("加载用户信息失败");
-    } finally {
-        isLoading.value = false;
     }
 };
+
+// 监听 store 中用户信息变化，同步到表单
+watch(
+    () => userStore.user,
+    (newUser) => {
+        if (newUser) {
+            syncUserToForm();
+        }
+    },
+    { immediate: true },
+);
 
 // 保存修改
 const handleSave = async () => {
@@ -712,21 +713,14 @@ const handleSave = async () => {
             avatar_url: formData.avatar_url || null,
         };
 
-        await updateUserProfile(updates);
+        // 使用 store 更新用户资料（会自动更新 store 状态并触发事件）
+        await userStore.updateProfile(updates);
         Message.success("个人信息更新成功");
 
         // 更新备份数据
         originalData.name = formData.name;
         originalData.bio = formData.bio;
         originalData.avatar_url = formData.avatar_url;
-
-        // 重新加载用户信息（这会触发 Supabase 更新）
-        await loadUserInfo();
-
-        // 触发页面刷新（通过刷新按钮的方式通知父组件）
-        setTimeout(() => {
-            window.dispatchEvent(new CustomEvent("user-profile-updated"));
-        }, 100);
     } catch (error) {
         console.error("更新个人信息失败:", error);
         Message.error(error.message || "更新失败，请重试");
@@ -826,7 +820,7 @@ const confirmDeleteAccount = async () => {
 
                 // 等待一下再登出和跳转
                 setTimeout(async () => {
-                    await signOut();
+                    await userStore.logout();
                     router.push("/");
                 }, 1000);
             } catch (error) {
@@ -839,14 +833,21 @@ const confirmDeleteAccount = async () => {
 };
 
 // 组件挂载时加载数据
-onMounted(() => {
-    loadUserInfo();
+onMounted(async () => {
+    // 确保用户信息已加载（使用缓存，不会重复请求）
+    await userStore.initialize();
+    // 同步到表单
+    syncUserToForm();
+    // 加载身份绑定信息
     loadIdentities();
 });
 
 // 暴露刷新方法给父组件
 defineExpose({
-    refresh: loadUserInfo,
+    refresh: async () => {
+        await userStore.refreshUser();
+        syncUserToForm();
+    },
 });
 </script>
 

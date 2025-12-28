@@ -4,8 +4,8 @@
             breakpoint="lg"
             :width="240"
             collapsible
-            :collapsed="collapsed"
-            @collapse="onCollapse"
+            :collapsed="uiStore.sidebarCollapsed"
+            @collapse="uiStore.setSidebarCollapsed"
             class="bg-white! shadow-sm z-20 border-r border-gray-100"
         >
             <div
@@ -18,11 +18,11 @@
                     <div
                         class="w-8 h-8 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-md shrink-0"
                     >
-                        <icon-link v-if="collapsed" />
+                        <icon-link v-if="uiStore.sidebarCollapsed" />
                         <icon-dashboard v-else />
                     </div>
                     <span
-                        v-if="!collapsed"
+                        v-if="!uiStore.sidebarCollapsed"
                         class="tracking-tight text-gray-800! font-bold"
                         >Short Link</span
                     >
@@ -50,10 +50,10 @@
                 </a-menu-item>
 
                 <!-- 管理员菜单 -->
-                <template v-if="isAdmin">
+                <template v-if="userStore.isAdmin">
                     <a-divider class="my-3!" />
                     <div
-                        v-if="!collapsed"
+                        v-if="!uiStore.sidebarCollapsed"
                         class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider"
                     >
                         管理员
@@ -121,33 +121,34 @@
                         >
                             <a-avatar
                                 :size="32"
-                                :image-url="userAvatar"
+                                :image-url="userStore.userAvatar"
                                 :class="
-                                    isAdmin ? 'bg-orange-500' : 'bg-blue-600'
+                                    userStore.isAdmin
+                                        ? 'bg-orange-500'
+                                        : 'bg-blue-600'
                                 "
                             >
-                                <template v-if="!userAvatar">
-                                    {{
-                                        (userName ||
-                                            userEmail)?.[0]?.toUpperCase()
-                                    }}
+                                <template v-if="!userStore.userAvatar">
+                                    {{ userStore.userInitial }}
                                 </template>
                             </a-avatar>
                             <div class="hidden sm:flex flex-col items-start">
                                 <span
                                     class="text-sm font-medium text-gray-700 leading-none"
-                                    >{{
-                                        userName || userEmail?.split("@")[0]
-                                    }}</span
+                                    >{{ userStore.userDisplayName }}</span
                                 >
                                 <span
                                     class="text-xs leading-none mt-1"
                                     :class="
-                                        isAdmin
+                                        userStore.isAdmin
                                             ? 'text-orange-500'
                                             : 'text-gray-400'
                                     "
-                                    >{{ isAdmin ? "管理员" : "Pro Plan" }}</span
+                                    >{{
+                                        userStore.isAdmin
+                                            ? "管理员"
+                                            : "Pro Plan"
+                                    }}</span
                                 >
                             </div>
                             <icon-down class="text-gray-400 text-xs ml-1" />
@@ -172,7 +173,10 @@
 
             <a-layout-content class="flex-1 overflow-y-auto bg-gray-50 p-6">
                 <div class="max-w-7xl mx-auto">
-                    <router-view ref="childViewRef" :is-admin="isAdmin" />
+                    <router-view
+                        ref="childViewRef"
+                        :is-admin="userStore.isAdmin"
+                    />
                 </div>
             </a-layout-content>
         </a-layout>
@@ -196,18 +200,16 @@ import {
     IconUser,
     IconHistory,
 } from "@arco-design/web-vue/es/icon";
-import { getCurrentUser, signOut } from "@/services/auth.js";
-import { getCurrentUserWithAdminStatus } from "@/services/admin.js";
+import { useUserStore, useUiStore } from "@/stores";
 
 const router = useRouter();
 const route = useRoute();
 
-// State
-const collapsed = ref(false);
-const userEmail = ref("");
-const userName = ref("");
-const userAvatar = ref("");
-const isAdmin = ref(false);
+// Stores
+const userStore = useUserStore();
+const uiStore = useUiStore();
+
+// Refs
 const childViewRef = ref(null);
 
 // Computed
@@ -241,10 +243,6 @@ const currentTitle = computed(() => {
 });
 
 // Methods
-const onCollapse = (val) => {
-    collapsed.value = val;
-};
-
 const handleMenuClick = (key) => {
     const routes = {
         stats: "/dashboard/stats",
@@ -271,7 +269,7 @@ const handleUserDropdown = async (value) => {
         goToHome();
     } else if (value === "logout") {
         try {
-            await signOut();
+            await userStore.logout();
             Message.success("已退出登录");
             router.push("/login");
         } catch (error) {
@@ -283,7 +281,7 @@ const handleUserDropdown = async (value) => {
 const handleRefresh = () => {
     // 如果在 profile 页面，也刷新用户信息
     if (currentRoute.value === "profile") {
-        loadUserInfo();
+        userStore.refreshUser();
     }
     // 调用子组件的刷新方法
     if (childViewRef.value?.refresh) {
@@ -291,43 +289,11 @@ const handleRefresh = () => {
     }
 };
 
-const loadUserInfo = async () => {
-    try {
-        // 先获取基本用户信息
-        const user = await getCurrentUser();
-        if (!user) {
-            router.push("/login");
-            return;
-        }
-        userEmail.value = user.email;
-        // 获取用户名（从 user_metadata 中）
-        userName.value = user.user_metadata?.name || "";
-        // 获取用户头像
-        userAvatar.value = user.user_metadata?.avatar_url || "";
-
-        // 获取管理员状态
-        try {
-            const userWithAdmin = await getCurrentUserWithAdminStatus();
-            isAdmin.value = userWithAdmin?.isAdmin === true;
-        } catch (error) {
-            console.error("获取管理员状态失败:", error);
-            isAdmin.value = false;
-        }
-    } catch (error) {
-        console.error("获取用户信息失败:", error);
+onMounted(async () => {
+    // 初始化用户状态（会自动使用缓存，避免重复请求）
+    await userStore.initialize();
+    if (!userStore.isAuthenticated) {
         router.push("/login");
     }
-};
-
-onMounted(() => {
-    loadUserInfo();
-
-    // 监听用户信息更新事件
-    window.addEventListener("user-profile-updated", loadUserInfo);
-});
-
-onBeforeUnmount(() => {
-    // 清理事件监听
-    window.removeEventListener("user-profile-updated", loadUserInfo);
 });
 </script>

@@ -31,33 +31,24 @@
                         <icon-github class="text-xl" />
                     </a>
 
-                    <template v-if="user">
+                    <template v-if="userStore.isAuthenticated">
                         <a-dropdown @select="handleDropdownSelect">
                             <div
                                 class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded-full transition-colors"
                             >
                                 <a-avatar
                                     :size="32"
-                                    :image-url="user.user_metadata?.avatar_url"
+                                    :image-url="userStore.userAvatar"
                                     class="bg-blue-600"
                                 >
-                                    <template
-                                        v-if="!user.user_metadata?.avatar_url"
-                                    >
-                                        {{
-                                            (user.user_metadata?.name ||
-                                                user.email)?.[0]?.toUpperCase()
-                                        }}
+                                    <template v-if="!userStore.userAvatar">
+                                        {{ userStore.userInitial }}
                                     </template>
                                 </a-avatar>
                                 <span
                                     class="hidden sm:inline-block max-w-[120px] md:max-w-[160px] truncate text-gray-700 font-medium text-sm"
                                 >
-                                    {{
-                                        user.user_metadata?.name ||
-                                        user.email?.split("@")[0] ||
-                                        user.email
-                                    }}
+                                    {{ userStore.userDisplayName }}
                                 </span>
                                 <icon-down class="text-gray-400 text-sm" />
                             </div>
@@ -438,9 +429,19 @@
                                     type="secondary"
                                     long
                                     class="h-11! rounded-lg! font-medium!"
-                                    @click="$router.push('/login')"
+                                    @click="
+                                        () => {
+                                            if (user) {
+                                                $router.push(
+                                                    '/dashboard/links',
+                                                );
+                                            } else {
+                                                $router.push('/login');
+                                            }
+                                        }
+                                    "
                                 >
-                                    登录查看我的链接
+                                    查看我的链接
                                 </a-button>
                             </div>
 
@@ -566,7 +567,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { Modal } from "@arco-design/web-vue";
 import {
@@ -587,12 +588,13 @@ import {
 import { Message } from "@arco-design/web-vue";
 import QRCode from "qrcode";
 import { addUrl, REDIRECT_TYPE_OPTIONS } from "@/services/api.js";
-import { getCurrentUser, signOut } from "@/services/auth.js";
 import { validateUrl } from "@/utils/validator.js";
 import LinkConfigForm from "@/components/LinkConfigForm.vue";
+import { useUserStore } from "@/stores";
 
 const router = useRouter();
-const user = ref(null);
+const userStore = useUserStore();
+
 const urlInput = ref("");
 const currentShortUrl = ref("");
 const isLoading = ref(false);
@@ -666,39 +668,14 @@ const resetConfig = () => {
 };
 
 onMounted(async () => {
-    try {
-        user.value = await getCurrentUser();
-    } catch (e) {
-        // 用户未登录，忽略错误
-        console.log("User not logged in");
-    }
-
-    // 监听用户信息更新事件
-    window.addEventListener("user-profile-updated", async () => {
-        try {
-            user.value = await getCurrentUser();
-        } catch (e) {
-            console.log("Failed to refresh user info");
-        }
-    });
-});
-
-onBeforeUnmount(() => {
-    // 清理事件监听
-    window.removeEventListener("user-profile-updated", async () => {
-        try {
-            user.value = await getCurrentUser();
-        } catch (e) {
-            console.log("Failed to refresh user info");
-        }
-    });
+    // 初始化用户状态（使用缓存，避免重复请求）
+    await userStore.initialize();
 });
 
 const handleDropdownSelect = async (value) => {
     if (value === "logout") {
         try {
-            await signOut();
-            user.value = null;
+            await userStore.logout();
             Message.success("已退出登录");
         } catch (error) {
             Message.error("退出登录失败");
@@ -729,7 +706,7 @@ const generateShortLink = async () => {
         // 构建配置选项 - 仅登录用户可使用高级配置
         const options = {};
 
-        if (user.value) {
+        if (userStore.isAuthenticated) {
             const config = linkConfig.value;
 
             if (config.title) {

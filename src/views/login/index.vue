@@ -106,7 +106,7 @@
                         html-type="submit"
                         long
                         size="large"
-                        :loading="isLoading"
+                        :loading="userStore.isLoading"
                         class="rounded-lg! h-12! text-base! font-medium!"
                     >
                         登录
@@ -129,7 +129,7 @@
                         type="button"
                         class="flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 cursor-pointer"
                         @click="handleGithubLogin"
-                        :disabled="isLoading"
+                        :disabled="userStore.isLoading"
                     >
                         <icon-github class="text-xl" />
                         <span class="text-gray-700 font-medium">GitHub</span>
@@ -138,7 +138,7 @@
                         type="button"
                         class="flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 cursor-pointer"
                         @click="handleGoogleLogin"
-                        :disabled="isLoading"
+                        :disabled="userStore.isLoading"
                     >
                         <icon-google class="text-xl" />
                         <span class="text-gray-700 font-medium">Google</span>
@@ -169,7 +169,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
+import { reactive } from "vue";
 import { useRouter } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
@@ -180,14 +180,11 @@ import {
     IconLink,
     IconLeft,
 } from "@arco-design/web-vue/es/icon";
-import {
-    signInWithGithub,
-    signInWithGoogle,
-    signInWithEmail,
-} from "@/services/auth.js";
+import { useUserStore } from "@/stores";
 
 const router = useRouter();
-const isLoading = ref(false);
+const userStore = useUserStore();
+
 const form = reactive({
     email: "",
     password: "",
@@ -195,24 +192,20 @@ const form = reactive({
 
 // 处理 GitHub 登录
 async function handleGithubLogin() {
-    if (isLoading.value) return;
-    isLoading.value = true;
+    if (userStore.isLoading) return;
     try {
-        await signInWithGithub();
+        await userStore.loginWithGithub();
     } catch (error) {
-        isLoading.value = false;
         Message.error(error.message || "GitHub 登录失败，请稍后再试");
     }
 }
 
 // 处理 Google 登录
 async function handleGoogleLogin() {
-    if (isLoading.value) return;
-    isLoading.value = true;
+    if (userStore.isLoading) return;
     try {
-        await signInWithGoogle();
+        await userStore.loginWithGoogle();
     } catch (error) {
-        isLoading.value = false;
         Message.error(error.message || "Google 登录失败，请稍后再试");
     }
 }
@@ -221,15 +214,13 @@ async function handleGoogleLogin() {
 async function handleEmailLogin({ errors }) {
     if (errors) return;
 
-    isLoading.value = true;
     try {
-        await signInWithEmail(form.email, form.password);
+        await userStore.loginWithEmail(form.email, form.password);
         Message.success("登录成功！");
         setTimeout(() => {
             router.push("/dashboard");
         }, 500);
     } catch (error) {
-        isLoading.value = false;
         console.error("登录错误:", error);
 
         // 处理不同的错误情况

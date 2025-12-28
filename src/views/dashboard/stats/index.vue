@@ -12,7 +12,7 @@
                     </div>
                 </div>
                 <div class="text-2xl font-bold text-gray-900">
-                    {{ stats.total_links }}
+                    {{ linksStore.formattedStats.total_links }}
                 </div>
                 <div class="mt-2 text-xs text-green-600 flex items-center">
                     <icon-arrow-rise class="mr-1" />
@@ -30,7 +30,7 @@
                     </div>
                 </div>
                 <div class="text-2xl font-bold text-gray-900">
-                    {{ stats.total_clicks }}
+                    {{ linksStore.formattedStats.total_clicks }}
                 </div>
                 <div class="mt-2 text-xs text-gray-400">累计所有链接点击</div>
             </div>
@@ -45,7 +45,7 @@
                     </div>
                 </div>
                 <div class="text-2xl font-bold text-gray-900">
-                    {{ stats.weekly_new_links }}
+                    {{ linksStore.formattedStats.weekly_new_links }}
                 </div>
                 <div class="mt-2 text-xs text-gray-400">最近7天创建</div>
             </div>
@@ -60,7 +60,7 @@
                     </div>
                 </div>
                 <div class="text-2xl font-bold text-gray-900">
-                    {{ stats.avg_clicks_per_link }}
+                    {{ linksStore.formattedStats.avg_clicks_per_link }}
                 </div>
                 <div class="mt-2 text-xs text-gray-400">每条链接平均点击</div>
             </div>
@@ -76,9 +76,9 @@
                 <h3 class="font-semibold text-gray-800">最近创建</h3>
                 <a-link @click="goToLinks" class="text-sm">查看全部</a-link>
             </div>
-            <a-spin :loading="isLoading" class="w-full">
+            <a-spin :loading="linksStore.isLoading" class="w-full">
                 <a-table
-                    :data="recentLinks"
+                    :data="linksStore.recentLinks"
                     :pagination="false"
                     :bordered="false"
                     :hoverable="true"
@@ -143,7 +143,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 import {
     IconLink,
@@ -152,46 +152,25 @@ import {
     IconBarChart,
     IconArrowRise,
 } from "@arco-design/web-vue/es/icon";
-import { getUserLinkStats, getUserLinks } from "@/services/dashboard.js";
+import { useLinksStore } from "@/stores";
 
 const router = useRouter();
 const origin = window.location.origin;
 
-// State
-const isLoading = ref(false);
-const stats = ref({
-    total_links: 0,
-    total_clicks: 0,
-    weekly_new_links: 0,
-    avg_clicks_per_link: 0,
-});
-const recentLinks = ref([]);
+// Store
+const linksStore = useLinksStore();
 
 // Methods
 const loadData = async () => {
-    isLoading.value = true;
-    try {
-        // 并行请求统计和链接数据
-        const [statsData, linksData] = await Promise.all([
-            getUserLinkStats(),
-            getUserLinks({ limit: 5, orderBy: "created_at", ascending: false }),
-        ]);
-
-        stats.value = {
-            total_links: statsData.total_links || 0,
-            total_clicks: statsData.total_clicks || 0,
-            weekly_new_links: statsData.weekly_new_links || 0,
-            avg_clicks_per_link: parseFloat(
-                statsData.avg_clicks_per_link || 0,
-            ).toFixed(1),
-        };
-
-        recentLinks.value = linksData.links || [];
-    } catch (error) {
-        console.error("加载统计数据失败:", error);
-    } finally {
-        isLoading.value = false;
-    }
+    // 并行请求统计和链接数据
+    await Promise.all([
+        linksStore.fetchStats(),
+        linksStore.fetchLinks({
+            limit: 5,
+            orderBy: "created_at",
+            ascending: false,
+        }),
+    ]);
 };
 
 const goToLinks = () => {

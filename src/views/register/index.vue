@@ -149,7 +149,7 @@
                         html-type="submit"
                         long
                         size="large"
-                        :loading="isLoading"
+                        :loading="userStore.isLoading"
                         class="rounded-lg! h-12! text-base! font-medium! mt-2"
                     >
                         注册
@@ -172,7 +172,7 @@
                         type="button"
                         class="flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 cursor-pointer"
                         @click="handleGithubRegister"
-                        :disabled="isLoading"
+                        :disabled="userStore.isLoading"
                     >
                         <icon-github class="text-xl" />
                         <span class="text-gray-700 font-medium">GitHub</span>
@@ -181,7 +181,7 @@
                         type="button"
                         class="flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 cursor-pointer"
                         @click="handleGoogleRegister"
-                        :disabled="isLoading"
+                        :disabled="userStore.isLoading"
                     >
                         <icon-google class="text-xl" />
                         <span class="text-gray-700 font-medium">Google</span>
@@ -212,7 +212,7 @@
 </template>
 
 <script setup>
-import { computed, ref, reactive } from "vue";
+import { computed, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
@@ -224,15 +224,12 @@ import {
     IconLink,
     IconLeft,
 } from "@arco-design/web-vue/es/icon";
-import {
-    signInWithGithub,
-    signInWithGoogle,
-    signUpWithEmail,
-} from "@/services/auth.js";
+import { useUserStore } from "@/stores";
 import { makePasswordRules } from "@/utils/validator.js";
 
 const router = useRouter();
-const isLoading = ref(false);
+const userStore = useUserStore();
+
 const form = reactive({
     username: "",
     email: "",
@@ -250,24 +247,20 @@ const passwordRules = computed(() =>
 
 // 处理 GitHub 注册
 async function handleGithubRegister() {
-    if (isLoading.value) return;
-    isLoading.value = true;
+    if (userStore.isLoading) return;
     try {
-        await signInWithGithub();
+        await userStore.loginWithGithub();
     } catch (error) {
-        isLoading.value = false;
         Message.error(error.message || "GitHub 注册失败，请稍后再试");
     }
 }
 
 // 处理 Google 注册
 async function handleGoogleRegister() {
-    if (isLoading.value) return;
-    isLoading.value = true;
+    if (userStore.isLoading) return;
     try {
-        await signInWithGoogle();
+        await userStore.loginWithGoogle();
     } catch (error) {
-        isLoading.value = false;
         Message.error(error.message || "Google 注册失败，请稍后再试");
     }
 }
@@ -276,10 +269,8 @@ async function handleGoogleRegister() {
 async function handleEmailRegister({ errors }) {
     if (errors) return;
 
-    isLoading.value = true;
-
     try {
-        await signUpWithEmail(form.email, form.password, {
+        await userStore.registerWithEmail(form.email, form.password, {
             username: form.username,
         });
 
@@ -289,7 +280,6 @@ async function handleEmailRegister({ errors }) {
             router.push("/login");
         }, 2000);
     } catch (error) {
-        isLoading.value = false;
         if (error.message.includes("User already registered")) {
             Message.error("该邮箱已被注册");
         } else if (
