@@ -31,7 +31,6 @@ export default async function adminRoutes(fastify) {
   fastify.delete("/users/:id", adminController.deleteUser);
   fastify.post("/users/:id/reset-password", adminController.resetPassword);
   fastify.patch("/users/:id/ban-status", adminController.toggleBanStatus);
-  fastify.patch("/users/:id/toggle-status", adminController.toggleBanStatus); // 兼容前端调用
 
   // 日志管理
   fastify.get("/logs/login", adminController.getLoginLogs);

@@ -107,17 +107,17 @@ const getUserRole = (user) => {
 
 // 获取登录方式
 const getAuthProvider = (user) => {
-    if (user.app_metadata?.provider) {
+    if (user.app_metadata?.providers) {
         const providers = {
             email: "邮箱",
             github: "GitHub",
             google: "Google",
         };
-        return (
-            providers[user.app_metadata.provider] || user.app_metadata.provider
+        return user.app_metadata.providers.map(
+            (provider) => providers[provider] || provider,
         );
     }
-    return "邮箱";
+    return ["邮箱"];
 };
 
 // 创建用户
@@ -237,9 +237,7 @@ const handleToggleAdmin = async (user) => {
         onOk: async () => {
             try {
                 await updateUser(user.id, {
-                    app_metadata: {
-                        is_admin: !role.isAdmin,
-                    },
+                    is_admin: !role.isAdmin,
                 });
                 Message.success(`已${action}`);
                 loadUsers();
@@ -269,7 +267,7 @@ defineExpose({
 <template>
     <div class="space-y-6">
         <div
-            class="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden"
+            class="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden pb-4"
         >
             <div
                 class="px-6 py-4 border-b border-orange-100 flex justify-between items-center bg-orange-50"
@@ -311,7 +309,7 @@ defineExpose({
                         <a-table-column
                             title="用户信息"
                             data-index="email"
-                            :width="320"
+                            :width="200"
                             fixed="left"
                         >
                             <template #cell="{ record }">
@@ -359,8 +357,14 @@ defineExpose({
                                         </div>
                                     </div>
                                     <div class="flex gap-2 flex-wrap">
-                                        <a-tag size="mini" color="arcoblue">
-                                            {{ getAuthProvider(record) }}
+                                        <a-tag
+                                            v-for="provider of getAuthProvider(
+                                                record,
+                                            )"
+                                            size="mini"
+                                            color="arcoblue"
+                                        >
+                                            {{ provider }}
                                         </a-tag>
                                         <a-tag
                                             size="mini"
@@ -380,7 +384,7 @@ defineExpose({
                         <a-table-column
                             title="用户 ID"
                             data-index="id"
-                            :width="260"
+                            :width="160"
                         >
                             <template #cell="{ record }">
                                 <a-typography-text
@@ -412,7 +416,7 @@ defineExpose({
                         <a-table-column
                             title="登录信息"
                             data-index="login_info"
-                            :width="240"
+                            :width="170"
                         >
                             <template #cell="{ record }">
                                 <div class="flex flex-col gap-1">
@@ -487,7 +491,7 @@ defineExpose({
 
                         <a-table-column
                             title="操作"
-                            :width="240"
+                            :width="150"
                             align="center"
                             fixed="right"
                         >

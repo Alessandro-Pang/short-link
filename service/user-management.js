@@ -19,7 +19,6 @@ const supabase = createClient(
 export async function getAllUsers(options = {}) {
   try {
     const { page = 1, perPage = 50 } = options;
-    const offset = (page - 1) * perPage;
 
     // 从 auth.users 获取用户列表
     const { data: authData, error: authError } =
@@ -31,11 +30,6 @@ export async function getAllUsers(options = {}) {
     if (authError) {
       console.error("获取用户列表失败:", authError);
       throw authError;
-    }
-
-    // 调试：打印第一个用户的完整数据结构
-    if (authData.users.length > 0) {
-      console.log("示例用户数据:", JSON.stringify(authData.users[0], null, 2));
     }
 
     // 获取用户的 profile 信息
@@ -58,23 +52,15 @@ export async function getAllUsers(options = {}) {
         ? new Date(user.banned_until) > new Date()
         : false;
 
-      // 获取登录方式
-      const identities = user.identities || [];
-      const providers = identities.map((i) => i.provider);
-
+      // 移除用不到的敏感信息
+      if (user.identities) {
+        user.identities = undefined;
+      }
       return {
-        id: user.id,
-        email: user.email,
-        created_at: user.created_at,
-        last_sign_in_at: user.last_sign_in_at,
         banned: isBanned,
-        banned_until: user.banned_until,
-        email_confirmed_at: user.email_confirmed_at,
-        confirmed_at: user.confirmed_at,
-        providers: providers, // 登录方式列表
-        identities: identities, // 完整的身份信息
-        ...profile, // 先展开 profile
-        is_admin: profile.is_admin === true, // 明确设置 is_admin，确保是布尔值
+        ...user,
+        ...profile,
+        is_admin: profile.is_admin === true,
       };
     });
 

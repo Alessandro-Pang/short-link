@@ -238,7 +238,7 @@ export async function batchToggleLinks(linkIds, isActive) {
  * @returns {Promise} - 返回用户信息
  */
 export async function verifyUser() {
-  return fetchApi("/api/auth/user");
+  return fetchApi("/api/dashboard/user");
 }
 
 /**

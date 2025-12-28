@@ -13,7 +13,7 @@ import { supabase } from "./supabase.js";
  */
 export async function getUserIdentities() {
   try {
-    const response = await fetchApi("/api/account/identities", {
+    const response = await fetchApi("/api/dashboard/user/identities", {
       method: "GET",
     });
 
@@ -50,7 +50,7 @@ export async function linkEmailAccount(email, password) {
     }
 
     // 调用后端 API 创建绑定记录
-    const response = await fetchApi("/api/account/link", {
+    const response = await fetchApi("/api/dashboard/user/identities", {
       method: "POST",
       body: {
         provider: "email",
@@ -162,7 +162,7 @@ export async function handleOAuthLinkCallback(provider) {
     }
 
     // 调用后端 API 创建绑定记录
-    const response = await fetchApi("/api/account/link", {
+    const response = await fetchApi("/api/dashboard/user/identities", {
       method: "POST",
       body: {
         provider,
@@ -190,9 +190,12 @@ export async function handleOAuthLinkCallback(provider) {
  */
 export async function unlinkIdentity(provider) {
   try {
-    const response = await fetchApi(`/api/account/unlink/${provider}`, {
-      method: "DELETE",
-    });
+    const response = await fetchApi(
+      `/api/dashboard/user/identities/${provider}`,
+      {
+        method: "DELETE",
+      },
+    );
 
     if (response.code !== 200) {
       throw new Error(response.msg || "解绑失败");
@@ -228,7 +231,7 @@ export async function unlinkIdentity(provider) {
  */
 export async function deleteAccount(reason = null) {
   try {
-    const response = await fetchApi("/api/account/delete", {
+    const response = await fetchApi("/api/dashboard/user/account", {
       method: "DELETE",
       body: { reason },
     });

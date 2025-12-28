@@ -94,7 +94,7 @@ export async function signInWithEmail(email, password) {
  */
 async function checkUserBanned(userId) {
   try {
-    const response = await fetch("/api/auth/user", {
+    const response = await fetch("/api/dashboard/user", {
       headers: {
         Authorization: `Bearer ${(await getSession())?.access_token}`,
       },
@@ -138,7 +138,7 @@ async function recordLoginAttempt(
     const userAgent = navigator.userAgent;
 
     // 调用后端接口记录日志（不需要等待结果）
-    fetch("/api/auth/log-login", {
+    fetch("/api/log-login-attempt", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -244,23 +244,22 @@ export function onAuthStateChange(callback) {
 
       // 检查用户是否被禁用并记录日志
       try {
-        const response = await fetch("/api/auth/check-and-log", {
-          method: "POST",
+        const response = await fetch("/api/dashboard/user", {
+          method: "GET",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${session.access_token}`,
           },
-          body: JSON.stringify({
-            email: user.email,
-            login_method: user.app_metadata?.provider || "email",
-          }),
         });
 
         const result = await response.json();
 
-        if (!response.ok || result.code !== 200) {
-          // 检查是否是被禁用
-          if (result.banned) {
+        if (response.ok && result.code === 200) {
+          const userData = result.data;
+          // 检查是否被禁用
+          if (
+            userData.banned_until &&
+            new Date(userData.banned_until) > new Date()
+          ) {
             // 退出登录
             await supabase.auth.signOut();
 

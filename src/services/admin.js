@@ -269,7 +269,7 @@ export async function resetUserPassword(userId, password) {
  * @returns {Promise}
  */
 export async function toggleUserStatus(userId, banned) {
-  return fetchApi(`/api/admin/users/${userId}/toggle-status`, {
+  return fetchApi(`/api/admin/users/${userId}/ban-status`, {
     method: "PATCH",
     body: { banned },
   });
@@ -321,7 +321,7 @@ export async function getLoginStats(userId = null) {
  */
 export async function checkIsAdmin() {
   try {
-    const response = await fetchApi("/api/auth/user");
+    const response = await fetchApi("/api/dashboard/user");
     return response.data?.isAdmin === true;
   } catch (error) {
     console.error("检查管理员状态失败:", error);
@@ -334,6 +334,6 @@ export async function checkIsAdmin() {
  * @returns {Promise<Object>} - 返回用户信息
  */
 export async function getCurrentUserWithAdminStatus() {
-  const response = await fetchApi("/api/auth/user");
+  const response = await fetchApi("/api/dashboard/user");
   return response.data;
 }

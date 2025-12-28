@@ -149,10 +149,9 @@ export async function getCurrentUser(request, reply) {
       code: 200,
       msg: "User data retrieved successfully",
       data: {
-        id: userData.id,
-        email: user.email,
-        is_admin: userData.is_admin || false,
-        isAdmin: userData.is_admin || false, // 前端使用的驼峰命名
+        // 前端使用的驼峰命名
+        isAdmin: userData.is_admin || false,
+        ...user,
         ...userData,
       },
     });
