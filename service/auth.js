@@ -1,22 +1,12 @@
 /*
  * @Author: zi.yang
  * @Date: 2025-12-27
+ * @LastEditors: zi.yang
+ * @LastEditTime: 2025-01-01 00:00:00
  * @Description: 认证服务 - Supabase Auth 验证
  * @FilePath: /short-link/service/auth.js
  */
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-    },
-  },
-);
+import supabase from "./db.js";
 
 /**
  * 验证 Supabase JWT Token

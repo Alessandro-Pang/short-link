@@ -20,15 +20,5 @@ export default async function apiRoutes(fastify) {
   // 登录日志
   fastify.post("/log-login-attempt", authController.logLoginAttempt);
 
-  // 健康检查
-  fastify.get("/health", async (_, reply) => {
-    return reply.send({
-      code: 200,
-      msg: "Service is running",
-      data: {
-        status: "healthy",
-        timestamp: new Date().toISOString(),
-      },
-    });
-  });
+  // 健康检查已移至 index.js 的根路径 /health，包含真实的数据库连接检查
 }

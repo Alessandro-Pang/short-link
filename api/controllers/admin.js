@@ -1,6 +1,14 @@
 import * as dashboardService from "../../service/dashboard.js";
 import * as userManagementService from "../../service/user-management.js";
 import * as loginLogService from "../../service/login-log.js";
+import {
+  validateUpdateLinkParams,
+  validateBatchIds,
+  validateBoolean,
+  validatePagination,
+  validateEmail,
+  validatePassword,
+} from "../utils/validation.js";
 
 /**
  * 获取系统统计信息
@@ -40,6 +48,15 @@ export async function getAllLinks(request, reply) {
       keyword = null,
       userId = null,
     } = request.query;
+
+    // 验证分页参数
+    const paginationResult = validatePagination({ page, pageSize });
+    if (!paginationResult.valid) {
+      return reply.status(400).send({
+        code: 400,
+        msg: paginationResult.error,
+      });
+    }
 
     // 支持两种分页方式：
     // 1. page + pageSize (传统分页)
@@ -96,6 +113,13 @@ export async function getLinkDetails(request, reply) {
   try {
     const linkId = parseInt(request.params.id);
 
+    if (Number.isNaN(linkId) || linkId < 1) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "无效的链接 ID",
+      });
+    }
+
     const result = await dashboardService.getLinkDetailAdmin(linkId);
 
     if (!result) {
@@ -126,6 +150,13 @@ export async function getLinkAccessLogs(request, reply) {
   try {
     const linkId = parseInt(request.params.id);
 
+    if (Number.isNaN(linkId) || linkId < 1) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "无效的链接 ID",
+      });
+    }
+
     const result = await dashboardService.getLinkAccessLogsAdmin(linkId, {
       limit: parseInt(request.query.pageSize || 50),
       offset: parseInt(request.query.offset || 0),
@@ -153,25 +184,25 @@ export async function updateLink(request, reply) {
     const linkId = parseInt(request.params.id);
     const updates = request.body;
 
-    if (
-      updates.redirect_type &&
-      ![301, 302, 307, 308].includes(updates.redirect_type)
-    ) {
+    if (Number.isNaN(linkId) || linkId < 1) {
       return reply.status(400).send({
         code: 400,
-        msg: "重定向类型必须是 301、302、307 或 308",
+        msg: "无效的链接 ID",
       });
     }
 
+    // 使用统一验证模块
+    const validationResult = validateUpdateLinkParams(updates);
+    if (!validationResult.valid) {
+      return reply.status(400).send({
+        code: 400,
+        msg: validationResult.error,
+      });
+    }
+
+    // 处理 max_clicks 转换
     if (updates.max_clicks !== undefined && updates.max_clicks !== null) {
-      const maxClicks = parseInt(updates.max_clicks);
-      if (isNaN(maxClicks) || maxClicks < 1) {
-        return reply.status(400).send({
-          code: 400,
-          msg: "最大点击次数必须是大于0的整数",
-        });
-      }
-      updates.max_clicks = maxClicks;
+      updates.max_clicks = parseInt(updates.max_clicks);
     }
 
     const result = await dashboardService.updateLinkAdmin(linkId, updates);
@@ -198,10 +229,25 @@ export async function toggleLinkStatus(request, reply) {
     const linkId = parseInt(request.params.id);
     const { is_active } = request.body;
 
-    if (typeof is_active !== "boolean") {
+    if (Number.isNaN(linkId) || linkId < 1) {
       return reply.status(400).send({
         code: 400,
-        msg: "is_active must be a boolean",
+        msg: "无效的链接 ID",
+      });
+    }
+
+    const boolResult = validateBoolean(is_active, "is_active");
+    if (!boolResult.valid) {
+      return reply.status(400).send({
+        code: 400,
+        msg: boolResult.error,
+      });
+    }
+
+    if (is_active === undefined || is_active === null) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "is_active 是必填参数",
       });
     }
 
@@ -230,6 +276,13 @@ export async function toggleLinkStatus(request, reply) {
 export async function deleteLink(request, reply) {
   try {
     const linkId = parseInt(request.params.id);
+
+    if (Number.isNaN(linkId) || linkId < 1) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "无效的链接 ID",
+      });
+    }
 
     const result = await dashboardService.deleteLinkAdmin(linkId);
 
@@ -260,10 +313,12 @@ export async function batchDeleteLinks(request, reply) {
   try {
     const { linkIds } = request.body;
 
-    if (!Array.isArray(linkIds) || linkIds.length === 0) {
+    // 使用统一验证
+    const idsResult = validateBatchIds(linkIds);
+    if (!idsResult.valid) {
       return reply.status(400).send({
         code: 400,
-        msg: "linkIds must be a non-empty array",
+        msg: idsResult.error,
       });
     }
 
@@ -290,17 +345,27 @@ export async function batchUpdateLinkStatus(request, reply) {
   try {
     const { linkIds, is_active } = request.body;
 
-    if (!Array.isArray(linkIds) || linkIds.length === 0) {
+    // 使用统一验证
+    const idsResult = validateBatchIds(linkIds);
+    if (!idsResult.valid) {
       return reply.status(400).send({
         code: 400,
-        msg: "linkIds must be a non-empty array",
+        msg: idsResult.error,
       });
     }
 
-    if (typeof is_active !== "boolean") {
+    const boolResult = validateBoolean(is_active, "is_active");
+    if (!boolResult.valid) {
       return reply.status(400).send({
         code: 400,
-        msg: "is_active must be a boolean",
+        msg: boolResult.error,
+      });
+    }
+
+    if (is_active === undefined || is_active === null) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "is_active 是必填参数",
       });
     }
 
@@ -331,6 +396,15 @@ export async function getAllUsers(request, reply) {
   try {
     const { page = 1, perPage = 50 } = request.query;
 
+    // 验证分页参数
+    const paginationResult = validatePagination({ page, pageSize: perPage });
+    if (!paginationResult.valid) {
+      return reply.status(400).send({
+        code: 400,
+        msg: paginationResult.error,
+      });
+    }
+
     const result = await userManagementService.getAllUsers({
       page: parseInt(page),
       perPage: parseInt(perPage),
@@ -357,6 +431,13 @@ export async function getUserDetails(request, reply) {
   try {
     const userId = request.params.id;
 
+    if (!userId || typeof userId !== "string") {
+      return reply.status(400).send({
+        code: 400,
+        msg: "无效的用户 ID",
+      });
+    }
+
     const result = await userManagementService.getUserDetails(userId);
 
     return reply.send({
@@ -380,10 +461,21 @@ export async function createUser(request, reply) {
   try {
     const { email, password } = request.body;
 
-    if (!email || !password) {
+    // 验证邮箱
+    const emailResult = validateEmail(email);
+    if (!emailResult.valid) {
       return reply.status(400).send({
         code: 400,
-        msg: "邮箱和密码不能为空",
+        msg: emailResult.error,
+      });
+    }
+
+    // 验证密码
+    const passwordResult = validatePassword(password);
+    if (!passwordResult.valid) {
+      return reply.status(400).send({
+        code: 400,
+        msg: passwordResult.error,
       });
     }
 
@@ -411,6 +503,13 @@ export async function updateUser(request, reply) {
     const userId = request.params.id;
     const updates = request.body;
 
+    if (!userId || typeof userId !== "string") {
+      return reply.status(400).send({
+        code: 400,
+        msg: "无效的用户 ID",
+      });
+    }
+
     const result = await userManagementService.updateUser(userId, updates);
 
     return reply.send({
@@ -433,6 +532,13 @@ export async function updateUser(request, reply) {
 export async function deleteUser(request, reply) {
   try {
     const userId = request.params.id;
+
+    if (!userId || typeof userId !== "string") {
+      return reply.status(400).send({
+        code: 400,
+        msg: "无效的用户 ID",
+      });
+    }
 
     await userManagementService.deleteUser(userId);
 
@@ -457,10 +563,19 @@ export async function resetPassword(request, reply) {
     const userId = request.params.id;
     const { password } = request.body;
 
-    if (!password) {
+    if (!userId || typeof userId !== "string") {
       return reply.status(400).send({
         code: 400,
-        msg: "密码不能为空",
+        msg: "无效的用户 ID",
+      });
+    }
+
+    // 验证密码
+    const passwordResult = validatePassword(password);
+    if (!passwordResult.valid) {
+      return reply.status(400).send({
+        code: 400,
+        msg: passwordResult.error,
       });
     }
 
@@ -487,10 +602,25 @@ export async function toggleBanStatus(request, reply) {
     const userId = request.params.id;
     const { banned } = request.body;
 
-    if (typeof banned !== "boolean") {
+    if (!userId || typeof userId !== "string") {
       return reply.status(400).send({
         code: 400,
-        msg: "banned must be a boolean",
+        msg: "无效的用户 ID",
+      });
+    }
+
+    const boolResult = validateBoolean(banned, "banned");
+    if (!boolResult.valid) {
+      return reply.status(400).send({
+        code: 400,
+        msg: boolResult.error,
+      });
+    }
+
+    if (banned === undefined || banned === null) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "banned 是必填参数",
       });
     }
 
@@ -524,9 +654,27 @@ export async function getLoginLogs(request, reply) {
       endDate = null,
     } = request.query;
 
+    // 验证分页参数
+    const parsedLimit = parseInt(limit);
+    const parsedOffset = parseInt(offset);
+
+    if (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "limit 必须是 1-100 之间的整数",
+      });
+    }
+
+    if (Number.isNaN(parsedOffset) || parsedOffset < 0) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "offset 必须是大于等于 0 的整数",
+      });
+    }
+
     const result = await loginLogService.getAllLoginLogs({
-      limit: parseInt(limit),
-      offset: parseInt(offset),
+      limit: parsedLimit,
+      offset: parsedOffset,
       userId,
       success: success !== null ? success === "true" : null,
       startDate,
@@ -561,9 +709,27 @@ export async function getAccessLogs(request, reply) {
       endDate = null,
     } = request.query;
 
+    // 验证分页参数
+    const parsedLimit = parseInt(limit);
+    const parsedOffset = parseInt(offset);
+
+    if (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "limit 必须是 1-100 之间的整数",
+      });
+    }
+
+    if (Number.isNaN(parsedOffset) || parsedOffset < 0) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "offset 必须是大于等于 0 的整数",
+      });
+    }
+
     const result = await loginLogService.getAllLoginLogs({
-      limit: parseInt(limit),
-      offset: parseInt(offset),
+      limit: parsedLimit,
+      offset: parsedOffset,
       userId,
       success: success !== null ? success === "true" : null,
       startDate,

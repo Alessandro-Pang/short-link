@@ -1,6 +1,15 @@
 import * as linkService from "../../service/link.js";
 import * as dashboardService from "../../service/dashboard.js";
-import { getClientIp, buildForwardHeaders } from "../middlewares/utils.js";
+import { getClientIp } from "../middlewares/utils.js";
+import { generateErrorPageHtml } from "../utils/security.js";
+import {
+  validateCreateLinkParams,
+  validateUpdateLinkParams,
+  validateBatchIds,
+  validateBoolean,
+  validatePagination,
+  sanitizeUrl,
+} from "../utils/validation.js";
 
 /**
  * 获取过期时间选项
@@ -49,89 +58,20 @@ export async function createShortLink(request, reply) {
     }
   }
 
-  if (!inputUrl) {
+  // 使用统一验证模块验证所有参数
+  const validationResult = validateCreateLinkParams({ url: inputUrl, options });
+  if (!validationResult.valid) {
     return reply.status(400).send({
       code: 400,
-      msg: "URL 是必填参数",
+      msg: validationResult.error,
     });
   }
 
-  // 验证URL格式
-  const urlPattern = /^(https?:\/\/|#小程序:\/\/).+/;
-  if (!urlPattern.test(inputUrl)) {
-    return reply.status(400).send({
-      code: 400,
-      msg: "URL 格式不正确，必须以 http://、https:// 或 #小程序:// 开头",
-    });
-  }
-
-  // 验证重定向类型
-  if (
-    options.redirect_type &&
-    ![301, 302, 307, 308].includes(options.redirect_type)
-  ) {
-    return reply.status(400).send({
-      code: 400,
-      msg: "重定向类型必须是 301、302、307 或 308",
-    });
-  }
-
-  // 验证最大点击次数
-  if (options.max_clicks !== undefined && options.max_clicks !== null) {
-    const maxClicks = parseInt(options.max_clicks);
-    if (isNaN(maxClicks) || maxClicks < 1) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "最大点击次数必须是大于0的整数",
-      });
-    }
-    options.max_clicks = maxClicks;
-  }
-
-  // 验证访问限制配置
-  if (options.access_restrictions) {
-    const restrictions = options.access_restrictions;
-
-    if (
-      restrictions.ip_whitelist &&
-      !Array.isArray(restrictions.ip_whitelist)
-    ) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "IP 白名单必须是数组格式",
-      });
-    }
-    if (
-      restrictions.ip_blacklist &&
-      !Array.isArray(restrictions.ip_blacklist)
-    ) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "IP 黑名单必须是数组格式",
-      });
-    }
-
-    if (restrictions.allowed_devices) {
-      if (!Array.isArray(restrictions.allowed_devices)) {
-        return reply.status(400).send({
-          code: 400,
-          msg: "允许的设备类型必须是数组格式",
-        });
-      }
-      const validDevices = ["mobile", "tablet", "desktop"];
-      for (const device of restrictions.allowed_devices) {
-        if (!validDevices.includes(device)) {
-          return reply.status(400).send({
-            code: 400,
-            msg: `无效的设备类型: ${device}，有效值为: ${validDevices.join(", ")}`,
-          });
-        }
-      }
-    }
-  }
+  // 清理 URL
+  const sanitizedUrl = sanitizeUrl(inputUrl);
 
   try {
-    const result = await linkService.addUrl(inputUrl, userId, options);
+    const result = await linkService.addUrl(sanitizedUrl, userId, options);
 
     if (result.error) {
       if (result.error.code === "DUPLICATE_LINK") {
@@ -188,30 +128,9 @@ export async function redirectShortLink(request, reply) {
 
       const acceptHeader = request.headers.accept || "";
       if (acceptHeader.includes("text/html")) {
-        return reply.status(404).type("text/html").send(`
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>链接无效</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
-    .container { text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; }
-    h1 { color: #e74c3c; margin-bottom: 16px; }
-    p { color: #666; margin-bottom: 24px; }
-    a { color: #3498db; text-decoration: none; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>😕 链接无效</h1>
-    <p>${errorMsg}</p>
-    <a href="/">返回首页</a>
-  </div>
-</body>
-</html>
-        `);
+        // 使用安全的 HTML 生成函数防止 XSS
+        const safeHtml = generateErrorPageHtml("链接无效", errorMsg, "/");
+        return reply.status(404).type("text/html").send(safeHtml);
       }
 
       return reply.status(404).send({
@@ -282,6 +201,15 @@ export async function getUserLinks(request, reply) {
       sortOrder = "desc",
     } = request.query;
 
+    // 验证分页参数
+    const paginationResult = validatePagination({ page, pageSize });
+    if (!paginationResult.valid) {
+      return reply.status(400).send({
+        code: 400,
+        msg: paginationResult.error,
+      });
+    }
+
     const result = await dashboardService.getUserLinks(request.user.id, {
       limit: parseInt(pageSize),
       offset: (parseInt(page) - 1) * parseInt(pageSize),
@@ -309,6 +237,13 @@ export async function getUserLinks(request, reply) {
 export async function getLinkDetails(request, reply) {
   try {
     const linkId = parseInt(request.params.id);
+
+    if (Number.isNaN(linkId) || linkId < 1) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "无效的链接 ID",
+      });
+    }
 
     const result = await dashboardService.getLinkDetail(
       linkId,
@@ -343,6 +278,13 @@ export async function getLinkAccessLogs(request, reply) {
   try {
     const linkId = parseInt(request.params.id);
 
+    if (Number.isNaN(linkId) || linkId < 1) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "无效的链接 ID",
+      });
+    }
+
     const result = await dashboardService.getLinkAccessLogs(
       linkId,
       request.user.id,
@@ -374,25 +316,25 @@ export async function updateLink(request, reply) {
     const linkId = parseInt(request.params.id);
     const updates = request.body;
 
-    if (
-      updates.redirect_type &&
-      ![301, 302, 307, 308].includes(updates.redirect_type)
-    ) {
+    if (Number.isNaN(linkId) || linkId < 1) {
       return reply.status(400).send({
         code: 400,
-        msg: "重定向类型必须是 301、302、307 或 308",
+        msg: "无效的链接 ID",
       });
     }
 
+    // 使用统一验证模块
+    const validationResult = validateUpdateLinkParams(updates);
+    if (!validationResult.valid) {
+      return reply.status(400).send({
+        code: 400,
+        msg: validationResult.error,
+      });
+    }
+
+    // 处理 max_clicks 转换
     if (updates.max_clicks !== undefined && updates.max_clicks !== null) {
-      const maxClicks = parseInt(updates.max_clicks);
-      if (isNaN(maxClicks) || maxClicks < 1) {
-        return reply.status(400).send({
-          code: 400,
-          msg: "最大点击次数必须是大于0的整数",
-        });
-      }
-      updates.max_clicks = maxClicks;
+      updates.max_clicks = parseInt(updates.max_clicks);
     }
 
     const result = await dashboardService.updateLink(
@@ -423,10 +365,25 @@ export async function toggleLinkStatus(request, reply) {
     const linkId = parseInt(request.params.id);
     const { is_active } = request.body;
 
-    if (typeof is_active !== "boolean") {
+    if (Number.isNaN(linkId) || linkId < 1) {
       return reply.status(400).send({
         code: 400,
-        msg: "is_active must be a boolean",
+        msg: "无效的链接 ID",
+      });
+    }
+
+    const boolResult = validateBoolean(is_active, "is_active");
+    if (!boolResult.valid) {
+      return reply.status(400).send({
+        code: 400,
+        msg: boolResult.error,
+      });
+    }
+
+    if (is_active === undefined || is_active === null) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "is_active 是必填参数",
       });
     }
 
@@ -457,6 +414,13 @@ export async function deleteLink(request, reply) {
   try {
     const linkId = parseInt(request.params.id);
 
+    if (Number.isNaN(linkId) || linkId < 1) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "无效的链接 ID",
+      });
+    }
+
     const result = await dashboardService.deleteLink(linkId, request.user.id);
 
     if (!result || result.error) {
@@ -486,10 +450,12 @@ export async function batchDeleteLinks(request, reply) {
   try {
     const { linkIds } = request.body;
 
-    if (!Array.isArray(linkIds) || linkIds.length === 0) {
+    // 使用统一验证
+    const idsResult = validateBatchIds(linkIds);
+    if (!idsResult.valid) {
       return reply.status(400).send({
         code: 400,
-        msg: "linkIds must be a non-empty array",
+        msg: idsResult.error,
       });
     }
 
@@ -519,17 +485,27 @@ export async function batchUpdateLinkStatus(request, reply) {
   try {
     const { linkIds, is_active } = request.body;
 
-    if (!Array.isArray(linkIds) || linkIds.length === 0) {
+    // 使用统一验证
+    const idsResult = validateBatchIds(linkIds);
+    if (!idsResult.valid) {
       return reply.status(400).send({
         code: 400,
-        msg: "linkIds must be a non-empty array",
+        msg: idsResult.error,
       });
     }
 
-    if (typeof is_active !== "boolean") {
+    const boolResult = validateBoolean(is_active, "is_active");
+    if (!boolResult.valid) {
       return reply.status(400).send({
         code: 400,
-        msg: "is_active must be a boolean",
+        msg: boolResult.error,
+      });
+    }
+
+    if (is_active === undefined || is_active === null) {
+      return reply.status(400).send({
+        code: 400,
+        msg: "is_active 是必填参数",
       });
     }
 

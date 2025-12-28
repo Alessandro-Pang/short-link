@@ -1,22 +1,12 @@
 /*
  * @Author: zi.yang
  * @Date: 2025-12-28
+ * @LastEditors: zi.yang
+ * @LastEditTime: 2025-01-01 00:00:00
  * @Description: 登录日志服务
  * @FilePath: /short-link/service/login-log.js
  */
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-    },
-  },
-);
+import supabase from "./db.js";
 
 /**
  * 记录登录日志

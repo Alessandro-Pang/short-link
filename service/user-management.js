@@ -1,22 +1,12 @@
 /*
  * @Author: zi.yang
  * @Date: 2025-12-28
+ * @LastEditors: zi.yang
+ * @LastEditTime: 2025-01-01 00:00:00
  * @Description: 用户管理服务（管理员专用）
  * @FilePath: /short-link/service/user-management.js
  */
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-    },
-  },
-);
+import supabase from "./db.js";
 
 /**
  * 获取所有用户列表（管理员专用）

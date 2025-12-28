@@ -2,35 +2,12 @@
  * @Author: zi.yang
  * @Date: 2024-12-11 19:47:42
  * @LastEditors: zi.yang
- * @LastEditTime: 2025-12-27 21:00:00
+ * @LastEditTime: 2025-01-01 00:00:00
  * @Description: 短链接服务 - 集成 Supabase，支持高级配置
  * @FilePath: /short-link/service/link.js
  */
-import crypto from "node:crypto";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-    },
-  },
-);
-
-/**
- * 生成短链接哈希
- * @param {string} url - 原始 URL
- * @returns {string} 哈希值
- */
-function generatorHash(url) {
-  const md5 = crypto.createHash("md5");
-  const hex = md5.update(url + Date.now()).digest("hex");
-  return hex.slice(8, 24).substring(0, 6);
-}
+import supabase from "./db.js";
+import { generateSecureHash, MAX_HASH_RETRIES } from "../api/utils/security.js";
 
 /**
  * 解析 User-Agent 获取设备类型
@@ -86,7 +63,7 @@ function ipInCidr(ip, cidr) {
       rangeParts[3];
 
     return (ipNum & mask) === (rangeNum & mask);
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -227,7 +204,7 @@ export function buildRedirectUrl(targetUrl, queryString, passQueryParams) {
     }
 
     return url.toString();
-  } catch (e) {
+  } catch {
     // 如果 URL 解析失败，简单拼接
     const separator = targetUrl.includes("?") ? "&" : "?";
     return `${targetUrl}${separator}${queryString}`;
@@ -296,6 +273,36 @@ export async function getUrl(short, visitorInfo = {}) {
 }
 
 /**
+ * 生成唯一的短链接哈希（带重试限制）
+ * @param {number} retryCount - 当前重试次数
+ * @returns {Promise<{hash: string|null, error: string|null}>}
+ */
+async function generateUniqueHash(retryCount = 0) {
+  if (retryCount >= MAX_HASH_RETRIES) {
+    return {
+      hash: null,
+      error: "无法生成唯一的短链接，请稍后重试",
+    };
+  }
+
+  const short = generateSecureHash(6);
+
+  // 检查短链接哈希是否已存在
+  const { data: existingShort } = await supabase
+    .from("links")
+    .select("id")
+    .eq("short", short)
+    .maybeSingle();
+
+  if (existingShort) {
+    // 哈希冲突，递归重试（带计数）
+    return generateUniqueHash(retryCount + 1);
+  }
+
+  return { hash: short, error: null };
+}
+
+/**
  * 创建短链接
  * @param {string} link - 原始链接
  * @param {string|null} userId - 用户 ID（可选）
@@ -306,7 +313,7 @@ export async function addUrl(link, userId = null, options = {}) {
   try {
     if (userId) {
       // 已登录用户：检查该用户是否已创建过相同链接
-      const { data: existingUserLinks, error: err1 } = await supabase
+      const { data: existingUserLinks } = await supabase
         .from("links")
         .select("*")
         .eq("link", link)
@@ -326,7 +333,7 @@ export async function addUrl(link, userId = null, options = {}) {
       }
     } else {
       // 未登录用户：检查是否存在相同的匿名链接（user_id 为 null）
-      const { data: existingAnonymousLinks, error: err2 } = await supabase
+      const { data: existingAnonymousLinks } = await supabase
         .from("links")
         .select("*")
         .eq("link", link)
@@ -339,19 +346,11 @@ export async function addUrl(link, userId = null, options = {}) {
       }
     }
 
-    // 生成短链接哈希
-    const short = generatorHash(link);
+    // 生成唯一的短链接哈希（带重试限制）
+    const { hash: short, error: hashError } = await generateUniqueHash();
 
-    // 检查短链接哈希是否已存在（防止哈希冲突）
-    const { data: existingShort } = await supabase
-      .from("links")
-      .select("*")
-      .eq("short", short)
-      .maybeSingle();
-
-    if (existingShort) {
-      // 如果已存在相同哈希，重新生成
-      return addUrl(link, userId, options);
+    if (hashError) {
+      return { data: null, error: { message: hashError } };
     }
 
     // 处理过期时间
@@ -421,9 +420,26 @@ export async function addUrl(link, userId = null, options = {}) {
 
     if (error) {
       console.error("创建短链接失败:", error);
-      // 如果是唯一性冲突，重试
+      // 如果是唯一性冲突，重试一次
       if (error.code === "23505") {
-        return addUrl(link, userId, options);
+        // 使用非递归方式重试一次
+        const { hash: retryShort, error: retryHashError } =
+          await generateUniqueHash();
+        if (retryHashError) {
+          return { data: null, error: { message: retryHashError } };
+        }
+        insertData.short = retryShort;
+
+        const { data: retryData, error: retryError } = await supabase
+          .from("links")
+          .insert([insertData])
+          .select()
+          .single();
+
+        if (retryError) {
+          return { data: null, error: retryError };
+        }
+        return { data: retryData, error: null };
       }
       return { data: null, error };
     }

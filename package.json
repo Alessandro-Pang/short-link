@@ -15,6 +15,7 @@
   "dependencies": {
     "@arco-design/web-vue": "^2.57.0",
     "@fastify/cors": "^11.2.0",
+    "@fastify/rate-limit": "^10.3.0",
     "@supabase/supabase-js": "^2.89.0",
     "autoprefixer": "^10.4.23",
     "concurrently": "^9.2.1",
