@@ -4,7 +4,7 @@
  * @Description: 账号绑定管理服务
  * @FilePath: /short-link/src/services/account.js
  */
-import { fetchApi } from "./api.js";
+import { fetchApi } from "./request.js";
 import { supabase } from "./supabase.js";
 
 /**
