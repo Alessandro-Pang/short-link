@@ -7,9 +7,12 @@
  * @FilePath: /short-link/service/link.js
  */
 import supabase from "./db.js";
-import { generateSecureHash, MAX_HASH_RETRIES } from "../api/utils/security.js";
-import cache, { CACHE_KEYS } from "../api/utils/cache.js";
-import { CACHE_CONFIG } from "../api/config/index.js";
+import {
+  generateSecureHash,
+  MAX_HASH_RETRIES,
+} from "../server/utils/security.js";
+import cache, { CACHE_KEYS } from "../server/utils/cache.js";
+import { CACHE_CONFIG } from "../server/config/index.js";
 
 /**
  * 缓存 TTL 配置（秒）

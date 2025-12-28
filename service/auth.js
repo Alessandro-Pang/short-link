@@ -7,7 +7,7 @@
  * @FilePath: /short-link/service/auth.js
  */
 import supabase from "./db.js";
-import { USER_CONFIG } from "../api/config/index.js";
+import { USER_CONFIG } from "../server/config/index.js";
 
 /**
  * 验证 Supabase JWT Token

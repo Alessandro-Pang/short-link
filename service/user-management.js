@@ -7,8 +7,8 @@
  * @FilePath: /short-link/service/user-management.js
  */
 import supabase from "./db.js";
-import cache, { CACHE_KEYS, buildCacheKey } from "../api/utils/cache.js";
-import { USER_CONFIG } from "../api/config/index.js";
+import cache, { CACHE_KEYS, buildCacheKey } from "../server/utils/cache.js";
+import { USER_CONFIG } from "../server/config/index.js";
 
 /**
  * 清除用户相关缓存
