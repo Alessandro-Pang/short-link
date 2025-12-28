@@ -2,11 +2,10 @@
     <a-layout class="h-screen bg-gray-50">
         <a-layout-sider
             breakpoint="lg"
-            :width="240"
             collapsible
             :collapsed="uiStore.sidebarCollapsed"
             @collapse="uiStore.setSidebarCollapsed"
-            class="bg-white! shadow-sm z-20 border-r border-gray-100"
+            class="bg-white! border-r border-gray-100"
         >
             <div
                 class="h-16 flex items-center justify-center border-b border-gray-50"
@@ -28,65 +27,12 @@
                     >
                 </div>
             </div>
-            <a-menu
-                :selected-keys="[currentRoute]"
-                @menu-item-click="handleMenuClick"
-                class="mt-4 px-2"
-            >
-                <a-menu-item key="stats" class="rounded-lg! mb-1">
-                    <template #icon><icon-bar-chart /></template>
-                    数据概览
-                </a-menu-item>
-                <a-menu-item key="links" class="rounded-lg! mb-1">
-                    <template #icon><icon-link /></template>
-                    链接管理
-                </a-menu-item>
 
-                <a-divider class="my-3!" />
-
-                <a-menu-item key="profile" class="rounded-lg! mb-1">
-                    <template #icon><icon-user /></template>
-                    个人信息
-                </a-menu-item>
-
-                <!-- 管理员菜单 -->
-                <template v-if="userStore.isAdmin">
-                    <a-divider class="my-3!" />
-                    <div
-                        v-if="!uiStore.sidebarCollapsed"
-                        class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider"
-                    >
-                        管理员
-                    </div>
-                    <a-menu-item key="admin-stats" class="rounded-lg! mb-1">
-                        <template #icon
-                            ><icon-dashboard class="text-orange-500"
-                        /></template>
-                        <span class="text-orange-600">全局统计</span>
-                    </a-menu-item>
-                    <a-menu-item key="admin-links" class="rounded-lg! mb-1">
-                        <template #icon
-                            ><icon-apps class="text-orange-500"
-                        /></template>
-                        <span class="text-orange-600">所有链接</span>
-                    </a-menu-item>
-                    <a-menu-item key="admin-users" class="rounded-lg! mb-1">
-                        <template #icon
-                            ><icon-user class="text-orange-500"
-                        /></template>
-                        <span class="text-orange-600">用户管理</span>
-                    </a-menu-item>
-                    <a-menu-item
-                        key="admin-login-logs"
-                        class="rounded-lg! mb-1"
-                    >
-                        <template #icon
-                            ><icon-history class="text-orange-500"
-                        /></template>
-                        <span class="text-orange-600">登录日志</span>
-                    </a-menu-item>
-                </template>
-            </a-menu>
+            <!-- 使用 SidebarMenu 组件 -->
+            <SidebarMenu
+                :is-admin="userStore.isAdmin"
+                :collapsed="uiStore.sidebarCollapsed"
+            />
         </a-layout-sider>
 
         <a-layout class="flex flex-col h-screen overflow-hidden">
@@ -184,23 +130,22 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
-    IconBarChart,
     IconLink,
     IconRefresh,
     IconDown,
     IconHome,
     IconExport,
     IconDashboard,
-    IconApps,
     IconLock,
     IconUser,
-    IconHistory,
 } from "@arco-design/web-vue/es/icon";
 import { useUserStore, useUiStore } from "@/stores";
+import { getRouteTitle } from "@/router";
+import SidebarMenu from "./components/SidebarMenu.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -213,51 +158,15 @@ const uiStore = useUiStore();
 const childViewRef = ref(null);
 
 // Computed
-const currentRoute = computed(() => {
-    const path = route.path;
-    if (path.includes("/admin/login-logs")) return "admin-login-logs";
-    if (path.includes("/admin/users")) return "admin-users";
-    if (path.includes("/admin/links")) return "admin-links";
-    if (path.includes("/admin/stats")) return "admin-stats";
-    if (path.includes("/profile")) return "profile";
-    if (path.includes("/links")) return "links";
-    return "stats";
-});
-
 const isAdminRoute = computed(() => {
     return route.path.includes("/admin");
 });
 
 const currentTitle = computed(() => {
-    const routeKey = currentRoute.value;
-    const titles = {
-        stats: "数据概览",
-        links: "链接管理",
-        profile: "个人信息",
-        "admin-stats": "全局统计",
-        "admin-links": "所有链接",
-        "admin-users": "用户管理",
-        "admin-login-logs": "登录日志",
-    };
-    return titles[routeKey] || "控制台";
+    return getRouteTitle(route.name);
 });
 
 // Methods
-const handleMenuClick = (key) => {
-    const routes = {
-        stats: "/dashboard/stats",
-        links: "/dashboard/links",
-        profile: "/dashboard/profile",
-        "admin-stats": "/dashboard/admin/stats",
-        "admin-links": "/dashboard/admin/links",
-        "admin-users": "/dashboard/admin/users",
-        "admin-login-logs": "/dashboard/admin/login-logs",
-    };
-    if (routes[key]) {
-        router.push(routes[key]);
-    }
-};
-
 const goToHome = () => {
     router.push("/");
 };
@@ -280,7 +189,7 @@ const handleUserDropdown = async (value) => {
 
 const handleRefresh = () => {
     // 如果在 profile 页面，也刷新用户信息
-    if (currentRoute.value === "profile") {
+    if (route.name === "dashboard-profile") {
         userStore.refreshUser();
     }
     // 调用子组件的刷新方法

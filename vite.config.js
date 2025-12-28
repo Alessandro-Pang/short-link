@@ -15,6 +15,7 @@ import tailwindcss from "@tailwindcss/vite";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import { ArcoResolver } from "unplugin-vue-components/resolvers";
+import { codeInspectorPlugin } from "code-inspector-plugin";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -32,6 +33,9 @@ export default defineConfig(({ mode }) => {
             sideEffect: true,
           }),
         ],
+      }),
+      codeInspectorPlugin({
+        bundler: "vite",
       }),
     ],
     resolve: {

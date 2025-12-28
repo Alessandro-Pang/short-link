@@ -282,11 +282,6 @@ export function onAuthStateChange(callback) {
       const user = session.user;
       const loginMethod = user.app_metadata?.provider || "email";
 
-      console.log("Login detected:", {
-        email: user.email,
-        method: loginMethod,
-      });
-
       // 使用更可靠的去重机制
       // 使用 session 的 access_token 的前20个字符作为唯一标识
       // 同一个 session 的 access_token 是固定的
@@ -297,9 +292,7 @@ export function onAuthStateChange(callback) {
       const alreadyLogged = localStorage.getItem(loginEventKey);
 
       if (!alreadyLogged) {
-        console.log("Recording login for:", user.email, loginMethod);
-
-        // ⚠️ 重要：先标记为已记录，防止并发请求导致重复
+        // 标记为已记录，防止并发请求导致重复
         localStorage.setItem(loginEventKey, Date.now().toString());
 
         try {
