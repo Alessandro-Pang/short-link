@@ -121,13 +121,44 @@ async function checkUserBanned(userId) {
 }
 
 /**
+ * 错误消息中英文映射
+ */
+const ERROR_MESSAGE_MAP = {
+  "Invalid login credentials": "邮箱或密码错误",
+  "Email not confirmed": "邮箱未验证，请先验证您的邮箱",
+  "User already registered": "该邮箱已被注册",
+  "User is banned": "用户已被禁用",
+  user_banned: "用户已被禁用",
+  banned: "用户已被禁用",
+};
+
+/**
+ * 将英文错误消息转换为中文
+ * @param {string} errorMessage - 英文错误消息
+ * @returns {string} 中文错误消息
+ */
+function translateErrorMessage(errorMessage) {
+  if (!errorMessage) return null;
+
+  // 检查是否包含关键词
+  for (const [key, value] of Object.entries(ERROR_MESSAGE_MAP)) {
+    if (errorMessage.includes(key)) {
+      return value;
+    }
+  }
+
+  // 如果没有匹配，返回原始消息
+  return errorMessage;
+}
+
+/**
  * 记录登录尝试
  * @param {string} email - 邮箱
  * @param {boolean} success - 是否成功
- * @param {string} failureReason - 失败原因
+ * @param {string} failureReason - 失败原因（英文）
  * @param {string} loginMethod - 登录方式
  */
-async function recordLoginAttempt(
+export async function recordLoginAttempt(
   email,
   success,
   failureReason = null,
@@ -136,6 +167,11 @@ async function recordLoginAttempt(
   try {
     // 获取客户端信息
     const userAgent = navigator.userAgent;
+
+    // 将失败原因翻译为中文
+    const translatedReason = failureReason
+      ? translateErrorMessage(failureReason)
+      : null;
 
     // 调用后端接口记录日志（不需要等待结果）
     fetch("/api/log-login-attempt", {
@@ -146,7 +182,7 @@ async function recordLoginAttempt(
       body: JSON.stringify({
         email,
         success,
-        failure_reason: failureReason,
+        failure_reason: translatedReason,
         login_method: loginMethod,
         user_agent: userAgent,
       }),
@@ -238,32 +274,95 @@ export async function getSession() {
  */
 export function onAuthStateChange(callback) {
   return supabase.auth.onAuthStateChange(async (event, session) => {
-    // 处理登录成功事件
+    console.log("Auth state changed:", event, session?.user?.email);
+
+    // 只在真正的登录事件时处理
+    // SIGNED_IN: 用户刚刚登录（包括 OAuth 回调）
     if (event === "SIGNED_IN" && session?.user) {
       const user = session.user;
+      const loginMethod = user.app_metadata?.provider || "email";
 
-      // 检查用户是否被禁用并记录日志
-      try {
-        const response = await fetch("/api/dashboard/user", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
+      console.log("Login detected:", {
+        email: user.email,
+        method: loginMethod,
+      });
 
-        const result = await response.json();
+      // 使用更可靠的去重机制
+      // 使用 session 的 access_token 的前20个字符作为唯一标识
+      // 同一个 session 的 access_token 是固定的
+      const sessionId = session.access_token.substring(0, 20);
+      const loginEventKey = `login_event_${user.id}_${sessionId}`;
 
-        if (response.ok && result.code === 200) {
-          const userData = result.data;
-          // 检查是否被禁用
-          if (
-            userData.banned_until &&
-            new Date(userData.banned_until) > new Date()
-          ) {
-            // 退出登录
+      // 检查是否已经记录过此次登录
+      const alreadyLogged = localStorage.getItem(loginEventKey);
+
+      if (!alreadyLogged) {
+        console.log("Recording login for:", user.email, loginMethod);
+
+        // ⚠️ 重要：先标记为已记录，防止并发请求导致重复
+        localStorage.setItem(loginEventKey, Date.now().toString());
+
+        try {
+          // 检查用户是否被禁用
+          const response = await fetch("/api/dashboard/user", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.code === 200) {
+            const userData = result.data;
+
+            // 检查是否被禁用
+            if (
+              userData.banned ||
+              (userData.banned_until &&
+                new Date(userData.banned_until) > new Date())
+            ) {
+              // 记录失败日志
+              await recordLoginAttempt(
+                user.email,
+                false,
+                "用户已被禁用",
+                loginMethod,
+              );
+
+              // 退出登录
+              await supabase.auth.signOut();
+
+              // 通知前端显示错误
+              window.dispatchEvent(
+                new CustomEvent("auth-error", {
+                  detail: {
+                    error: {
+                      code: "USER_BANNED",
+                      message: "您的账号已被管理员禁用，请联系管理员",
+                    },
+                  },
+                }),
+              );
+              return;
+            }
+
+            // 记录成功登录日志
+            await recordLoginAttempt(user.email, true, null, loginMethod);
+
+            // 清理超过24小时的旧记录
+            cleanupOldLoginEvents();
+          } else if (result.code === 403 && result.banned) {
+            // 用户被禁用
+            await recordLoginAttempt(
+              user.email,
+              false,
+              "用户已被禁用",
+              loginMethod,
+            );
+
             await supabase.auth.signOut();
 
-            // 通知前端显示错误
             window.dispatchEvent(
               new CustomEvent("auth-error", {
                 detail: {
@@ -276,9 +375,18 @@ export function onAuthStateChange(callback) {
             );
             return;
           }
+        } catch (error) {
+          console.error("认证检查失败:", error);
+          // 即使检查失败，也记录登录成功（因为 session 已经创建）
+          await recordLoginAttempt(user.email, true, null, loginMethod);
         }
-      } catch (error) {
-        console.error("认证检查失败:", error);
+      } else {
+        console.log(
+          "Login already logged for:",
+          user.email,
+          "at",
+          new Date(parseInt(alreadyLogged)).toLocaleString(),
+        );
       }
     }
 
@@ -287,6 +395,29 @@ export function onAuthStateChange(callback) {
       callback(event, session);
     }
   });
+}
+
+/**
+ * 清理超过24小时的旧登录事件记录
+ */
+function cleanupOldLoginEvents() {
+  try {
+    const now = Date.now();
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+    // 遍历 localStorage 查找登录事件记录
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("login_event_")) {
+        const timestamp = parseInt(localStorage.getItem(key) || "0", 10);
+        if (now - timestamp > DAY_IN_MS) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("清理旧登录事件记录失败:", error);
+  }
 }
 
 /**

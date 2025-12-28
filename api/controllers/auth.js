@@ -94,7 +94,7 @@ export async function getCurrentUser(request, reply) {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return reply.status(401).send({
         code: 401,
-        msg: "Missing or invalid authorization header",
+        msg: "缺少或无效的授权头",
       });
     }
 
@@ -104,7 +104,7 @@ export async function getCurrentUser(request, reply) {
     if (!user || !user.id) {
       return reply.status(401).send({
         code: 401,
-        msg: "Invalid token",
+        msg: "无效的令牌",
       });
     }
 
@@ -120,34 +120,35 @@ export async function getCurrentUser(request, reply) {
     };
 
     const isBanned = userData.banned || false;
-    const ipAddress = getClientIp(request);
 
-    // 记录登录尝试（失败不应阻止用户获取信息）
-    try {
-      await loginLogService.recordLoginAttempt({
-        user_id: user.id,
-        email: user.email,
-        ip_address: ipAddress,
-        user_agent: request.headers["user-agent"],
-        success: !isBanned,
-        failure_reason: isBanned ? "User is banned" : null,
-        login_method: "jwt",
-      });
-    } catch (logError) {
-      request.log.warn("Failed to log login attempt:", logError);
-    }
-
+    // 只在用户被禁用时记录（用于安全审计）
+    // 正常的 API 调用不应记录为登录日志
     if (isBanned) {
+      const ipAddress = getClientIp(request);
+      try {
+        await loginLogService.recordLoginAttempt({
+          user_id: user.id,
+          email: user.email,
+          ip_address: ipAddress,
+          user_agent: request.headers["user-agent"],
+          success: false,
+          failure_reason: "用户已被禁用",
+          login_method: "jwt",
+        });
+      } catch (logError) {
+        request.log.warn("Failed to log banned user attempt:", logError);
+      }
+
       return reply.status(403).send({
         code: 403,
-        msg: "Your account has been banned",
+        msg: "您的账号已被禁用",
         banned: true,
       });
     }
 
     return reply.send({
       code: 200,
-      msg: "User data retrieved successfully",
+      msg: "成功获取用户数据",
       data: {
         // 前端使用的驼峰命名
         isAdmin: userData.is_admin || false,
@@ -159,7 +160,7 @@ export async function getCurrentUser(request, reply) {
     request.log.error("getCurrentUser error:", error);
     return reply.status(500).send({
       code: 500,
-      msg: error.message || "Failed to retrieve user data",
+      msg: error.message || "获取用户数据失败",
       data: {
         status: "error",
         timestamp: new Date().toISOString(),

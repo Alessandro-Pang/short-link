@@ -9,6 +9,13 @@ import { createClient } from "@supabase/supabase-js";
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+  },
 );
 
 /**
@@ -18,20 +25,19 @@ const supabase = createClient(
  */
 export async function verifyToken(token) {
   try {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser(token);
+    // 在服务端使用 service role key 创建的 supabase 客户端
+    // 可以直接验证用户的 access token
+    const { data, error } = await supabase.auth.getUser(token);
 
     if (error) {
       throw new Error("Token 验证失败: " + error.message);
     }
 
-    if (!user) {
+    if (!data?.user) {
       throw new Error("无效的 token");
     }
 
-    return user;
+    return data.user;
   } catch (error) {
     console.error("Token 验证失败:", error);
     throw error;

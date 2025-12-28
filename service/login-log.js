@@ -9,6 +9,13 @@ import { createClient } from "@supabase/supabase-js";
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+  },
 );
 
 /**
@@ -215,4 +222,13 @@ export async function cleanOldLoginLogs() {
     console.error("清理登录日志异常:", error);
     throw error;
   }
+}
+
+/**
+ * 记录登录尝试（别名，用于控制器调用）
+ * @param {Object} logData - 登录日志数据
+ * @returns {Promise<Object>} 记录结果
+ */
+export async function recordLoginAttempt(logData) {
+  return logLogin(logData);
 }

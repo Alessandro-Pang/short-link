@@ -135,51 +135,80 @@ defineExpose({
 <template>
     <div class="space-y-6">
         <!-- 统计卡片 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" v-if="stats">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+            v-if="stats"
+        >
+            <div
+                class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+            >
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm mb-1">总登录次数</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ stats.total }}</p>
+                        <p class="text-2xl font-bold text-gray-800">
+                            {{ stats.total }}
+                        </p>
                     </div>
-                    <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                    <div
+                        class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center"
+                    >
                         <icon-user class="text-2xl text-blue-500" />
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div
+                class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+            >
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm mb-1">成功登录</p>
-                        <p class="text-2xl font-bold text-green-600">{{ stats.successful }}</p>
-                        <p class="text-xs text-gray-400 mt-1">成功率 {{ successRate }}%</p>
+                        <p class="text-2xl font-bold text-green-600">
+                            {{ stats.successful }}
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1">
+                            成功率 {{ successRate }}%
+                        </p>
                     </div>
-                    <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
+                    <div
+                        class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center"
+                    >
                         <icon-check-circle class="text-2xl text-green-500" />
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div
+                class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+            >
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm mb-1">失败登录</p>
-                        <p class="text-2xl font-bold text-red-600">{{ stats.failed }}</p>
+                        <p class="text-2xl font-bold text-red-600">
+                            {{ stats.failed }}
+                        </p>
                     </div>
-                    <div class="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center">
+                    <div
+                        class="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center"
+                    >
                         <icon-close-circle class="text-2xl text-red-500" />
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div
+                class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+            >
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm mb-1">24小时内登录</p>
-                        <p class="text-2xl font-bold text-purple-600">{{ stats.last24h }}</p>
+                        <p class="text-2xl font-bold text-purple-600">
+                            {{ stats.last24h }}
+                        </p>
                     </div>
-                    <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
+                    <div
+                        class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center"
+                    >
                         <icon-calendar class="text-2xl text-purple-500" />
                     </div>
                 </div>
@@ -187,10 +216,16 @@ defineExpose({
         </div>
 
         <!-- 日志列表 -->
-        <div class="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-orange-100 flex justify-between items-center bg-orange-50">
+        <div
+            class="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden pb-4"
+        >
+            <div
+                class="px-6 py-4 border-b border-orange-100 flex justify-between items-center bg-orange-50"
+            >
                 <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-semibold text-gray-800">登录日志</h3>
+                    <h3 class="text-lg font-semibold text-gray-800">
+                        登录日志
+                    </h3>
                     <a-tag color="orange">{{ total }} 条记录</a-tag>
                 </div>
                 <div class="flex gap-2">
@@ -202,7 +237,13 @@ defineExpose({
                         <template #icon><icon-filter /></template>
                         筛选
                     </a-button>
-                    <a-button type="outline" @click="loadLogs(); loadStats();">
+                    <a-button
+                        type="outline"
+                        @click="
+                            loadLogs();
+                            loadStats();
+                        "
+                    >
                         <template #icon><icon-refresh /></template>
                         刷新
                     </a-button>
@@ -210,7 +251,10 @@ defineExpose({
             </div>
 
             <!-- 筛选条件 -->
-            <div v-if="showFilters" class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+            <div
+                v-if="showFilters"
+                class="px-6 py-4 bg-gray-50 border-b border-gray-100"
+            >
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <a-input
                         v-model="filters.userId"
@@ -263,75 +307,133 @@ defineExpose({
                     :scroll="{ maxHeight: 'calc(100vh - 450px)' }"
                 >
                     <template #columns>
-                        <a-table-column title="登录状态" data-index="success" :width="100" align="center">
+                        <a-table-column
+                            title="登录状态"
+                            data-index="success"
+                            :width="100"
+                            align="center"
+                        >
                             <template #cell="{ record }">
-                                <a-tag :color="record.success ? 'green' : 'red'" size="small">
+                                <a-tag
+                                    :color="record.success ? 'green' : 'red'"
+                                    size="small"
+                                >
                                     <template #icon>
-                                        <icon-check-circle v-if="record.success" />
+                                        <icon-check-circle
+                                            v-if="record.success"
+                                        />
                                         <icon-close-circle v-else />
                                     </template>
-                                    {{ record.success ? '成功' : '失败' }}
+                                    {{ record.success ? "成功" : "失败" }}
                                 </a-tag>
                             </template>
                         </a-table-column>
 
-                        <a-table-column title="用户信息" data-index="email" :width="280">
+                        <a-table-column
+                            title="用户信息"
+                            data-index="email"
+                            :width="280"
+                        >
                             <template #cell="{ record }">
                                 <div class="flex flex-col gap-1">
-                                    <span class="text-gray-800 font-medium">{{ record.email }}</span>
+                                    <span class="text-gray-800 font-medium">{{
+                                        record.email
+                                    }}</span>
                                     <a-typography-text
                                         copyable
                                         :copy-text="record.user_id"
                                         class="text-xs text-gray-400 font-mono"
                                     >
-                                        {{ record.user_id?.substring(0, 20) }}...
+                                        {{
+                                            record.user_id?.substring(0, 20)
+                                        }}...
                                     </a-typography-text>
                                 </div>
                             </template>
                         </a-table-column>
 
-                        <a-table-column title="登录方式" data-index="login_method" :width="120">
+                        <a-table-column
+                            title="登录方式"
+                            data-index="login_method"
+                            :width="120"
+                        >
                             <template #cell="{ record }">
                                 <a-tag size="small" color="arcoblue">
-                                    {{ getLoginMethodText(record.login_method) }}
+                                    {{
+                                        getLoginMethodText(record.login_method)
+                                    }}
                                 </a-tag>
                             </template>
                         </a-table-column>
 
-                        <a-table-column title="IP 地址" data-index="ip_address" :width="150">
+                        <a-table-column
+                            title="IP 地址"
+                            data-index="ip_address"
+                            :width="150"
+                        >
                             <template #cell="{ record }">
-                                <span class="text-gray-600 font-mono text-sm flex items-center gap-1">
+                                <span
+                                    class="text-gray-600 font-mono text-sm flex items-center gap-1"
+                                >
                                     <icon-location class="text-xs" />
-                                    {{ record.ip_address || '-' }}
+                                    {{ record.ip_address || "-" }}
                                 </span>
                             </template>
                         </a-table-column>
 
-                        <a-table-column title="设备信息" data-index="user_agent" :width="200">
+                        <a-table-column
+                            title="设备信息"
+                            data-index="user_agent"
+                            :width="200"
+                        >
                             <template #cell="{ record }">
                                 <a-tooltip :content="record.user_agent">
-                                    <span class="text-gray-500 text-sm truncate flex items-center gap-1">
-                                        <icon-computer class="text-xs shrink-0" />
+                                    <span
+                                        class="text-gray-500 text-sm truncate flex items-center gap-1"
+                                    >
+                                        <icon-computer
+                                            class="text-xs shrink-0"
+                                        />
                                         <span class="truncate">
-                                            {{ record.user_agent?.substring(0, 30) }}...
+                                            {{
+                                                record.user_agent?.substring(
+                                                    0,
+                                                    30,
+                                                )
+                                            }}...
                                         </span>
                                     </span>
                                 </a-tooltip>
                             </template>
                         </a-table-column>
 
-                        <a-table-column title="失败原因" data-index="failure_reason" :width="200">
+                        <a-table-column
+                            title="失败原因"
+                            data-index="failure_reason"
+                            :width="200"
+                        >
                             <template #cell="{ record }">
-                                <span v-if="!record.success" class="text-red-500 text-sm">
-                                    {{ record.failure_reason || '-' }}
+                                <span
+                                    v-if="!record.success"
+                                    class="text-red-500 text-sm"
+                                >
+                                    {{ record.failure_reason || "-" }}
                                 </span>
-                                <span v-else class="text-gray-400 text-sm">-</span>
+                                <span v-else class="text-gray-400 text-sm"
+                                    >-</span
+                                >
                             </template>
                         </a-table-column>
 
-                        <a-table-column title="登录时间" data-index="login_at" :width="180">
+                        <a-table-column
+                            title="登录时间"
+                            data-index="login_at"
+                            :width="180"
+                        >
                             <template #cell="{ record }">
-                                <span class="text-gray-500 text-sm flex items-center gap-1">
+                                <span
+                                    class="text-gray-500 text-sm flex items-center gap-1"
+                                >
                                     <icon-calendar class="text-xs" />
                                     {{ formatDate(record.login_at) }}
                                 </span>

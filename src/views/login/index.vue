@@ -169,7 +169,7 @@
 </template>
 
 <script setup>
-import { reactive } from "vue";
+import { reactive, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
@@ -188,6 +188,69 @@ const userStore = useUserStore();
 const form = reactive({
     email: "",
     password: "",
+});
+
+// 处理认证错误事件（用于第三方登录被禁用提示）
+function handleAuthError(event) {
+    const { error } = event.detail;
+    if (error?.code === "USER_BANNED") {
+        Message.error({
+            content: error.message || "您的账号已被管理员禁用，请联系管理员",
+            duration: 5000,
+        });
+    }
+}
+
+// 检查 URL 中的 OAuth 错误参数
+function checkOAuthError() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get("error");
+    const errorCode = urlParams.get("error_code");
+    const errorDescription = urlParams.get("error_description");
+
+    if (error) {
+        let errorMessage = "登录失败";
+
+        if (
+            errorCode === "user_banned" ||
+            errorDescription?.includes("banned")
+        ) {
+            errorMessage = "您的账号已被管理员禁用，请联系管理员";
+
+            // 记录失败日志（尝试从其他 URL 参数获取邮箱）
+            const email =
+                urlParams.get("email") || sessionStorage.getItem("oauth_email");
+            if (email) {
+                import("@/services/auth.js").then(({ recordLoginAttempt }) => {
+                    recordLoginAttempt(email, false, "用户已被禁用", "oauth");
+                });
+            }
+        } else if (error === "access_denied") {
+            errorMessage = "您拒绝了授权请求";
+        } else {
+            errorMessage = errorDescription || `登录失败: ${error}`;
+        }
+
+        Message.error({
+            content: errorMessage,
+            duration: 5000,
+        });
+
+        // 清理 URL 中的错误参数
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+}
+
+// 组件挂载时添加事件监听和检查 URL 错误
+onMounted(() => {
+    window.addEventListener("auth-error", handleAuthError);
+    checkOAuthError();
+});
+
+// 组件卸载时移除事件监听
+onUnmounted(() => {
+    window.removeEventListener("auth-error", handleAuthError);
 });
 
 // 处理 GitHub 登录
