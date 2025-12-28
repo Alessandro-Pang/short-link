@@ -58,8 +58,8 @@ const loadUsers = async () => {
             perPage: pagination.value.pageSize,
         });
 
-        users.value = result || [];
-        total.value = result.length || 0;
+        users.value = result?.users || [];
+        total.value = result?.total || 0;
     } catch (error) {
         console.error("加载用户列表失败:", error);
         Message.error(error.message || "加载用户列表失败");
@@ -99,7 +99,7 @@ const getEmailVerifiedStatus = (user) => {
 
 // 获取用户角色
 const getUserRole = (user) => {
-    if (user.app_metadata?.is_admin || user.user_metadata?.is_admin) {
+    if (user?.is_admin) {
         return { text: "管理员", color: "orange", isAdmin: true };
     }
     return { text: "普通用户", color: "blue", isAdmin: false };

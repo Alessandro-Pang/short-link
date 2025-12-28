@@ -1,9 +1,12 @@
 {
   "name": "short-link",
-  "repository": "https://github.com/vercel/examples.git",
+  "repository": "https://github.com/Alessandro-Pang/short-link",
+  "homepage": "https://short.pangcy.cn/",
+  "bugs": "https://github.com/Alessandro-Pang/short-link/issues",
   "license": "MIT",
   "private": true,
   "type": "module",
+  "author": "zi.yang <pcy1314@163.com> (https://github.com/Alessandro-Pang)",
   "scripts": {
     "dev": "concurrently -n \"VUE,FASTIFY\" -c \"bgBlue.bold,bgGreen.bold\" \"vite --mode development --host\" \"nodemon api/index -- --env-file=.env.development.local \"",
     "build": "vite build",
@@ -12,14 +15,14 @@
   "dependencies": {
     "@arco-design/web-vue": "^2.57.0",
     "@fastify/cors": "^11.2.0",
-    "@supabase/supabase-js": "^2.47.3",
+    "@supabase/supabase-js": "^2.89.0",
     "autoprefixer": "^10.4.23",
-    "concurrently": "^9.1.2",
-    "fastify": "^5.3.3",
-    "qrcode": "^1.5.1",
+    "concurrently": "^9.2.1",
+    "fastify": "^5.6.2",
+    "qrcode": "^1.5.4",
     "tailwindcss": "^4.1.18",
-    "vue": "^3.4.21",
-    "vue-router": "^4.5.1"
+    "vue": "^3.5.26",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.10",

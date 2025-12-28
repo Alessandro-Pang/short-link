@@ -300,7 +300,7 @@ export async function getAllLoginLogs(options = {}) {
   if (startDate) params.append("startDate", startDate);
   if (endDate) params.append("endDate", endDate);
 
-  const response = await fetchApi(`/api/admin/login-logs?${params.toString()}`);
+  const response = await fetchApi(`/api/admin/logs/login?${params.toString()}`);
   return response.data;
 }
 
@@ -311,7 +311,7 @@ export async function getAllLoginLogs(options = {}) {
  */
 export async function getLoginStats(userId = null) {
   const params = userId ? `?userId=${userId}` : "";
-  const response = await fetchApi(`/api/admin/login-stats${params}`);
+  const response = await fetchApi(`/api/admin/login/stats${params}`);
   return response.data;
 }
 
