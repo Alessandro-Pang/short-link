@@ -64,6 +64,12 @@ const routes = [
         component: () => import("@/views/dashboard/links/index.vue"),
         meta: { requiresAuth: true },
       },
+      {
+        path: "profile",
+        name: "dashboard-profile",
+        component: () => import("@/views/dashboard/profile/index.vue"),
+        meta: { requiresAuth: true },
+      },
       // 管理员路由
       {
         path: "admin/stats",

@@ -33,14 +33,34 @@
 
                     <template v-if="user">
                         <a-dropdown @select="handleDropdownSelect">
-                            <a-button type="text" class="text-gray-700! px-2!">
-                                <span
-                                    class="max-w-[160px] sm:max-w-[240px] truncate inline-block align-bottom"
+                            <div
+                                class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded-full transition-colors"
+                            >
+                                <a-avatar
+                                    :size="32"
+                                    :image-url="user.user_metadata?.avatar_url"
+                                    class="bg-blue-600"
                                 >
-                                    {{ user.email }}
+                                    <template
+                                        v-if="!user.user_metadata?.avatar_url"
+                                    >
+                                        {{
+                                            (user.user_metadata?.name ||
+                                                user.email)?.[0]?.toUpperCase()
+                                        }}
+                                    </template>
+                                </a-avatar>
+                                <span
+                                    class="hidden sm:inline-block max-w-[120px] md:max-w-[160px] truncate text-gray-700 font-medium text-sm"
+                                >
+                                    {{
+                                        user.user_metadata?.name ||
+                                        user.email?.split("@")[0] ||
+                                        user.email
+                                    }}
                                 </span>
-                                <icon-down class="ml-2" />
-                            </a-button>
+                                <icon-down class="text-gray-400 text-sm" />
+                            </div>
                             <template #content>
                                 <a-doption value="dashboard">
                                     <template #icon
@@ -546,7 +566,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { Modal } from "@arco-design/web-vue";
 import {
@@ -652,6 +672,26 @@ onMounted(async () => {
         // 用户未登录，忽略错误
         console.log("User not logged in");
     }
+
+    // 监听用户信息更新事件
+    window.addEventListener("user-profile-updated", async () => {
+        try {
+            user.value = await getCurrentUser();
+        } catch (e) {
+            console.log("Failed to refresh user info");
+        }
+    });
+});
+
+onBeforeUnmount(() => {
+    // 清理事件监听
+    window.removeEventListener("user-profile-updated", async () => {
+        try {
+            user.value = await getCurrentUser();
+        } catch (e) {
+            console.log("Failed to refresh user info");
+        }
+    });
 });
 
 const handleDropdownSelect = async (value) => {

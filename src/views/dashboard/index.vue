@@ -42,6 +42,13 @@
                     链接管理
                 </a-menu-item>
 
+                <a-divider class="my-3!" />
+
+                <a-menu-item key="profile" class="rounded-lg! mb-1">
+                    <template #icon><icon-user /></template>
+                    个人信息
+                </a-menu-item>
+
                 <!-- 管理员菜单 -->
                 <template v-if="isAdmin">
                     <a-divider class="my-3!" />
@@ -99,15 +106,24 @@
                         >
                             <a-avatar
                                 :size="32"
+                                :image-url="userAvatar"
                                 :class="
                                     isAdmin ? 'bg-orange-500' : 'bg-blue-600'
                                 "
-                                >{{ userEmail?.[0]?.toUpperCase() }}</a-avatar
                             >
+                                <template v-if="!userAvatar">
+                                    {{
+                                        (userName ||
+                                            userEmail)?.[0]?.toUpperCase()
+                                    }}
+                                </template>
+                            </a-avatar>
                             <div class="hidden sm:flex flex-col items-start">
                                 <span
                                     class="text-sm font-medium text-gray-700 leading-none"
-                                    >{{ userEmail?.split("@")[0] }}</span
+                                    >{{
+                                        userName || userEmail?.split("@")[0]
+                                    }}</span
                                 >
                                 <span
                                     class="text-xs leading-none mt-1"
@@ -122,6 +138,10 @@
                             <icon-down class="text-gray-400 text-xs ml-1" />
                         </div>
                         <template #content>
+                            <a-doption value="profile">
+                                <template #icon><icon-user /></template>
+                                个人信息
+                            </a-doption>
                             <a-doption value="home">
                                 <template #icon><icon-home /></template>
                                 返回首页
@@ -145,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
@@ -158,6 +178,7 @@ import {
     IconDashboard,
     IconApps,
     IconLock,
+    IconUser,
 } from "@arco-design/web-vue/es/icon";
 import { getCurrentUser, signOut } from "@/services/auth.js";
 import { getCurrentUserWithAdminStatus } from "@/services/admin.js";
@@ -168,6 +189,8 @@ const route = useRoute();
 // State
 const collapsed = ref(false);
 const userEmail = ref("");
+const userName = ref("");
+const userAvatar = ref("");
 const isAdmin = ref(false);
 const childViewRef = ref(null);
 
@@ -176,6 +199,7 @@ const currentRoute = computed(() => {
     const path = route.path;
     if (path.includes("/admin/links")) return "admin-links";
     if (path.includes("/admin/stats")) return "admin-stats";
+    if (path.includes("/profile")) return "profile";
     if (path.includes("/links")) return "links";
     return "stats";
 });
@@ -189,6 +213,7 @@ const currentTitle = computed(() => {
     const titles = {
         stats: "数据概览",
         links: "链接管理",
+        profile: "个人信息",
         "admin-stats": "全局统计",
         "admin-links": "所有链接",
     };
@@ -204,6 +229,7 @@ const handleMenuClick = (key) => {
     const routes = {
         stats: "/dashboard/stats",
         links: "/dashboard/links",
+        profile: "/dashboard/profile",
         "admin-stats": "/dashboard/admin/stats",
         "admin-links": "/dashboard/admin/links",
     };
@@ -217,7 +243,9 @@ const goToHome = () => {
 };
 
 const handleUserDropdown = async (value) => {
-    if (value === "home") {
+    if (value === "profile") {
+        router.push("/dashboard/profile");
+    } else if (value === "home") {
         goToHome();
     } else if (value === "logout") {
         try {
@@ -231,6 +259,10 @@ const handleUserDropdown = async (value) => {
 };
 
 const handleRefresh = () => {
+    // 如果在 profile 页面，也刷新用户信息
+    if (currentRoute.value === "profile") {
+        loadUserInfo();
+    }
     // 调用子组件的刷新方法
     if (childViewRef.value?.refresh) {
         childViewRef.value.refresh();
@@ -246,6 +278,10 @@ const loadUserInfo = async () => {
             return;
         }
         userEmail.value = user.email;
+        // 获取用户名（从 user_metadata 中）
+        userName.value = user.user_metadata?.name || "";
+        // 获取用户头像
+        userAvatar.value = user.user_metadata?.avatar_url || "";
 
         // 获取管理员状态
         try {
@@ -263,5 +299,13 @@ const loadUserInfo = async () => {
 
 onMounted(() => {
     loadUserInfo();
+
+    // 监听用户信息更新事件
+    window.addEventListener("user-profile-updated", loadUserInfo);
+});
+
+onBeforeUnmount(() => {
+    // 清理事件监听
+    window.removeEventListener("user-profile-updated", loadUserInfo);
 });
 </script>
