@@ -11,6 +11,7 @@ import cors from "@fastify/cors";
 import * as linkService from "../service/link.js";
 import * as authService from "../service/auth.js";
 import * as dashboardService from "../service/dashboard.js";
+import * as loginLogService from "../service/login-log.js";
 
 const app = Fastify({
   logger: true,
@@ -51,7 +52,7 @@ async function authenticate(request, reply) {
   } catch (error) {
     reply.status(401).send({
       code: 401,
-      msg: "未授权：" + error.message,
+      msg: `未授权：${error.message}`,
     });
   }
 }
@@ -223,7 +224,7 @@ app.post("/api/auth/verify", async (req, reply) => {
 // ============================================
 
 // 获取过期时间选项
-app.get("/api/expiration-options", async (req, reply) => {
+app.get("/api/expiration-options", async (_, reply) => {
   try {
     const result = await linkService.getExpirationOptions();
 
@@ -1276,6 +1277,10 @@ app.post(
   },
 );
 
+// ============================================
+// 用户管理接口（管理员专用）
+// ============================================
+
 // 获取所有用户列表（管理员专用）
 app.get(
   "/api/admin/users",
@@ -1303,6 +1308,393 @@ app.get(
     }
   },
 );
+
+// 获取用户详细信息（管理员专用）
+app.get(
+  "/api/admin/users/:userId",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { userId } = req.params;
+      const userDetails = await authService.getUserDetails(userId);
+      return reply.send({
+        code: 200,
+        msg: "success",
+        data: userDetails,
+      });
+    } catch (error) {
+      console.error("获取用户详情失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "获取用户详情失败",
+      });
+    }
+  },
+);
+
+// 创建新用户（管理员专用）
+app.post(
+  "/api/admin/users",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { email, password, user_metadata = {} } = req.body;
+
+      if (!email || !password) {
+        return reply.send({
+          code: 400,
+          msg: "邮箱和密码是必填项",
+        });
+      }
+
+      const result = await authService.createUser({
+        email,
+        password,
+        user_metadata,
+      });
+
+      return reply.send({
+        code: 200,
+        msg: result.message,
+        data: result.user,
+      });
+    } catch (error) {
+      console.error("创建用户失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "创建用户失败",
+      });
+    }
+  },
+);
+
+// 更新用户信息（管理员专用）
+app.put(
+  "/api/admin/users/:userId",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { userId } = req.params;
+      const updates = req.body;
+
+      const result = await authService.updateUser(userId, updates);
+
+      return reply.send({
+        code: 200,
+        msg: result.message,
+        data: result.user,
+      });
+    } catch (error) {
+      console.error("更新用户失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "更新用户失败",
+      });
+    }
+  },
+);
+
+// 删除用户（管理员专用）
+app.delete(
+  "/api/admin/users/:userId",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { userId } = req.params;
+
+      const result = await authService.deleteUserAccount(userId, "管理员删除");
+
+      return reply.send({
+        code: 200,
+        msg: result.message,
+      });
+    } catch (error) {
+      console.error("删除用户失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "删除用户失败",
+      });
+    }
+  },
+);
+
+// 重置用户密码（管理员专用）
+app.post(
+  "/api/admin/users/:userId/reset-password",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { userId } = req.params;
+      const { password } = req.body;
+
+      if (!password) {
+        return reply.send({
+          code: 400,
+          msg: "密码不能为空",
+        });
+      }
+
+      const result = await authService.resetUserPassword(userId, password);
+
+      return reply.send({
+        code: 200,
+        msg: result.message,
+      });
+    } catch (error) {
+      console.error("重置密码失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "重置密码失败",
+      });
+    }
+  },
+);
+
+// 启用/禁用用户（管理员专用）
+app.patch(
+  "/api/admin/users/:userId/toggle-status",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { userId } = req.params;
+      const { banned } = req.body;
+
+      if (typeof banned !== "boolean") {
+        return reply.send({
+          code: 400,
+          msg: "banned 必须是布尔值",
+        });
+      }
+
+      const result = await authService.toggleUserStatus(userId, banned);
+
+      return reply.send({
+        code: 200,
+        msg: result.message,
+        data: result.user,
+      });
+    } catch (error) {
+      console.error("切换用户状态失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "切换用户状态失败",
+      });
+    }
+  },
+);
+
+// ============================================
+// 登录日志接口
+// ============================================
+
+// 获取用户登录日志
+app.get("/api/login-logs", { preHandler: authenticate }, async (req, reply) => {
+  try {
+    const { limit = 50, offset = 0 } = req.query;
+
+    const result = await loginLogService.getUserLoginLogs(req.user.id, {
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+    });
+
+    return reply.send({
+      code: 200,
+      msg: "success",
+      data: result,
+    });
+  } catch (error) {
+    console.error("获取登录日志失败:", error);
+    return reply.send({
+      code: 500,
+      msg: error.message || "获取登录日志失败",
+    });
+  }
+});
+
+// 获取所有登录日志（管理员专用）
+app.get(
+  "/api/admin/login-logs",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const {
+        limit = 50,
+        offset = 0,
+        userId = null,
+        success = null,
+        startDate = null,
+        endDate = null,
+      } = req.query;
+
+      const result = await loginLogService.getAllLoginLogs({
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        userId: userId || null,
+        success: success !== null ? success === "true" : null,
+        startDate: startDate || null,
+        endDate: endDate || null,
+      });
+
+      return reply.send({
+        code: 200,
+        msg: "success",
+        data: result,
+      });
+    } catch (error) {
+      console.error("获取登录日志失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "获取登录日志失败",
+      });
+    }
+  },
+);
+
+// 获取登录统计（管理员专用）
+app.get(
+  "/api/admin/login-stats",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { userId = null } = req.query;
+
+      const stats = await loginLogService.getLoginStats(userId || null);
+
+      return reply.send({
+        code: 200,
+        msg: "success",
+        data: stats,
+      });
+    } catch (error) {
+      console.error("获取登录统计失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "获取登录统计失败",
+      });
+    }
+  },
+);
+
+// 记录登录日志（公开接口，用于前端记录）
+app.post("/api/auth/log-login", async (req, reply) => {
+  try {
+    const { email, success, failure_reason, login_method, user_agent } =
+      req.body;
+
+    if (!email) {
+      return reply.send({
+        code: 400,
+        msg: "邮箱不能为空",
+      });
+    }
+
+    // 获取用户 ID（如果登录成功）
+    let userId = null;
+    if (success) {
+      try {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith("Bearer ")) {
+          const token = authHeader.substring(7);
+          const user = await authService.verifyToken(token);
+          userId = user?.id;
+        }
+      } catch (error) {
+        // 忽略错误，继续记录日志
+      }
+    }
+
+    // 获取 IP 地址
+    const ipAddress = getClientIp(req);
+
+    // 记录日志
+    await loginLogService.logLogin({
+      user_id: userId,
+      email,
+      ip_address: ipAddress,
+      user_agent: user_agent || req.headers["user-agent"],
+      success: success === true,
+      failure_reason: failure_reason || null,
+      login_method: login_method || "email",
+    });
+
+    return reply.send({
+      code: 200,
+      msg: "success",
+    });
+  } catch (error) {
+    console.error("记录登录日志失败:", error);
+    // 不返回错误，避免影响前端登录流程
+    return reply.send({
+      code: 200,
+      msg: "success",
+    });
+  }
+});
+
+// 检查用户状态并记录登录日志（认证后的接口）
+app.post("/api/auth/check-and-log", async (req, reply) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return reply.send({
+        code: 401,
+        msg: "未授权",
+      });
+    }
+
+    const token = authHeader.substring(7);
+    const user = await authService.verifyToken(token);
+
+    if (!user) {
+      return reply.send({
+        code: 401,
+        msg: "无效的令牌",
+      });
+    }
+
+    const { email, login_method = "email" } = req.body;
+
+    // 检查用户是否被禁用
+    const fullUser = await authService.getUserByIdAdmin(user.id);
+
+    const isBanned =
+      fullUser?.banned_until && new Date(fullUser.banned_until) > new Date();
+
+    // 获取 IP 地址
+    const ipAddress = getClientIp(req);
+
+    // 记录登录日志
+    await loginLogService.logLogin({
+      user_id: user.id,
+      email: email || user.email,
+      ip_address: ipAddress,
+      user_agent: req.headers["user-agent"],
+      success: !isBanned,
+      failure_reason: isBanned ? "用户已被禁用" : null,
+      login_method: login_method,
+    });
+
+    if (isBanned) {
+      return reply.send({
+        code: 403,
+        msg: "用户已被禁用",
+        banned: true,
+      });
+    }
+
+    return reply.send({
+      code: 200,
+      msg: "success",
+      banned: false,
+    });
+  } catch (error) {
+    console.error("检查用户状态失败:", error);
+    return reply.send({
+      code: 500,
+      msg: error.message || "检查失败",
+    });
+  }
+});
 
 // ============================================
 // 健康检查

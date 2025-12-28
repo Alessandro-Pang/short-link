@@ -374,3 +374,193 @@ export async function deleteUserAccount(userId, reason = null) {
     throw error;
   }
 }
+
+/**
+ * 创建新用户（管理员专用）
+ * @param {Object} userData - 用户数据
+ * @returns {Promise<Object>} 创建结果
+ */
+export async function createUser(userData) {
+  try {
+    const { email, password, user_metadata = {} } = userData;
+
+    if (!email || !password) {
+      throw new Error("邮箱和密码是必填项");
+    }
+
+    // 创建用户
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true, // 自动确认邮箱
+      user_metadata,
+    });
+
+    if (error) {
+      console.error("创建用户失败:", error);
+      throw error;
+    }
+
+    return { success: true, user, message: "用户创建成功" };
+  } catch (error) {
+    console.error("创建用户异常:", error);
+    throw error;
+  }
+}
+
+/**
+ * 更新用户信息（管理员专用）
+ * @param {string} userId - 用户 ID
+ * @param {Object} updates - 更新数据
+ * @returns {Promise<Object>} 更新结果
+ */
+export async function updateUser(userId, updates) {
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.admin.updateUserById(userId, updates);
+
+    if (error) {
+      console.error("更新用户失败:", error);
+      throw error;
+    }
+
+    // 如果更新了 is_admin 字段，同时更新 user_profiles 表
+    if (updates.app_metadata?.is_admin !== undefined) {
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .upsert({
+          id: userId,
+          is_admin: updates.app_metadata.is_admin,
+        });
+
+      if (profileError) {
+        console.error("更新用户 profile 失败:", profileError);
+      }
+    }
+
+    return { success: true, user, message: "用户信息更新成功" };
+  } catch (error) {
+    console.error("更新用户异常:", error);
+    throw error;
+  }
+}
+
+/**
+ * 重置用户密码（管理员专用）
+ * @param {string} userId - 用户 ID
+ * @param {string} newPassword - 新密码
+ * @returns {Promise<Object>} 重置结果
+ */
+export async function resetUserPassword(userId, newPassword) {
+  try {
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error("密码长度至少为 6 位");
+    }
+
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.admin.updateUserById(userId, {
+      password: newPassword,
+    });
+
+    if (error) {
+      console.error("重置密码失败:", error);
+      throw error;
+    }
+
+    return { success: true, user, message: "密码重置成功" };
+  } catch (error) {
+    console.error("重置密码异常:", error);
+    throw error;
+  }
+}
+
+/**
+ * 启用或禁用用户（管理员专用）
+ * @param {string} userId - 用户 ID
+ * @param {boolean} banned - 是否禁用
+ * @returns {Promise<Object>} 操作结果
+ */
+export async function toggleUserStatus(userId, banned) {
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.admin.updateUserById(userId, {
+      ban_duration: banned ? "876000h" : "none", // 禁用：100年，启用：none
+    });
+
+    if (error) {
+      console.error("切换用户状态失败:", error);
+      throw error;
+    }
+
+    return {
+      success: true,
+      user,
+      message: banned ? "用户已禁用" : "用户已启用",
+    };
+  } catch (error) {
+    console.error("切换用户状态异常:", error);
+    throw error;
+  }
+}
+
+/**
+ * 获取用户详细信息（包含 profile 和统计数据）
+ * @param {string} userId - 用户 ID
+ * @returns {Promise<Object>} 用户详细信息
+ */
+export async function getUserDetails(userId) {
+  try {
+    // 获取 Auth 用户信息
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.admin.getUserById(userId);
+
+    if (authError) {
+      throw authError;
+    }
+
+    // 获取 Profile 信息
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    // 获取用户的链接统计
+    const { count: linksCount } = await supabase
+      .from("links")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
+
+    // 获取总点击次数
+    const { data: clickStats } = await supabase
+      .from("links")
+      .select("click_count")
+      .eq("user_id", userId);
+
+    const totalClicks =
+      clickStats?.reduce((sum, link) => sum + (link.click_count || 0), 0) || 0;
+
+    return {
+      ...user,
+      profile,
+      stats: {
+        linksCount: linksCount || 0,
+        totalClicks,
+      },
+    };
+  } catch (error) {
+    console.error("获取用户详情失败:", error);
+    throw error;
+  }
+}

@@ -204,6 +204,118 @@ export async function getAllUsers(options = {}) {
 }
 
 /**
+ * 获取用户详细信息（管理员专用）
+ * @param {string} userId - 用户 ID
+ * @returns {Promise} - 返回用户详情
+ */
+export async function getUserDetails(userId) {
+  const response = await fetchApi(`/api/admin/users/${userId}`);
+  return response.data;
+}
+
+/**
+ * 创建新用户（管理员专用）
+ * @param {Object} userData - 用户数据
+ * @returns {Promise} - 返回创建结果
+ */
+export async function createUser(userData) {
+  return fetchApi("/api/admin/users", {
+    method: "POST",
+    body: userData,
+  });
+}
+
+/**
+ * 更新用户信息（管理员专用）
+ * @param {string} userId - 用户 ID
+ * @param {Object} updates - 更新数据
+ * @returns {Promise} - 返回更新结果
+ */
+export async function updateUser(userId, updates) {
+  return fetchApi(`/api/admin/users/${userId}`, {
+    method: "PUT",
+    body: updates,
+  });
+}
+
+/**
+ * 删除用户（管理员专用）
+ * @param {string} userId - 用户 ID
+ * @returns {Promise}
+ */
+export async function deleteUser(userId) {
+  return fetchApi(`/api/admin/users/${userId}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * 重置用户密码（管理员专用）
+ * @param {string} userId - 用户 ID
+ * @param {string} password - 新密码
+ * @returns {Promise}
+ */
+export async function resetUserPassword(userId, password) {
+  return fetchApi(`/api/admin/users/${userId}/reset-password`, {
+    method: "POST",
+    body: { password },
+  });
+}
+
+/**
+ * 启用/禁用用户（管理员专用）
+ * @param {string} userId - 用户 ID
+ * @param {boolean} banned - 是否禁用
+ * @returns {Promise}
+ */
+export async function toggleUserStatus(userId, banned) {
+  return fetchApi(`/api/admin/users/${userId}/toggle-status`, {
+    method: "PATCH",
+    body: { banned },
+  });
+}
+
+/**
+ * 获取所有登录日志（管理员专用）
+ * @param {Object} options - 查询选项
+ * @returns {Promise} - 返回登录日志列表
+ */
+export async function getAllLoginLogs(options = {}) {
+  const {
+    limit = 50,
+    offset = 0,
+    userId = null,
+    success = null,
+    startDate = null,
+    endDate = null,
+  } = options;
+
+  const params = new URLSearchParams({
+    limit: limit.toString(),
+    offset: offset.toString(),
+  });
+
+  if (userId) params.append("userId", userId);
+  if (success !== null) params.append("success", success.toString());
+  if (startDate) params.append("startDate", startDate);
+  if (endDate) params.append("endDate", endDate);
+
+  const response = await fetchApi(`/api/admin/login-logs?${params.toString()}`);
+  return response.data;
+}
+
+/**
+ * 获取登录统计（管理员专用）
+ * @param {string} userId - 用户 ID（可选）
+ * @returns {Promise} - 返回登录统计
+ */
+export async function getLoginStats(userId = null) {
+  const params = userId ? `?userId=${userId}` : "";
+  const response = await fetchApi(`/api/admin/login-stats${params}`);
+  return response.data;
+}
+
+/**
  * 检查当前用户是否为管理员
  * @returns {Promise<boolean>} - 返回是否为管理员
  */

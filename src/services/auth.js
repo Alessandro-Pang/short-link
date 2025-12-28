@@ -10,15 +10,19 @@ import { supabase } from "./supabase";
  * @returns {Promise} 登录结果
  */
 export async function signInWithGithub() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "github",
-    options: {
-      redirectTo: `${window.location.origin}/dashboard`,
-    },
-  });
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
 
-  if (error) throw error;
-  return data;
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
@@ -26,15 +30,19 @@ export async function signInWithGithub() {
  * @returns {Promise} 登录结果
  */
 export async function signInWithGoogle() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${window.location.origin}/dashboard`,
-    },
-  });
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
 
-  if (error) throw error;
-  return data;
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
@@ -44,13 +52,111 @@ export async function signInWithGoogle() {
  * @returns {Promise} 登录结果
  */
 export async function signInWithEmail(email, password) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      // 记录登录失败日志
+      await recordLoginAttempt(email, false, error.message, "email");
+      throw error;
+    }
+
+    // 检查用户是否被禁用
+    if (data.user) {
+      const isBanned = await checkUserBanned(data.user.id);
+      if (isBanned) {
+        // 退出登录
+        await supabase.auth.signOut();
+        // 记录失败日志
+        await recordLoginAttempt(email, false, "用户已被禁用", "email");
+        const bannedError = new Error("您的账号已被禁用，请联系管理员");
+        bannedError.code = "USER_BANNED";
+        throw bannedError;
+      }
+
+      // 记录登录成功日志
+      await recordLoginAttempt(email, true, null, "email");
+    }
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * 检查用户是否被禁用
+ * @param {string} userId - 用户 ID
+ * @returns {Promise<boolean>} 是否被禁用
+ */
+async function checkUserBanned(userId) {
+  try {
+    const response = await fetch("/api/auth/user", {
+      headers: {
+        Authorization: `Bearer ${(await getSession())?.access_token}`,
+      },
+    });
+
+    if (!response.ok) return false;
+
+    const result = await response.json();
+    const user = result.data;
+
+    // 检查是否有 banned_until 字段且未过期
+    if (user.banned_until) {
+      const bannedUntil = new Date(user.banned_until);
+      if (bannedUntil > new Date()) {
+        return true;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    console.error("检查用户禁用状态失败:", error);
+    return false;
+  }
+}
+
+/**
+ * 记录登录尝试
+ * @param {string} email - 邮箱
+ * @param {boolean} success - 是否成功
+ * @param {string} failureReason - 失败原因
+ * @param {string} loginMethod - 登录方式
+ */
+async function recordLoginAttempt(
+  email,
+  success,
+  failureReason = null,
+  loginMethod = "email",
+) {
+  try {
+    // 获取客户端信息
+    const userAgent = navigator.userAgent;
+
+    // 调用后端接口记录日志（不需要等待结果）
+    fetch("/api/auth/log-login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        success,
+        failure_reason: failureReason,
+        login_method: loginMethod,
+        user_agent: userAgent,
+      }),
+    }).catch((error) => {
+      console.error("记录登录日志失败:", error);
+    });
+  } catch (error) {
+    // 不影响登录流程
+    console.error("记录登录尝试失败:", error);
+  }
 }
 
 /**
@@ -131,7 +237,57 @@ export async function getSession() {
  * @returns {Object} 订阅对象
  */
 export function onAuthStateChange(callback) {
-  return supabase.auth.onAuthStateChange(callback);
+  return supabase.auth.onAuthStateChange(async (event, session) => {
+    // 处理登录成功事件
+    if (event === "SIGNED_IN" && session?.user) {
+      const user = session.user;
+
+      // 检查用户是否被禁用并记录日志
+      try {
+        const response = await fetch("/api/auth/check-and-log", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            email: user.email,
+            login_method: user.app_metadata?.provider || "email",
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || result.code !== 200) {
+          // 检查是否是被禁用
+          if (result.banned) {
+            // 退出登录
+            await supabase.auth.signOut();
+
+            // 通知前端显示错误
+            window.dispatchEvent(
+              new CustomEvent("auth-error", {
+                detail: {
+                  error: {
+                    code: "USER_BANNED",
+                    message: "您的账号已被管理员禁用，请联系管理员",
+                  },
+                },
+              }),
+            );
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("认证检查失败:", error);
+      }
+    }
+
+    // 调用原始回调
+    if (callback) {
+      callback(event, session);
+    }
+  });
 }
 
 /**

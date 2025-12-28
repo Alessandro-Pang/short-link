@@ -230,10 +230,25 @@ async function handleEmailLogin({ errors }) {
         }, 500);
     } catch (error) {
         isLoading.value = false;
-        if (error.message.includes("Invalid login credentials")) {
+        console.error("登录错误:", error);
+
+        // 处理不同的错误情况
+        if (error.code === "USER_BANNED") {
+            // 用户被禁用的特殊提示
+            Message.error({
+                content: "您的账号已被管理员禁用，如有疑问请联系管理员",
+                duration: 5000,
+            });
+        } else if (error.message.includes("Invalid login credentials")) {
             Message.error("邮箱或密码错误");
         } else if (error.message.includes("Email not confirmed")) {
             Message.error("请先验证您的邮箱");
+        } else if (error.message.includes("禁用")) {
+            // 兜底处理所有包含"禁用"的错误消息
+            Message.error({
+                content: error.message,
+                duration: 5000,
+            });
         } else {
             Message.error(error.message || "登录失败，请稍后再试");
         }

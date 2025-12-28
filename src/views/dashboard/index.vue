@@ -70,6 +70,21 @@
                         /></template>
                         <span class="text-orange-600">所有链接</span>
                     </a-menu-item>
+                    <a-menu-item key="admin-users" class="rounded-lg! mb-1">
+                        <template #icon
+                            ><icon-user class="text-orange-500"
+                        /></template>
+                        <span class="text-orange-600">用户管理</span>
+                    </a-menu-item>
+                    <a-menu-item
+                        key="admin-login-logs"
+                        class="rounded-lg! mb-1"
+                    >
+                        <template #icon
+                            ><icon-history class="text-orange-500"
+                        /></template>
+                        <span class="text-orange-600">登录日志</span>
+                    </a-menu-item>
                 </template>
             </a-menu>
         </a-layout-sider>
@@ -179,6 +194,7 @@ import {
     IconApps,
     IconLock,
     IconUser,
+    IconHistory,
 } from "@arco-design/web-vue/es/icon";
 import { getCurrentUser, signOut } from "@/services/auth.js";
 import { getCurrentUserWithAdminStatus } from "@/services/admin.js";
@@ -197,6 +213,8 @@ const childViewRef = ref(null);
 // Computed
 const currentRoute = computed(() => {
     const path = route.path;
+    if (path.includes("/admin/login-logs")) return "admin-login-logs";
+    if (path.includes("/admin/users")) return "admin-users";
     if (path.includes("/admin/links")) return "admin-links";
     if (path.includes("/admin/stats")) return "admin-stats";
     if (path.includes("/profile")) return "profile";
@@ -216,6 +234,8 @@ const currentTitle = computed(() => {
         profile: "个人信息",
         "admin-stats": "全局统计",
         "admin-links": "所有链接",
+        "admin-users": "用户管理",
+        "admin-login-logs": "登录日志",
     };
     return titles[routeKey] || "控制台";
 });
@@ -232,6 +252,8 @@ const handleMenuClick = (key) => {
         profile: "/dashboard/profile",
         "admin-stats": "/dashboard/admin/stats",
         "admin-links": "/dashboard/admin/links",
+        "admin-users": "/dashboard/admin/users",
+        "admin-login-logs": "/dashboard/admin/login-logs",
     };
     if (routes[key]) {
         router.push(routes[key]);

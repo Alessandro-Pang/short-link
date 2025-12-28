@@ -83,6 +83,18 @@ const routes = [
         component: () => import("@/views/dashboard/admin/links.vue"),
         meta: { requiresAuth: true, requiresAdmin: true },
       },
+      {
+        path: "admin/users",
+        name: "admin-users",
+        component: () => import("@/views/dashboard/admin/users.vue"),
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
+      {
+        path: "admin/login-logs",
+        name: "admin-login-logs",
+        component: () => import("@/views/dashboard/admin/login-logs.vue"),
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
     ],
   },
 ];
