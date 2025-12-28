@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, nextTick, onMounted } from "vue";
+import { ref, watch, nextTick, onMounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
@@ -9,10 +9,17 @@ import {
     IconEdit,
     IconDelete,
     IconSearch,
+    IconCheck,
+    IconClose,
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
 import { toggleLinkStatus, deleteLink } from "@/services/api.js";
-import { getUserLinks } from "@/services/dashboard.js";
+import {
+    getUserLinks,
+    batchRemoveLinks,
+    batchEnableLinks,
+    batchDisableLinks,
+} from "@/services/dashboard.js";
 import LinkEditDrawer from "@/components/LinkEditDrawer.vue";
 
 const router = useRouter();
@@ -33,11 +40,19 @@ const editDrawerVisible = ref(false);
 const editingLinkId = ref(null);
 const filterLinkId = ref(null);
 
+// 批量选择相关状态
+const selectedRowKeys = ref([]);
+const isBatchOperating = ref(false);
+
 // 分页
 const pagination = ref({
     current: 1,
     pageSize: 10,
 });
+
+// 计算属性：是否有选中的行
+const hasSelected = computed(() => selectedRowKeys.value.length > 0);
+const selectedCount = computed(() => selectedRowKeys.value.length);
 
 // 加载数据
 const loadData = async () => {
@@ -54,6 +69,8 @@ const loadData = async () => {
 
         links.value = result.links || [];
         total.value = result.total || 0;
+        // 清空选择
+        selectedRowKeys.value = [];
     } catch (error) {
         console.error("加载链接列表失败:", error);
         Message.error("加载链接列表失败");
@@ -212,6 +229,74 @@ const handleEditDelete = () => {
     loadData();
 };
 
+// 清空选择
+const clearSelection = () => {
+    selectedRowKeys.value = [];
+};
+
+// 批量删除
+const handleBatchDelete = async () => {
+    if (!hasSelected.value) {
+        Message.warning("请先选择要删除的链接");
+        return;
+    }
+
+    isBatchOperating.value = true;
+    try {
+        const result = await batchRemoveLinks(selectedRowKeys.value);
+        Message.success(
+            `成功删除 ${result.success} 个链接${result.failed > 0 ? `，${result.failed} 个链接无权限操作` : ""}`,
+        );
+        loadData();
+    } catch (error) {
+        Message.error(error.message || "批量删除失败");
+    } finally {
+        isBatchOperating.value = false;
+    }
+};
+
+// 批量启用
+const handleBatchEnable = async () => {
+    if (!hasSelected.value) {
+        Message.warning("请先选择要启用的链接");
+        return;
+    }
+
+    isBatchOperating.value = true;
+    try {
+        const result = await batchEnableLinks(selectedRowKeys.value);
+        Message.success(
+            `成功启用 ${result.success} 个链接${result.failed > 0 ? `，${result.failed} 个链接无权限操作` : ""}`,
+        );
+        loadData();
+    } catch (error) {
+        Message.error(error.message || "批量启用失败");
+    } finally {
+        isBatchOperating.value = false;
+    }
+};
+
+// 批量禁用
+const handleBatchDisable = async () => {
+    if (!hasSelected.value) {
+        Message.warning("请先选择要禁用的链接");
+        return;
+    }
+
+    isBatchOperating.value = true;
+    try {
+        const result = await batchDisableLinks(selectedRowKeys.value);
+        Message.success(
+            `成功禁用 ${result.success} 个链接${result.failed > 0 ? `，${result.failed} 个链接无权限操作` : ""}`,
+        );
+        loadData();
+    } catch (error) {
+        Message.error(error.message || "批量禁用失败");
+    } finally {
+        isBatchOperating.value = false;
+    }
+};
+
 // 暴露刷新方法给父组件
 defineExpose({
     refresh: loadData,
@@ -263,6 +348,68 @@ defineExpose({
                 </a-button>
             </div>
 
+            <!-- 批量操作栏 -->
+            <div
+                v-if="hasSelected"
+                class="px-6 py-3 bg-blue-50 border-b border-blue-100 flex items-center justify-between"
+            >
+                <div class="flex items-center gap-2 text-gray-600">
+                    <span class="text-blue-600 font-medium"
+                        >已选择 {{ selectedCount }} 项</span
+                    >
+                    <a-link @click="clearSelection" class="text-sm"
+                        >取消选择</a-link
+                    >
+                </div>
+                <div class="flex items-center gap-2">
+                    <a-popconfirm
+                        content="确定要启用选中的链接吗？"
+                        type="info"
+                        @ok="handleBatchEnable"
+                    >
+                        <a-button
+                            size="small"
+                            type="outline"
+                            status="success"
+                            :loading="isBatchOperating"
+                        >
+                            <template #icon><icon-check /></template>
+                            批量启用
+                        </a-button>
+                    </a-popconfirm>
+                    <a-popconfirm
+                        content="确定要禁用选中的链接吗？"
+                        type="warning"
+                        @ok="handleBatchDisable"
+                    >
+                        <a-button
+                            size="small"
+                            type="outline"
+                            status="warning"
+                            :loading="isBatchOperating"
+                        >
+                            <template #icon><icon-close /></template>
+                            批量禁用
+                        </a-button>
+                    </a-popconfirm>
+                    <a-popconfirm
+                        content="确定要删除选中的链接吗？此操作不可恢复！"
+                        type="error"
+                        @ok="handleBatchDelete"
+                    >
+                        <a-button
+                            size="small"
+                            type="outline"
+                            status="danger"
+                            :loading="isBatchOperating"
+                        >
+                            <template #icon><icon-delete /></template>
+                            批量删除
+                        </a-button>
+                    </a-popconfirm>
+                </div>
+            </div>
+
             <a-spin :loading="isLoading" class="w-full">
                 <a-table
                     :data="links"
@@ -275,6 +422,11 @@ defineExpose({
                     }"
                     :bordered="{ wrapper: false, cell: false }"
                     :hoverable="true"
+                    :row-selection="{
+                        type: 'checkbox',
+                        showCheckedAll: true,
+                    }"
+                    v-model:selected-keys="selectedRowKeys"
                     row-key="id"
                     @page-change="handlePageChange"
                 >

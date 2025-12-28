@@ -162,6 +162,31 @@ export async function deleteLink(linkId) {
 }
 
 /**
+ * 批量删除链接（管理员专用）
+ * @param {Array<number>} linkIds - 链接 ID 数组
+ * @returns {Promise} - 返回删除结果
+ */
+export async function batchDeleteLinks(linkIds) {
+  return fetchApi("/api/admin/links/batch-delete", {
+    method: "POST",
+    body: { linkIds },
+  });
+}
+
+/**
+ * 批量切换链接状态（管理员专用）
+ * @param {Array<number>} linkIds - 链接 ID 数组
+ * @param {boolean} isActive - 是否启用
+ * @returns {Promise} - 返回操作结果
+ */
+export async function batchToggleLinks(linkIds, isActive) {
+  return fetchApi("/api/admin/links/batch-toggle", {
+    method: "POST",
+    body: { linkIds, is_active: isActive },
+  });
+}
+
+/**
  * 获取所有用户列表（管理员专用）
  * @param {Object} options - 查询选项
  * @returns {Promise} - 返回用户列表

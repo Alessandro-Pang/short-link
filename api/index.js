@@ -747,6 +747,85 @@ app.delete(
   },
 );
 
+// 批量删除链接
+app.post(
+  "/api/dashboard/links/batch-delete",
+  { preHandler: authenticate },
+  async (req, reply) => {
+    try {
+      const { linkIds } = req.body;
+
+      if (!Array.isArray(linkIds) || linkIds.length === 0) {
+        return reply.send({
+          code: 400,
+          msg: "请选择要删除的链接",
+        });
+      }
+
+      const result = await dashboardService.batchDeleteLinks(
+        linkIds.map((id) => parseInt(id)),
+        req.user.id,
+      );
+
+      return reply.send({
+        code: 200,
+        msg: `成功删除 ${result.success} 个链接${result.failed > 0 ? `，${result.failed} 个链接无权限操作` : ""}`,
+        data: result,
+      });
+    } catch (error) {
+      console.error("批量删除链接失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "批量删除链接失败",
+      });
+    }
+  },
+);
+
+// 批量切换链接状态
+app.post(
+  "/api/dashboard/links/batch-toggle",
+  { preHandler: authenticate },
+  async (req, reply) => {
+    try {
+      const { linkIds, is_active } = req.body;
+
+      if (!Array.isArray(linkIds) || linkIds.length === 0) {
+        return reply.send({
+          code: 400,
+          msg: "请选择要操作的链接",
+        });
+      }
+
+      if (typeof is_active !== "boolean") {
+        return reply.send({
+          code: 400,
+          msg: "is_active 必须是布尔值",
+        });
+      }
+
+      const result = await dashboardService.batchToggleLinks(
+        linkIds.map((id) => parseInt(id)),
+        req.user.id,
+        is_active,
+      );
+
+      const action = is_active ? "启用" : "禁用";
+      return reply.send({
+        code: 200,
+        msg: `成功${action} ${result.success} 个链接${result.failed > 0 ? `，${result.failed} 个链接无权限操作` : ""}`,
+        data: result,
+      });
+    } catch (error) {
+      console.error("批量切换链接状态失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "批量切换链接状态失败",
+      });
+    }
+  },
+);
+
 // ============================================
 // 管理员专用接口
 // ============================================
@@ -987,6 +1066,83 @@ app.delete(
       return reply.send({
         code: 500,
         msg: error.message || "删除链接失败",
+      });
+    }
+  },
+);
+
+// 批量删除链接（管理员专用）
+app.post(
+  "/api/admin/links/batch-delete",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { linkIds } = req.body;
+
+      if (!Array.isArray(linkIds) || linkIds.length === 0) {
+        return reply.send({
+          code: 400,
+          msg: "请选择要删除的链接",
+        });
+      }
+
+      const result = await dashboardService.batchDeleteLinksAdmin(
+        linkIds.map((id) => parseInt(id)),
+      );
+
+      return reply.send({
+        code: 200,
+        msg: `成功删除 ${result.success} 个链接`,
+        data: result,
+      });
+    } catch (error) {
+      console.error("批量删除链接失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "批量删除链接失败",
+      });
+    }
+  },
+);
+
+// 批量切换链接状态（管理员专用）
+app.post(
+  "/api/admin/links/batch-toggle",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { linkIds, is_active } = req.body;
+
+      if (!Array.isArray(linkIds) || linkIds.length === 0) {
+        return reply.send({
+          code: 400,
+          msg: "请选择要操作的链接",
+        });
+      }
+
+      if (typeof is_active !== "boolean") {
+        return reply.send({
+          code: 400,
+          msg: "is_active 必须是布尔值",
+        });
+      }
+
+      const result = await dashboardService.batchToggleLinksAdmin(
+        linkIds.map((id) => parseInt(id)),
+        is_active,
+      );
+
+      const action = is_active ? "启用" : "禁用";
+      return reply.send({
+        code: 200,
+        msg: `成功${action} ${result.success} 个链接`,
+        data: result,
+      });
+    } catch (error) {
+      console.error("批量切换链接状态失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "批量切换链接状态失败",
       });
     }
   },

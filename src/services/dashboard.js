@@ -11,6 +11,8 @@ import {
   deleteLink,
   toggleLinkStatus,
   getLinkAccessLogs,
+  batchDeleteLinks,
+  batchToggleLinks,
 } from "./api.js";
 
 /**
@@ -106,6 +108,51 @@ export async function toggleLink(linkId, isActive) {
     return response.data;
   } catch (error) {
     console.error("切换链接状态失败:", error);
+    throw error;
+  }
+}
+
+/**
+ * 批量删除链接
+ * @param {Array<number>} linkIds - 链接 ID 数组
+ * @returns {Promise} 删除结果
+ */
+export async function batchRemoveLinks(linkIds) {
+  try {
+    const response = await batchDeleteLinks(linkIds);
+    return response.data;
+  } catch (error) {
+    console.error("批量删除链接失败:", error);
+    throw error;
+  }
+}
+
+/**
+ * 批量启用链接
+ * @param {Array<number>} linkIds - 链接 ID 数组
+ * @returns {Promise} 操作结果
+ */
+export async function batchEnableLinks(linkIds) {
+  try {
+    const response = await batchToggleLinks(linkIds, true);
+    return response.data;
+  } catch (error) {
+    console.error("批量启用链接失败:", error);
+    throw error;
+  }
+}
+
+/**
+ * 批量禁用链接
+ * @param {Array<number>} linkIds - 链接 ID 数组
+ * @returns {Promise} 操作结果
+ */
+export async function batchDisableLinks(linkIds) {
+  try {
+    const response = await batchToggleLinks(linkIds, false);
+    return response.data;
+  } catch (error) {
+    console.error("批量禁用链接失败:", error);
     throw error;
   }
 }

@@ -289,6 +289,113 @@ export async function deleteLink(linkId, userId) {
 }
 
 /**
+ * 批量删除链接
+ * @param {Array<number>} linkIds - 链接 ID 数组
+ * @param {string} userId - 用户 ID（用于权限验证）
+ * @returns {Promise<Object>} 删除结果 { success: number, failed: number }
+ */
+export async function batchDeleteLinks(linkIds, userId) {
+  try {
+    if (!linkIds || linkIds.length === 0) {
+      throw new Error("请选择要删除的链接");
+    }
+
+    // 首先验证所有链接是否属于该用户
+    const { data: links, error: queryError } = await supabase
+      .from("links")
+      .select("id, user_id")
+      .in("id", linkIds);
+
+    if (queryError) {
+      console.error("查询链接失败:", queryError);
+      throw queryError;
+    }
+
+    // 过滤出属于该用户的链接
+    const userLinkIds = links
+      .filter((link) => link.user_id === userId)
+      .map((link) => link.id);
+
+    if (userLinkIds.length === 0) {
+      throw new Error("没有可删除的链接");
+    }
+
+    // 批量删除
+    const { error } = await supabase
+      .from("links")
+      .delete()
+      .in("id", userLinkIds);
+
+    if (error) {
+      console.error("批量删除链接失败:", error);
+      throw error;
+    }
+
+    return {
+      success: userLinkIds.length,
+      failed: linkIds.length - userLinkIds.length,
+    };
+  } catch (error) {
+    console.error("批量删除链接失败:", error);
+    throw error;
+  }
+}
+
+/**
+ * 批量切换链接状态
+ * @param {Array<number>} linkIds - 链接 ID 数组
+ * @param {string} userId - 用户 ID（用于权限验证）
+ * @param {boolean} isActive - 是否启用
+ * @returns {Promise<Object>} 更新结果 { success: number, failed: number }
+ */
+export async function batchToggleLinks(linkIds, userId, isActive) {
+  try {
+    if (!linkIds || linkIds.length === 0) {
+      throw new Error("请选择要操作的链接");
+    }
+
+    // 首先验证所有链接是否属于该用户
+    const { data: links, error: queryError } = await supabase
+      .from("links")
+      .select("id, user_id")
+      .in("id", linkIds);
+
+    if (queryError) {
+      console.error("查询链接失败:", queryError);
+      throw queryError;
+    }
+
+    // 过滤出属于该用户的链接
+    const userLinkIds = links
+      .filter((link) => link.user_id === userId)
+      .map((link) => link.id);
+
+    if (userLinkIds.length === 0) {
+      throw new Error("没有可操作的链接");
+    }
+
+    // 批量更新状态
+    const { error } = await supabase
+      .from("links")
+      .update({ is_active: isActive })
+      .in("id", userLinkIds);
+
+    if (error) {
+      console.error("批量更新链接状态失败:", error);
+      throw error;
+    }
+
+    return {
+      success: userLinkIds.length,
+      failed: linkIds.length - userLinkIds.length,
+    };
+  } catch (error) {
+    console.error("批量更新链接状态失败:", error);
+    throw error;
+  }
+}
+
+/**
  * 获取链接访问统计（按日期分组）
  * @param {number} linkId - 链接 ID
  * @param {string} userId - 用户 ID（用于权限验证）
@@ -675,6 +782,68 @@ export async function getLinkAccessStatsAdmin(linkId, days = 7) {
     };
   } catch (error) {
     console.error("获取链接访问统计失败:", error);
+    throw error;
+  }
+}
+
+/**
+ * 批量删除链接（管理员专用，无需用户验证）
+ * @param {Array<number>} linkIds - 链接 ID 数组
+ * @returns {Promise<Object>} 删除结果 { success: number, failed: number }
+ */
+export async function batchDeleteLinksAdmin(linkIds) {
+  try {
+    if (!linkIds || linkIds.length === 0) {
+      throw new Error("请选择要删除的链接");
+    }
+
+    // 批量删除
+    const { error } = await supabase.from("links").delete().in("id", linkIds);
+
+    if (error) {
+      console.error("批量删除链接失败:", error);
+      throw error;
+    }
+
+    return {
+      success: linkIds.length,
+      failed: 0,
+    };
+  } catch (error) {
+    console.error("批量删除链接失败:", error);
+    throw error;
+  }
+}
+
+/**
+ * 批量切换链接状态（管理员专用，无需用户验证）
+ * @param {Array<number>} linkIds - 链接 ID 数组
+ * @param {boolean} isActive - 是否启用
+ * @returns {Promise<Object>} 更新结果 { success: number, failed: number }
+ */
+export async function batchToggleLinksAdmin(linkIds, isActive) {
+  try {
+    if (!linkIds || linkIds.length === 0) {
+      throw new Error("请选择要操作的链接");
+    }
+
+    // 批量更新状态
+    const { error } = await supabase
+      .from("links")
+      .update({ is_active: isActive })
+      .in("id", linkIds);
+
+    if (error) {
+      console.error("批量更新链接状态失败:", error);
+      throw error;
+    }
+
+    return {
+      success: linkIds.length,
+      failed: 0,
+    };
+  } catch (error) {
+    console.error("批量更新链接状态失败:", error);
     throw error;
   }
 }
