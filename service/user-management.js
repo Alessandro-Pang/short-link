@@ -7,6 +7,21 @@
  * @FilePath: /short-link/service/user-management.js
  */
 import supabase from "./db.js";
+import cache, { CACHE_KEYS, buildCacheKey } from "../api/utils/cache.js";
+import { USER_CONFIG } from "../api/config/index.js";
+
+/**
+ * 清除用户相关缓存
+ * @param {string} userId - 用户 ID
+ */
+function clearUserCache(userId) {
+  if (!userId) return;
+
+  // 清除所有与该用户相关的缓存
+  cache.delete(buildCacheKey(CACHE_KEYS.USER_PROFILE, userId));
+  cache.delete(buildCacheKey(CACHE_KEYS.USER_ADMIN_STATUS, userId));
+  cache.delete(buildCacheKey(CACHE_KEYS.USER_INFO, userId));
+}
 
 /**
  * 获取所有用户列表（管理员专用）
@@ -50,12 +65,10 @@ export async function getAllUsers(options = {}) {
         : false;
 
       // 移除用不到的敏感信息
-      if (user.identities) {
-        user.identities = undefined;
-      }
+      const { identities: _identities, ...userWithoutIdentities } = user;
       return {
         banned: isBanned,
-        ...user,
+        ...userWithoutIdentities,
         ...profile,
         is_admin: profile.is_admin === true,
       };
@@ -126,8 +139,8 @@ export async function getUserDetails(userId) {
       last_sign_in_at: authData.user.last_sign_in_at,
       banned: isBanned,
       banned_until: authData.user.banned_until,
-      ...(profile || {}), // 先展开 profile
-      is_admin: profile?.is_admin === true, // 明确设置 is_admin，确保是布尔值
+      ...profile,
+      is_admin: profile?.is_admin === true,
       stats: {
         total_links: linkCount,
         total_clicks: totalClicks,
@@ -223,6 +236,9 @@ export async function updateUser(userId, updates) {
       }
     }
 
+    // 清除用户缓存
+    clearUserCache(userId);
+
     return { success: true };
   } catch (error) {
     console.error("更新用户信息失败:", error);
@@ -244,6 +260,9 @@ export async function deleteUser(userId) {
       console.error("删除用户失败:", error);
       throw error;
     }
+
+    // 清除用户缓存
+    clearUserCache(userId);
 
     return { success: true };
   } catch (error) {
@@ -273,6 +292,9 @@ export async function resetPassword(userId, password) {
       throw error;
     }
 
+    // 重置密码后清除缓存（可能需要重新登录）
+    clearUserCache(userId);
+
     return { success: true };
   } catch (error) {
     console.error("重置密码失败:", error);
@@ -293,7 +315,9 @@ export async function toggleBanStatus(userId, banned) {
     }
 
     const { error } = await supabase.auth.admin.updateUserById(userId, {
-      ban_duration: banned ? "876000h" : "none", // 100年 或 none
+      ban_duration: banned
+        ? USER_CONFIG.BAN_DURATION_HOURS
+        : USER_CONFIG.BAN_NONE,
     });
 
     if (error) {
@@ -301,9 +325,17 @@ export async function toggleBanStatus(userId, banned) {
       throw error;
     }
 
+    // 清除用户缓存（封禁状态变更后需要重新验证）
+    clearUserCache(userId);
+
     return { success: true, banned };
   } catch (error) {
     console.error("更新用户封禁状态失败:", error);
     throw error;
   }
 }
+
+/**
+ * 导出清除缓存函数供其他模块使用
+ */
+export { clearUserCache };

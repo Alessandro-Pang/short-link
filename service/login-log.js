@@ -2,8 +2,8 @@
  * @Author: zi.yang
  * @Date: 2025-12-28
  * @LastEditors: zi.yang
- * @LastEditTime: 2025-01-01 00:00:00
- * @Description: 登录日志服务
+ * @LastEditTime: 2025-12-29 00:00:00
+ * @Description: 登录日志服务 - 优化版（使用数据库聚合查询）
  * @FilePath: /short-link/service/login-log.js
  */
 import supabase from "./db.js";
@@ -144,13 +144,125 @@ export async function getAllLoginLogs(options = {}) {
 }
 
 /**
- * 获取登录统计信息
+ * 获取登录统计信息（使用数据库聚合查询优化）
  * @param {string} userId - 用户 ID（可选，不传则获取全局统计）
  * @returns {Promise<Object>} 登录统计
  */
 export async function getLoginStats(userId = null) {
   try {
-    let query = supabase.from("login_logs").select("success, login_at");
+    // 计算时间范围
+    const now = new Date();
+    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    const last7d = new Date(
+      now.getTime() - 7 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    const last30d = new Date(
+      now.getTime() - 30 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+
+    // 构建基础查询条件
+    const buildQuery = (baseQuery) => {
+      if (userId) {
+        return baseQuery.eq("user_id", userId);
+      }
+      return baseQuery;
+    };
+
+    // 查询 1：获取总数
+    const { count: total, error: totalError } = await buildQuery(
+      supabase.from("login_logs").select("id", { count: "exact", head: true }),
+    );
+
+    if (totalError) {
+      console.error("查询登录总数失败:", totalError);
+      throw totalError;
+    }
+
+    // 查询 2：获取成功登录数
+    const { count: successful, error: successError } = await buildQuery(
+      supabase
+        .from("login_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("success", true),
+    );
+
+    if (successError) {
+      console.error("查询成功登录数失败:", successError);
+      throw successError;
+    }
+
+    // 查询 3：最近 24 小时登录数
+    const { count: countLast24h, error: error24h } = await buildQuery(
+      supabase
+        .from("login_logs")
+        .select("id", { count: "exact", head: true })
+        .gte("login_at", last24h),
+    );
+
+    if (error24h) {
+      console.error("查询24小时登录数失败:", error24h);
+      throw error24h;
+    }
+
+    // 查询 4：最近 7 天登录数
+    const { count: countLast7d, error: error7d } = await buildQuery(
+      supabase
+        .from("login_logs")
+        .select("id", { count: "exact", head: true })
+        .gte("login_at", last7d),
+    );
+
+    if (error7d) {
+      console.error("查询7天登录数失败:", error7d);
+      throw error7d;
+    }
+
+    // 查询 5：最近 30 天登录数
+    const { count: countLast30d, error: error30d } = await buildQuery(
+      supabase
+        .from("login_logs")
+        .select("id", { count: "exact", head: true })
+        .gte("login_at", last30d),
+    );
+
+    if (error30d) {
+      console.error("查询30天登录数失败:", error30d);
+      throw error30d;
+    }
+
+    return {
+      total: total || 0,
+      successful: successful || 0,
+      failed: (total || 0) - (successful || 0),
+      last24h: countLast24h || 0,
+      last7d: countLast7d || 0,
+      last30d: countLast30d || 0,
+      successRate:
+        total > 0 ? ((successful / total) * 100).toFixed(2) + "%" : "0%",
+    };
+  } catch (error) {
+    console.error("获取登录统计异常:", error);
+    throw error;
+  }
+}
+
+/**
+ * 获取登录趋势数据（按日期聚合）
+ * @param {Object} options - 查询选项
+ * @returns {Promise<Object>} 登录趋势数据
+ */
+export async function getLoginTrend(options = {}) {
+  try {
+    const { userId = null, days = 30 } = options;
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    let query = supabase
+      .from("login_logs")
+      .select("login_at, success")
+      .gte("login_at", startDate.toISOString())
+      .order("login_at", { ascending: true });
 
     if (userId) {
       query = query.eq("user_id", userId);
@@ -159,27 +271,42 @@ export async function getLoginStats(userId = null) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("获取登录统计失败:", error);
+      console.error("获取登录趋势失败:", error);
       throw error;
     }
 
-    const now = new Date();
-    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    // 按日期聚合
+    const dailyStats = {};
 
-    const stats = {
-      total: data.length,
-      successful: data.filter((log) => log.success).length,
-      failed: data.filter((log) => !log.success).length,
-      last24h: data.filter((log) => new Date(log.login_at) >= last24h).length,
-      last7d: data.filter((log) => new Date(log.login_at) >= last7d).length,
-      last30d: data.filter((log) => new Date(log.login_at) >= last30d).length,
+    for (const log of data || []) {
+      const date = new Date(log.login_at).toISOString().split("T")[0];
+
+      if (!dailyStats[date]) {
+        dailyStats[date] = { total: 0, successful: 0, failed: 0 };
+      }
+
+      dailyStats[date].total++;
+      if (log.success) {
+        dailyStats[date].successful++;
+      } else {
+        dailyStats[date].failed++;
+      }
+    }
+
+    // 转换为数组格式
+    const trend = Object.entries(dailyStats)
+      .map(([date, stats]) => ({
+        date,
+        ...stats,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+      trend,
+      total: data?.length || 0,
     };
-
-    return stats;
   } catch (error) {
-    console.error("获取登录统计异常:", error);
+    console.error("获取登录趋势异常:", error);
     throw error;
   }
 }
@@ -210,6 +337,66 @@ export async function cleanOldLoginLogs() {
     };
   } catch (error) {
     console.error("清理登录日志异常:", error);
+    throw error;
+  }
+}
+
+/**
+ * 获取最近的失败登录尝试（用于安全监控）
+ * @param {Object} options - 查询选项
+ * @returns {Promise<Object>} 失败登录列表
+ */
+export async function getRecentFailedAttempts(options = {}) {
+  try {
+    const { limit = 100, hours = 24 } = options;
+
+    const sinceTime = new Date();
+    sinceTime.setHours(sinceTime.getHours() - hours);
+
+    const { data, error, count } = await supabase
+      .from("login_logs")
+      .select("*", { count: "exact" })
+      .eq("success", false)
+      .gte("login_at", sinceTime.toISOString())
+      .order("login_at", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error("获取失败登录尝试失败:", error);
+      throw error;
+    }
+
+    // 按 IP 分组统计
+    const ipStats = {};
+    for (const log of data || []) {
+      const ip = log.ip_address || "unknown";
+      if (!ipStats[ip]) {
+        ipStats[ip] = { count: 0, emails: new Set() };
+      }
+      ipStats[ip].count++;
+      if (log.email) {
+        ipStats[ip].emails.add(log.email);
+      }
+    }
+
+    // 转换为数组并按次数排序
+    const suspiciousIps = Object.entries(ipStats)
+      .map(([ip, stats]) => ({
+        ip,
+        attempts: stats.count,
+        uniqueEmails: stats.emails.size,
+        emails: Array.from(stats.emails),
+      }))
+      .filter((item) => item.attempts >= 3) // 3次以上失败视为可疑
+      .sort((a, b) => b.attempts - a.attempts);
+
+    return {
+      logs: data || [],
+      total: count || 0,
+      suspiciousIps,
+    };
+  } catch (error) {
+    console.error("获取失败登录尝试异常:", error);
     throw error;
   }
 }

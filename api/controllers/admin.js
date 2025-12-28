@@ -1,3 +1,12 @@
+/*
+ * @Author: zi.yang
+ * @Date: 2025-01-01 00:00:00
+ * @LastEditors: zi.yang
+ * @LastEditTime: 2025-01-01 00:00:00
+ * @Description: Admin 控制器 - 管理员专用接口（统一响应格式）
+ * @FilePath: /short-link/api/controllers/admin.js
+ */
+
 import * as dashboardService from "../../service/dashboard.js";
 import * as userManagementService from "../../service/user-management.js";
 import * as loginLogService from "../../service/login-log.js";
@@ -9,6 +18,13 @@ import {
   validateEmail,
   validatePassword,
 } from "../utils/validation.js";
+import {
+  success,
+  badRequest,
+  notFound,
+  serverError,
+  validationError,
+} from "../utils/response.js";
 
 /**
  * 获取系统统计信息
@@ -16,18 +32,18 @@ import {
 export async function getSystemStats(request, reply) {
   try {
     const stats = await dashboardService.getGlobalStats();
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: stats,
-    });
+    return success(reply, stats);
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve system statistics",
-    });
+    request.log.error("获取系统统计失败:", error);
+    return serverError(reply, "获取系统统计失败");
   }
+}
+
+/**
+ * 获取管理员统计数据（别名）
+ */
+export async function getAdminStats(request, reply) {
+  return getSystemStats(request, reply);
 }
 
 /**
@@ -51,12 +67,8 @@ export async function getAllLinks(request, reply) {
 
     // 验证分页参数
     const paginationResult = validatePagination({ page, pageSize });
-    if (!paginationResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: paginationResult.error,
-      });
-    }
+    const paginationErr = validationError(reply, paginationResult);
+    if (paginationErr) return paginationErr;
 
     // 支持两种分页方式：
     // 1. page + pageSize (传统分页)
@@ -92,17 +104,10 @@ export async function getAllLinks(request, reply) {
       userId,
     });
 
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: result,
-    });
+    return success(reply, result);
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve links",
-    });
+    request.log.error("获取链接列表失败:", error);
+    return serverError(reply, "获取链接列表失败");
   }
 }
 
@@ -114,32 +119,19 @@ export async function getLinkDetails(request, reply) {
     const linkId = parseInt(request.params.id);
 
     if (Number.isNaN(linkId) || linkId < 1) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的链接 ID",
-      });
+      return badRequest(reply, "无效的链接 ID");
     }
 
     const result = await dashboardService.getLinkDetailAdmin(linkId);
 
     if (!result) {
-      return reply.status(404).send({
-        code: 404,
-        msg: "Link not found",
-      });
+      return notFound(reply, "链接不存在");
     }
 
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: result,
-    });
+    return success(reply, result);
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve link details",
-    });
+    request.log.error("获取链接详情失败:", error);
+    return serverError(reply, "获取链接详情失败");
   }
 }
 
@@ -151,28 +143,18 @@ export async function getLinkAccessLogs(request, reply) {
     const linkId = parseInt(request.params.id);
 
     if (Number.isNaN(linkId) || linkId < 1) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的链接 ID",
-      });
+      return badRequest(reply, "无效的链接 ID");
     }
 
     const result = await dashboardService.getLinkAccessLogsAdmin(linkId, {
-      limit: parseInt(request.query.pageSize || 50),
+      limit: parseInt(request.query.limit || request.query.pageSize || 50),
       offset: parseInt(request.query.offset || 0),
     });
 
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: result,
-    });
+    return success(reply, result);
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve access logs",
-    });
+    request.log.error("获取访问日志失败:", error);
+    return serverError(reply, "获取访问日志失败");
   }
 }
 
@@ -185,20 +167,13 @@ export async function updateLink(request, reply) {
     const updates = request.body;
 
     if (Number.isNaN(linkId) || linkId < 1) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的链接 ID",
-      });
+      return badRequest(reply, "无效的链接 ID");
     }
 
     // 使用统一验证模块
     const validationResult = validateUpdateLinkParams(updates);
-    if (!validationResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: validationResult.error,
-      });
-    }
+    const validationErr = validationError(reply, validationResult);
+    if (validationErr) return validationErr;
 
     // 处理 max_clicks 转换
     if (updates.max_clicks !== undefined && updates.max_clicks !== null) {
@@ -207,17 +182,10 @@ export async function updateLink(request, reply) {
 
     const result = await dashboardService.updateLinkAdmin(linkId, updates);
 
-    return reply.send({
-      code: 200,
-      msg: "Link updated successfully",
-      data: result,
-    });
+    return success(reply, result, "链接更新成功");
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to update link",
-    });
+    request.log.error("更新链接失败:", error);
+    return serverError(reply, "更新链接失败");
   }
 }
 
@@ -230,25 +198,16 @@ export async function toggleLinkStatus(request, reply) {
     const { is_active } = request.body;
 
     if (Number.isNaN(linkId) || linkId < 1) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的链接 ID",
-      });
+      return badRequest(reply, "无效的链接 ID");
     }
 
+    // 验证 is_active
     const boolResult = validateBoolean(is_active, "is_active");
-    if (!boolResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: boolResult.error,
-      });
-    }
+    const boolErr = validationError(reply, boolResult);
+    if (boolErr) return boolErr;
 
     if (is_active === undefined || is_active === null) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "is_active 是必填参数",
-      });
+      return badRequest(reply, "is_active 是必填参数");
     }
 
     const result = await dashboardService.batchToggleLinksAdmin(
@@ -256,17 +215,10 @@ export async function toggleLinkStatus(request, reply) {
       is_active,
     );
 
-    return reply.send({
-      code: 200,
-      msg: "Link status updated successfully",
-      data: result,
-    });
+    return success(reply, result, "链接状态更新成功");
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to update link status",
-    });
+    request.log.error("更新链接状态失败:", error);
+    return serverError(reply, "更新链接状态失败");
   }
 }
 
@@ -278,31 +230,15 @@ export async function deleteLink(request, reply) {
     const linkId = parseInt(request.params.id);
 
     if (Number.isNaN(linkId) || linkId < 1) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的链接 ID",
-      });
+      return badRequest(reply, "无效的链接 ID");
     }
 
-    const result = await dashboardService.deleteLinkAdmin(linkId);
+    await dashboardService.deleteLinkAdmin(linkId);
 
-    if (!result || result.error) {
-      return reply.status(404).send({
-        code: 404,
-        msg: "Link not found",
-      });
-    }
-
-    return reply.send({
-      code: 200,
-      msg: "Link deleted successfully",
-    });
+    return success(reply, null, "链接删除成功");
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to delete link",
-    });
+    request.log.error("删除链接失败:", error);
+    return serverError(reply, "删除链接失败");
   }
 }
 
@@ -313,28 +249,17 @@ export async function batchDeleteLinks(request, reply) {
   try {
     const { linkIds } = request.body;
 
-    // 使用统一验证
+    // 验证 linkIds
     const idsResult = validateBatchIds(linkIds);
-    if (!idsResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: idsResult.error,
-      });
-    }
+    const idsErr = validationError(reply, idsResult);
+    if (idsErr) return idsErr;
 
     const result = await dashboardService.batchDeleteLinksAdmin(linkIds);
 
-    return reply.send({
-      code: 200,
-      msg: "Links deleted successfully",
-      data: result,
-    });
+    return success(reply, result, "批量删除成功");
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to delete links",
-    });
+    request.log.error("批量删除链接失败:", error);
+    return serverError(reply, "批量删除失败");
   }
 }
 
@@ -345,28 +270,18 @@ export async function batchUpdateLinkStatus(request, reply) {
   try {
     const { linkIds, is_active } = request.body;
 
-    // 使用统一验证
+    // 验证 linkIds
     const idsResult = validateBatchIds(linkIds);
-    if (!idsResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: idsResult.error,
-      });
-    }
+    const idsErr = validationError(reply, idsResult);
+    if (idsErr) return idsErr;
 
+    // 验证 is_active
     const boolResult = validateBoolean(is_active, "is_active");
-    if (!boolResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: boolResult.error,
-      });
-    }
+    const boolErr = validationError(reply, boolResult);
+    if (boolErr) return boolErr;
 
     if (is_active === undefined || is_active === null) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "is_active 是必填参数",
-      });
+      return badRequest(reply, "is_active 是必填参数");
     }
 
     const result = await dashboardService.batchToggleLinksAdmin(
@@ -374,23 +289,16 @@ export async function batchUpdateLinkStatus(request, reply) {
       is_active,
     );
 
-    const action = is_active ? "activated" : "deactivated";
-    return reply.send({
-      code: 200,
-      msg: `Links ${action} successfully`,
-      data: result,
-    });
+    const action = is_active ? "启用" : "禁用";
+    return success(reply, result, `批量${action}成功`);
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to update link status",
-    });
+    request.log.error("批量更新链接状态失败:", error);
+    return serverError(reply, "批量更新状态失败");
   }
 }
 
 /**
- * 获取所有用户列表
+ * 获取所有用户列表（管理员）
  */
 export async function getAllUsers(request, reply) {
   try {
@@ -398,64 +306,47 @@ export async function getAllUsers(request, reply) {
 
     // 验证分页参数
     const paginationResult = validatePagination({ page, pageSize: perPage });
-    if (!paginationResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: paginationResult.error,
-      });
-    }
+    const paginationErr = validationError(reply, paginationResult);
+    if (paginationErr) return paginationErr;
 
     const result = await userManagementService.getAllUsers({
       page: parseInt(page),
       perPage: parseInt(perPage),
     });
 
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: result,
-    });
+    return success(reply, result);
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve users",
-    });
+    request.log.error("获取用户列表失败:", error);
+    return serverError(reply, "获取用户列表失败");
   }
 }
 
 /**
- * 获取用户详情
+ * 获取用户详情（管理员）
  */
 export async function getUserDetails(request, reply) {
   try {
     const userId = request.params.id;
 
-    if (!userId || typeof userId !== "string") {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的用户 ID",
-      });
+    if (!userId) {
+      return badRequest(reply, "无效的用户 ID");
     }
 
     const result = await userManagementService.getUserDetails(userId);
 
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: result,
-    });
+    if (!result) {
+      return notFound(reply, "用户不存在");
+    }
+
+    return success(reply, result);
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve user details",
-    });
+    request.log.error("获取用户详情失败:", error);
+    return serverError(reply, "获取用户详情失败");
   }
 }
 
 /**
- * 创建新用户
+ * 创建新用户（管理员）
  */
 export async function createUser(request, reply) {
   try {
@@ -463,185 +354,122 @@ export async function createUser(request, reply) {
 
     // 验证邮箱
     const emailResult = validateEmail(email);
-    if (!emailResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: emailResult.error,
-      });
-    }
+    const emailErr = validationError(reply, emailResult);
+    if (emailErr) return emailErr;
 
     // 验证密码
     const passwordResult = validatePassword(password);
-    if (!passwordResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: passwordResult.error,
-      });
-    }
+    const passwordErr = validationError(reply, passwordResult);
+    if (passwordErr) return passwordErr;
 
     const result = await userManagementService.createUser({ email, password });
 
-    return reply.send({
-      code: 200,
-      msg: "User created successfully",
-      data: result,
-    });
+    return success(reply, result, "用户创建成功");
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to create user",
-    });
+    request.log.error("创建用户失败:", error);
+    return serverError(reply, error.message || "创建用户失败");
   }
 }
 
 /**
- * 更新用户信息
+ * 更新用户信息（管理员）
  */
 export async function updateUser(request, reply) {
   try {
     const userId = request.params.id;
     const updates = request.body;
 
-    if (!userId || typeof userId !== "string") {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的用户 ID",
-      });
+    if (!userId) {
+      return badRequest(reply, "无效的用户 ID");
     }
 
     const result = await userManagementService.updateUser(userId, updates);
 
-    return reply.send({
-      code: 200,
-      msg: "User updated successfully",
-      data: result,
-    });
+    return success(reply, result, "用户信息更新成功");
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to update user",
-    });
+    request.log.error("更新用户信息失败:", error);
+    return serverError(reply, error.message || "更新用户信息失败");
   }
 }
 
 /**
- * 删除用户
+ * 删除用户（管理员）
  */
 export async function deleteUser(request, reply) {
   try {
     const userId = request.params.id;
 
-    if (!userId || typeof userId !== "string") {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的用户 ID",
-      });
+    if (!userId) {
+      return badRequest(reply, "无效的用户 ID");
     }
 
     await userManagementService.deleteUser(userId);
 
-    return reply.send({
-      code: 200,
-      msg: "User deleted successfully",
-    });
+    return success(reply, null, "用户删除成功");
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to delete user",
-    });
+    request.log.error("删除用户失败:", error);
+    return serverError(reply, error.message || "删除用户失败");
   }
 }
 
 /**
- * 重置用户密码
+ * 重置用户密码（管理员）
  */
 export async function resetPassword(request, reply) {
   try {
     const userId = request.params.id;
     const { password } = request.body;
 
-    if (!userId || typeof userId !== "string") {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的用户 ID",
-      });
+    if (!userId) {
+      return badRequest(reply, "无效的用户 ID");
     }
 
     // 验证密码
     const passwordResult = validatePassword(password);
-    if (!passwordResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: passwordResult.error,
-      });
-    }
+    const passwordErr = validationError(reply, passwordResult);
+    if (passwordErr) return passwordErr;
 
     await userManagementService.resetPassword(userId, password);
 
-    return reply.send({
-      code: 200,
-      msg: "Password reset successfully",
-    });
+    return success(reply, null, "密码重置成功");
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to reset password",
-    });
+    request.log.error("重置密码失败:", error);
+    return serverError(reply, error.message || "重置密码失败");
   }
 }
 
 /**
- * 切换用户封禁状态
+ * 切换用户封禁状态（管理员）
  */
 export async function toggleBanStatus(request, reply) {
   try {
     const userId = request.params.id;
     const { banned } = request.body;
 
-    if (!userId || typeof userId !== "string") {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的用户 ID",
-      });
+    if (!userId) {
+      return badRequest(reply, "无效的用户 ID");
     }
 
+    // 验证 banned
     const boolResult = validateBoolean(banned, "banned");
-    if (!boolResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: boolResult.error,
-      });
-    }
+    const boolErr = validationError(reply, boolResult);
+    if (boolErr) return boolErr;
 
     if (banned === undefined || banned === null) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "banned 是必填参数",
-      });
+      return badRequest(reply, "banned 是必填参数");
     }
 
     const result = await userManagementService.toggleBanStatus(userId, banned);
 
-    return reply.send({
-      code: 200,
-      msg: "User ban status updated successfully",
-      data: result,
-    });
+    return success(reply, result, banned ? "用户已禁用" : "用户已启用");
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to update user ban status",
-    });
+    request.log.error("切换用户封禁状态失败:", error);
+    return serverError(reply, error.message || "操作失败");
   }
 }
 
 /**
- * 获取登录日志
+ * 获取登录日志（管理员）
  */
 export async function getLoginLogs(request, reply) {
   try {
@@ -649,146 +477,109 @@ export async function getLoginLogs(request, reply) {
       limit = 50,
       offset = 0,
       userId = null,
-      success = null,
+      success: successFilter = null,
       startDate = null,
       endDate = null,
     } = request.query;
 
-    // 验证分页参数
     const parsedLimit = parseInt(limit);
     const parsedOffset = parseInt(offset);
 
     if (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "limit 必须是 1-100 之间的整数",
-      });
+      return badRequest(reply, "limit 必须是 1-100 之间的整数");
     }
 
     if (Number.isNaN(parsedOffset) || parsedOffset < 0) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "offset 必须是大于等于 0 的整数",
-      });
+      return badRequest(reply, "offset 必须是非负整数");
     }
 
     const result = await loginLogService.getAllLoginLogs({
       limit: parsedLimit,
       offset: parsedOffset,
       userId,
-      success: success !== null ? success === "true" : null,
+      success: successFilter === null ? null : successFilter === "true",
       startDate,
       endDate,
     });
 
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: result,
-    });
+    return success(reply, result);
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve login logs",
-    });
+    request.log.error("获取登录日志失败:", error);
+    return serverError(reply, "获取登录日志失败");
   }
 }
 
 /**
- * 获取访问日志（全局）
+ * 获取访问日志（管理员）
  */
 export async function getAccessLogs(request, reply) {
   try {
     const {
       limit = 50,
       offset = 0,
-      userId = null,
-      success = null,
+      linkId = null,
       startDate = null,
       endDate = null,
     } = request.query;
 
-    // 验证分页参数
     const parsedLimit = parseInt(limit);
     const parsedOffset = parseInt(offset);
 
     if (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "limit 必须是 1-100 之间的整数",
-      });
+      return badRequest(reply, "limit 必须是 1-100 之间的整数");
     }
 
     if (Number.isNaN(parsedOffset) || parsedOffset < 0) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "offset 必须是大于等于 0 的整数",
-      });
+      return badRequest(reply, "offset 必须是非负整数");
     }
 
-    const result = await loginLogService.getAllLoginLogs({
-      limit: parsedLimit,
-      offset: parsedOffset,
-      userId,
-      success: success !== null ? success === "true" : null,
-      startDate,
-      endDate,
-    });
+    // 构建查询
+    let query = (await import("../../service/db.js")).default
+      .from("link_access_logs")
+      .select("*", { count: "exact" })
+      .order("accessed_at", { ascending: false })
+      .range(parsedOffset, parsedOffset + parsedLimit - 1);
 
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: result,
+    if (linkId) {
+      query = query.eq("link_id", parseInt(linkId));
+    }
+
+    if (startDate) {
+      query = query.gte("accessed_at", startDate);
+    }
+
+    if (endDate) {
+      query = query.lte("accessed_at", endDate);
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    return success(reply, {
+      logs: data || [],
+      total: count || 0,
     });
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve access logs",
-    });
+    request.log.error("获取访问日志失败:", error);
+    return serverError(reply, "获取访问日志失败");
   }
 }
 
 /**
- * 获取管理员统计信息
- */
-export async function getAdminStats(request, reply) {
-  try {
-    const stats = await dashboardService.getGlobalStats();
-
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: stats,
-    });
-  } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve statistics",
-    });
-  }
-}
-
-/**
- * 获取登录统计信息
+ * 获取登录统计（管理员）
  */
 export async function getLoginStats(request, reply) {
   try {
     const { userId = null } = request.query;
+
     const stats = await loginLogService.getLoginStats(userId);
 
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: stats,
-    });
+    return success(reply, stats);
   } catch (error) {
-    request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve login statistics",
-    });
+    request.log.error("获取登录统计失败:", error);
+    return serverError(reply, "获取登录统计失败");
   }
 }

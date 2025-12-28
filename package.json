@@ -8,7 +8,7 @@
   "type": "module",
   "author": "zi.yang <pcy1314@163.com> (https://github.com/Alessandro-Pang)",
   "scripts": {
-    "dev": "concurrently -n \"VUE,FASTIFY\" -c \"bgBlue.bold,bgGreen.bold\" \"vite --mode development --host\" \"nodemon api/index -- --env-file=.env.development.local \"",
+    "dev": "concurrently -n \"VUE,FASTIFY\" -c \"bgBlue.bold,bgGreen.bold\" \"vite --mode development --host\" \"cross-env NODE_ENV=development nodemon api/index -- --env-file=.env.development.local \"",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -21,6 +21,7 @@
     "@supabase/supabase-js": "^2.89.0",
     "autoprefixer": "^10.4.23",
     "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
     "fastify": "^5.6.2",
     "pinia": "^3.0.4",
     "pino-pretty": "^13.1.3",

@@ -3,47 +3,10 @@
  * 所有管理员专用接口
  */
 
-import { getSession } from "./auth.js";
+import { fetchApi, buildUrl, ApiError } from "./request.js";
 
-/**
- * 通用 API 请求函数
- * @param {string} url - API 端点
- * @param {Object} options - 请求选项
- * @returns {Promise} - 返回请求结果的 Promise
- */
-async function fetchApi(url, { method = "GET", body, headers = {} } = {}) {
-  try {
-    // 获取当前 session，如果存在则添加到请求头
-    const session = await getSession();
-    if (session?.access_token) {
-      headers["Authorization"] = `Bearer ${session.access_token}`;
-    }
-
-    const response = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json;charset=utf-8",
-        ...headers,
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    const data = await response.json();
-
-    if (data.code === 200) {
-      return data;
-    } else if (data.code === 403) {
-      const error = new Error(data.msg || "需要管理员权限");
-      error.code = "ADMIN_REQUIRED";
-      throw error;
-    } else {
-      throw new Error(data.msg || "请求失败");
-    }
-  } catch (error) {
-    console.error("Admin API 请求失败:", error);
-    throw error;
-  }
-}
+// 导出 ApiError 供外部使用
+export { ApiError };
 
 /**
  * 获取全局统计数据（管理员专用）
@@ -70,25 +33,17 @@ export async function getAllLinks(options = {}) {
     userId = null,
   } = options;
 
-  const params = new URLSearchParams({
-    limit: limit.toString(),
-    offset: offset.toString(),
+  const url = buildUrl("/api/admin/links", {
+    limit,
+    offset,
     orderBy,
-    ascending: ascending.toString(),
+    ascending,
+    linkId,
+    keyword,
+    userId,
   });
 
-  // 添加可选的过滤参数
-  if (linkId) {
-    params.append("linkId", linkId);
-  }
-  if (keyword) {
-    params.append("keyword", keyword);
-  }
-  if (userId) {
-    params.append("userId", userId);
-  }
-
-  const response = await fetchApi(`/api/admin/links?${params.toString()}`);
+  const response = await fetchApi(url);
   return response.data;
 }
 
@@ -111,14 +66,12 @@ export async function getLinkDetail(linkId) {
 export async function getLinkAccessLogs(linkId, options = {}) {
   const { limit = 50, offset = 0 } = options;
 
-  const params = new URLSearchParams({
-    limit: limit.toString(),
-    offset: offset.toString(),
+  const url = buildUrl(`/api/admin/links/${linkId}/access-logs`, {
+    limit,
+    offset,
   });
 
-  const response = await fetchApi(
-    `/api/admin/links/${linkId}/logs?${params.toString()}`,
-  );
+  const response = await fetchApi(url);
   return response.data;
 }
 
@@ -143,7 +96,7 @@ export async function updateLink(linkId, updates) {
  * @returns {Promise} - 返回更新结果
  */
 export async function toggleLinkStatus(linkId, isActive) {
-  const response = await fetchApi(`/api/admin/links/${linkId}/toggle`, {
+  const response = await fetchApi(`/api/admin/links/${linkId}/status`, {
     method: "PATCH",
     body: { is_active: isActive },
   });
@@ -180,7 +133,7 @@ export async function batchDeleteLinks(linkIds) {
  * @returns {Promise} - 返回操作结果
  */
 export async function batchToggleLinks(linkIds, isActive) {
-  return fetchApi("/api/admin/links/batch-toggle", {
+  return fetchApi("/api/admin/links/batch-status", {
     method: "POST",
     body: { linkIds, is_active: isActive },
   });
@@ -194,12 +147,12 @@ export async function batchToggleLinks(linkIds, isActive) {
 export async function getAllUsers(options = {}) {
   const { page = 1, perPage = 50 } = options;
 
-  const params = new URLSearchParams({
-    page: page.toString(),
-    perPage: perPage.toString(),
+  const url = buildUrl("/api/admin/users", {
+    page,
+    perPage,
   });
 
-  const response = await fetchApi(`/api/admin/users?${params.toString()}`);
+  const response = await fetchApi(url);
   return response.data;
 }
 
@@ -290,17 +243,16 @@ export async function getAllLoginLogs(options = {}) {
     endDate = null,
   } = options;
 
-  const params = new URLSearchParams({
-    limit: limit.toString(),
-    offset: offset.toString(),
+  const url = buildUrl("/api/admin/logs/login", {
+    limit,
+    offset,
+    userId,
+    success,
+    startDate,
+    endDate,
   });
 
-  if (userId) params.append("userId", userId);
-  if (success !== null) params.append("success", success.toString());
-  if (startDate) params.append("startDate", startDate);
-  if (endDate) params.append("endDate", endDate);
-
-  const response = await fetchApi(`/api/admin/logs/login?${params.toString()}`);
+  const response = await fetchApi(url);
   return response.data;
 }
 
@@ -310,8 +262,8 @@ export async function getAllLoginLogs(options = {}) {
  * @returns {Promise} - 返回登录统计
  */
 export async function getLoginStats(userId = null) {
-  const params = userId ? `?userId=${userId}` : "";
-  const response = await fetchApi(`/api/admin/login/stats${params}`);
+  const url = buildUrl("/api/admin/login/stats", { userId });
+  const response = await fetchApi(url);
   return response.data;
 }
 
@@ -321,7 +273,9 @@ export async function getLoginStats(userId = null) {
  */
 export async function checkIsAdmin() {
   try {
-    const response = await fetchApi("/api/dashboard/user");
+    const response = await fetchApi("/api/dashboard/user", {
+      throwOnError: false,
+    });
     return response.data?.isAdmin === true;
   } catch (error) {
     console.error("检查管理员状态失败:", error);
@@ -335,5 +289,40 @@ export async function checkIsAdmin() {
  */
 export async function getCurrentUserWithAdminStatus() {
   const response = await fetchApi("/api/dashboard/user");
+  return response.data;
+}
+
+/**
+ * 获取访问日志（管理员专用）
+ * @param {Object} options - 查询选项
+ * @returns {Promise} - 返回访问日志列表
+ */
+export async function getAccessLogs(options = {}) {
+  const {
+    limit = 50,
+    offset = 0,
+    linkId = null,
+    startDate = null,
+    endDate = null,
+  } = options;
+
+  const url = buildUrl("/api/admin/logs/access", {
+    limit,
+    offset,
+    linkId,
+    startDate,
+    endDate,
+  });
+
+  const response = await fetchApi(url);
+  return response.data;
+}
+
+/**
+ * 获取管理员仪表盘统计（管理员专用）
+ * @returns {Promise} - 返回统计数据
+ */
+export async function getAdminStats() {
+  const response = await fetchApi("/api/admin/stats");
   return response.data;
 }

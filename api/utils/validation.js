@@ -1,9 +1,9 @@
 /*
  * @Author: zi.yang
- * @Date: 2025-01-01 00:00:00
+ * @Date: 2025-12-29 00:00:00
  * @LastEditors: zi.yang
- * @LastEditTime: 2025-01-01 00:00:00
- * @Description: 输入验证模块 - 统一的验证逻辑
+ * @LastEditTime: 2025-12-29 00:00:00
+ * @Description: 输入验证模块 - 统一的验证逻辑（增强版）
  * @FilePath: /short-link/api/utils/validation.js
  */
 
@@ -37,10 +37,71 @@ export const VALID_REDIRECT_TYPES = [301, 302, 307, 308];
 export const VALID_DEVICE_TYPES = ["mobile", "tablet", "desktop"];
 
 /**
- * URL 格式正则表达式
+ * 禁止的 URL 协议（防止 XSS 和其他攻击）
+ */
+const BLOCKED_PROTOCOLS = [
+  /^javascript:/i,
+  /^vbscript:/i,
+  /^data:/i,
+  /^file:/i,
+  /^ftp:/i,
+  /^mailto:/i,
+  /^tel:/i,
+];
+
+/**
+ * 内网 IP 范围（SSRF 保护）
+ */
+const PRIVATE_IP_RANGES = [
+  // IPv4 私有地址
+  /^127\./, // 127.0.0.0/8 - Loopback
+  /^10\./, // 10.0.0.0/8 - Private
+  /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12 - Private
+  /^192\.168\./, // 192.168.0.0/16 - Private
+  /^169\.254\./, // 169.254.0.0/16 - Link-local
+  /^0\./, // 0.0.0.0/8 - Current network
+  /^100\.(6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-7])\./, // 100.64.0.0/10 - Carrier-grade NAT
+  /^192\.0\.0\./, // 192.0.0.0/24 - IETF Protocol Assignments
+  /^192\.0\.2\./, // 192.0.2.0/24 - TEST-NET-1
+  /^198\.51\.100\./, // 198.51.100.0/24 - TEST-NET-2
+  /^203\.0\.113\./, // 203.0.113.0/24 - TEST-NET-3
+  /^224\./, // 224.0.0.0/4 - Multicast
+  /^240\./, // 240.0.0.0/4 - Reserved
+  /^255\.255\.255\.255$/, // Broadcast
+  // IPv6 私有地址
+  /^::1$/, // Loopback
+  /^fe80:/i, // Link-local
+  /^fc00:/i, // Unique local
+  /^fd00:/i, // Unique local
+];
+
+/**
+ * 云服务元数据端点（SSRF 保护）
+ */
+const BLOCKED_HOSTNAMES = [
+  "metadata.google.internal",
+  "metadata.goog",
+  "169.254.169.254", // AWS/GCP/Azure metadata
+  "metadata.azure.com",
+  "100.100.100.200", // Alibaba Cloud metadata
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "[::1]",
+];
+
+/**
+ * URL 格式正则表达式（更严格）
  * 支持 http://, https://, #小程序://
  */
-const URL_PATTERN = /^(https?:\/\/|#小程序:\/\/)[^\s<>"{}|\\^`[\]]+$/;
+const URL_PATTERN =
+  /^(https?:\/\/)[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+(:\d{1,5})?(\/[^\s<>"{}|\\^`[\]]*)?$/;
+
+/**
+ * 小程序链接格式正则
+ */
+const MINIPROGRAM_PATTERN =
+  /^#小程序:\/\/[a-zA-Z0-9_-]+(?:\/[^\s<>"{}|\\^`[\]]*)?$/;
 
 /**
  * 邮箱格式正则表达式
@@ -80,11 +141,40 @@ function result(valid, error = null) {
 }
 
 /**
- * 验证 URL 格式和长度
+ * 检查 URL 是否使用禁止的协议
+ * @param {string} url - URL 字符串
+ * @returns {boolean} 是否使用禁止的协议
+ */
+function hasBlockedProtocol(url) {
+  return BLOCKED_PROTOCOLS.some((pattern) => pattern.test(url));
+}
+
+/**
+ * 检查主机名是否为私有/内网地址（SSRF 保护）
+ * @param {string} hostname - 主机名
+ * @returns {boolean} 是否为私有地址
+ */
+function isPrivateHost(hostname) {
+  // 检查是否为明确禁止的主机名
+  const lowerHostname = hostname.toLowerCase();
+  if (BLOCKED_HOSTNAMES.includes(lowerHostname)) {
+    return true;
+  }
+
+  // 检查是否为私有 IP 范围
+  return PRIVATE_IP_RANGES.some((pattern) => pattern.test(hostname));
+}
+
+/**
+ * 验证 URL 格式和长度（增强版，包含 SSRF 保护）
  * @param {string} url - 要验证的 URL
+ * @param {Object} options - 验证选项
+ * @param {boolean} options.allowPrivateHosts - 是否允许私有/内网地址（默认 false）
  * @returns {ValidationResult}
  */
-export function validateUrl(url) {
+export function validateUrl(url, options = {}) {
+  const { allowPrivateHosts = false } = options;
+
   if (!url || typeof url !== "string") {
     return result(false, "URL 是必填参数");
   }
@@ -92,23 +182,76 @@ export function validateUrl(url) {
   const trimmedUrl = url.trim();
 
   if (trimmedUrl.length < VALIDATION_LIMITS.URL_MIN_LENGTH) {
-    return result(false, `URL 长度不能少于 ${VALIDATION_LIMITS.URL_MIN_LENGTH} 个字符`);
+    return result(
+      false,
+      `URL 长度不能少于 ${VALIDATION_LIMITS.URL_MIN_LENGTH} 个字符`,
+    );
   }
 
   if (trimmedUrl.length > VALIDATION_LIMITS.URL_MAX_LENGTH) {
-    return result(false, `URL 长度不能超过 ${VALIDATION_LIMITS.URL_MAX_LENGTH} 个字符`);
+    return result(
+      false,
+      `URL 长度不能超过 ${VALIDATION_LIMITS.URL_MAX_LENGTH} 个字符`,
+    );
   }
 
+  // 检查禁止的协议
+  if (hasBlockedProtocol(trimmedUrl)) {
+    return result(false, "不支持的 URL 协议");
+  }
+
+  // 处理小程序链接
+  if (trimmedUrl.startsWith("#小程序://")) {
+    if (!MINIPROGRAM_PATTERN.test(trimmedUrl)) {
+      return result(false, "小程序链接格式不正确");
+    }
+    return result(true);
+  }
+
+  // 验证 HTTP/HTTPS URL
+  if (!trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://")) {
+    return result(false, "URL 必须以 http://、https:// 或 #小程序:// 开头");
+  }
+
+  // 尝试解析 URL
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(trimmedUrl);
+  } catch {
+    return result(false, "URL 格式无效，无法解析");
+  }
+
+  // SSRF 保护：检查主机名
+  if (!allowPrivateHosts) {
+    const hostname = parsedUrl.hostname;
+
+    // 检查是否为私有/内网地址
+    if (isPrivateHost(hostname)) {
+      return result(false, "不允许使用内网地址或私有 IP");
+    }
+
+    // 检查是否包含用户凭证（可能用于绕过）
+    if (parsedUrl.username || parsedUrl.password) {
+      return result(false, "URL 不能包含用户凭证");
+    }
+
+    // 检查端口（阻止常见的危险端口）
+    const dangerousPorts = [22, 23, 25, 110, 143, 445, 3306, 5432, 6379, 27017];
+    if (
+      parsedUrl.port &&
+      dangerousPorts.includes(parseInt(parsedUrl.port, 10))
+    ) {
+      return result(false, "URL 端口不被允许");
+    }
+  }
+
+  // 基本格式验证
   if (!URL_PATTERN.test(trimmedUrl)) {
-    return result(false, "URL 格式不正确，必须以 http://、https:// 或 #小程序:// 开头");
-  }
-
-  // 尝试解析 URL（跳过小程序链接）
-  if (!trimmedUrl.startsWith("#小程序://")) {
-    try {
-      new URL(trimmedUrl);
-    } catch {
-      return result(false, "URL 格式无效，无法解析");
+    // 放宽检查 - 只要能解析成功就可以
+    // URL_PATTERN 可能过于严格，有些合法 URL 可能不匹配
+    // 但至少确保协议正确
+    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+      return result(false, "URL 格式不正确");
     }
   }
 
@@ -127,8 +270,11 @@ export function validateRedirectType(redirectType) {
 
   const type = parseInt(redirectType, 10);
 
-  if (isNaN(type) || !VALID_REDIRECT_TYPES.includes(type)) {
-    return result(false, `重定向类型必须是 ${VALID_REDIRECT_TYPES.join("、")} 之一`);
+  if (Number.isNaN(type) || !VALID_REDIRECT_TYPES.includes(type)) {
+    return result(
+      false,
+      `重定向类型必须是 ${VALID_REDIRECT_TYPES.join("、")} 之一`,
+    );
   }
 
   return result(true);
@@ -146,7 +292,7 @@ export function validateMaxClicks(maxClicks) {
 
   const clicks = parseInt(maxClicks, 10);
 
-  if (isNaN(clicks) || clicks < 1) {
+  if (Number.isNaN(clicks) || clicks < 1) {
     return result(false, "最大点击次数必须是大于 0 的整数");
   }
 
@@ -168,7 +314,10 @@ export function validateTitle(title) {
   }
 
   if (title.length > VALIDATION_LIMITS.TITLE_MAX_LENGTH) {
-    return result(false, `标题长度不能超过 ${VALIDATION_LIMITS.TITLE_MAX_LENGTH} 个字符`);
+    return result(
+      false,
+      `标题长度不能超过 ${VALIDATION_LIMITS.TITLE_MAX_LENGTH} 个字符`,
+    );
   }
 
   return result(true);
@@ -185,7 +334,10 @@ export function validateDescription(description) {
   }
 
   if (description.length > VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH) {
-    return result(false, `描述长度不能超过 ${VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH} 个字符`);
+    return result(
+      false,
+      `描述长度不能超过 ${VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH} 个字符`,
+    );
   }
 
   return result(true);
@@ -247,7 +399,10 @@ export function validateDeviceTypes(devices) {
 
   for (const device of devices) {
     if (!VALID_DEVICE_TYPES.includes(device)) {
-      return result(false, `无效的设备类型: ${device}，有效值为: ${VALID_DEVICE_TYPES.join(", ")}`);
+      return result(
+        false,
+        `无效的设备类型: ${device}，有效值为: ${VALID_DEVICE_TYPES.join(", ")}`,
+      );
     }
   }
 
@@ -289,20 +444,32 @@ export function validateAccessRestrictions(restrictions) {
   }
 
   // 验证来源限制列表
-  if (restrictions.allowed_referrers && !Array.isArray(restrictions.allowed_referrers)) {
+  if (
+    restrictions.allowed_referrers &&
+    !Array.isArray(restrictions.allowed_referrers)
+  ) {
     return result(false, "允许的来源必须是数组格式");
   }
 
-  if (restrictions.blocked_referrers && !Array.isArray(restrictions.blocked_referrers)) {
+  if (
+    restrictions.blocked_referrers &&
+    !Array.isArray(restrictions.blocked_referrers)
+  ) {
     return result(false, "禁止的来源必须是数组格式");
   }
 
   // 验证国家/地区限制
-  if (restrictions.allowed_countries && !Array.isArray(restrictions.allowed_countries)) {
+  if (
+    restrictions.allowed_countries &&
+    !Array.isArray(restrictions.allowed_countries)
+  ) {
     return result(false, "允许的国家/地区必须是数组格式");
   }
 
-  if (restrictions.blocked_countries && !Array.isArray(restrictions.blocked_countries)) {
+  if (
+    restrictions.blocked_countries &&
+    !Array.isArray(restrictions.blocked_countries)
+  ) {
     return result(false, "禁止的国家/地区必须是数组格式");
   }
 
@@ -322,7 +489,10 @@ export function validateEmail(email) {
   const trimmedEmail = email.trim();
 
   if (trimmedEmail.length > VALIDATION_LIMITS.EMAIL_MAX_LENGTH) {
-    return result(false, `邮箱长度不能超过 ${VALIDATION_LIMITS.EMAIL_MAX_LENGTH} 个字符`);
+    return result(
+      false,
+      `邮箱长度不能超过 ${VALIDATION_LIMITS.EMAIL_MAX_LENGTH} 个字符`,
+    );
   }
 
   if (!EMAIL_PATTERN.test(trimmedEmail)) {
@@ -343,11 +513,17 @@ export function validatePassword(password) {
   }
 
   if (password.length < VALIDATION_LIMITS.PASSWORD_MIN_LENGTH) {
-    return result(false, `密码长度不能少于 ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} 个字符`);
+    return result(
+      false,
+      `密码长度不能少于 ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} 个字符`,
+    );
   }
 
   if (password.length > VALIDATION_LIMITS.PASSWORD_MAX_LENGTH) {
-    return result(false, `密码长度不能超过 ${VALIDATION_LIMITS.PASSWORD_MAX_LENGTH} 个字符`);
+    return result(
+      false,
+      `密码长度不能超过 ${VALIDATION_LIMITS.PASSWORD_MAX_LENGTH} 个字符`,
+    );
   }
 
   return result(true);
@@ -364,7 +540,10 @@ export function validateShortHash(hash) {
   }
 
   if (hash.length > VALIDATION_LIMITS.SHORT_HASH_MAX_LENGTH) {
-    return result(false, `短链接哈希长度不能超过 ${VALIDATION_LIMITS.SHORT_HASH_MAX_LENGTH} 个字符`);
+    return result(
+      false,
+      `短链接哈希长度不能超过 ${VALIDATION_LIMITS.SHORT_HASH_MAX_LENGTH} 个字符`,
+    );
   }
 
   if (!HASH_PATTERN.test(hash)) {
@@ -393,7 +572,10 @@ export function validateBatchIds(ids) {
   }
 
   if (ids.length > VALIDATION_LIMITS.BATCH_OPERATION_MAX_ITEMS) {
-    return result(false, `批量操作最多支持 ${VALIDATION_LIMITS.BATCH_OPERATION_MAX_ITEMS} 个项目`);
+    return result(
+      false,
+      `批量操作最多支持 ${VALIDATION_LIMITS.BATCH_OPERATION_MAX_ITEMS} 个项目`,
+    );
   }
 
   for (const id of ids) {
@@ -417,14 +599,14 @@ export function validatePagination(params) {
 
   if (page !== undefined) {
     const pageNum = parseInt(page, 10);
-    if (isNaN(pageNum) || pageNum < 1) {
+    if (Number.isNaN(pageNum) || pageNum < 1) {
       return result(false, "页码必须是大于 0 的整数");
     }
   }
 
   if (pageSize !== undefined) {
     const size = parseInt(pageSize, 10);
-    if (isNaN(size) || size < 1) {
+    if (Number.isNaN(size) || size < 1) {
       return result(false, "每页数量必须是大于 0 的整数");
     }
     if (size > 100) {
@@ -492,7 +674,9 @@ export function validateCreateLinkParams(params) {
   }
 
   // 验证访问限制
-  const restrictionsResult = validateAccessRestrictions(options.access_restrictions);
+  const restrictionsResult = validateAccessRestrictions(
+    options.access_restrictions,
+  );
   if (!restrictionsResult.valid) {
     return restrictionsResult;
   }
@@ -544,7 +728,9 @@ export function validateUpdateLinkParams(updates) {
 
   // 验证访问限制
   if (updates.access_restrictions !== undefined) {
-    const restrictionsResult = validateAccessRestrictions(updates.access_restrictions);
+    const restrictionsResult = validateAccessRestrictions(
+      updates.access_restrictions,
+    );
     if (!restrictionsResult.valid) {
       return restrictionsResult;
     }
@@ -583,4 +769,13 @@ export function sanitizeUrl(url) {
     return "";
   }
   return url.trim();
+}
+
+/**
+ * 检查是否为私有/内网 IP（导出供其他模块使用）
+ * @param {string} hostname - 主机名或 IP
+ * @returns {boolean}
+ */
+export function isPrivateIp(hostname) {
+  return isPrivateHost(hostname);
 }

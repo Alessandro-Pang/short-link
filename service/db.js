@@ -1,8 +1,8 @@
 /*
  * @Author: zi.yang
- * @Date: 2025-01-01 00:00:00
+ * @Date: 2025-12-29 00:00:00
  * @LastEditors: zi.yang
- * @LastEditTime: 2025-01-01 00:00:00
+ * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 统一的 Supabase 数据库连接模块
  * @FilePath: /short-link/service/db.js
  */
@@ -50,10 +50,7 @@ const supabase = createClient(
  */
 export async function checkHealth() {
   try {
-    const { error } = await supabase
-      .from("links")
-      .select("id")
-      .limit(1);
+    const { error } = await supabase.from("links").select("id").limit(1);
 
     if (error) {
       return { healthy: false, error: error.message };

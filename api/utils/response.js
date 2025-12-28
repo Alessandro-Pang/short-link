@@ -1,13 +1,11 @@
 /*
  * @Author: zi.yang
- * @Date: 2025-01-01 00:00:00
+ * @Date: 2025-12-29 00:00:00
  * @LastEditors: zi.yang
- * @LastEditTime: 2025-01-01 00:00:00
+ * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 统一的响应工具模块
  * @FilePath: /short-link/api/utils/response.js
  */
-
-import { ERROR_CODES } from "../config/index.js";
 
 /**
  * 成功响应

@@ -47,11 +47,11 @@ export async function logLoginAttempt(request, reply) {
     let userId = null;
     if (success) {
       const authHeader = request.headers.authorization;
-      if (authHeader && authHeader.startsWith("Bearer ")) {
+      if (authHeader?.startsWith("Bearer ")) {
         try {
           const token = authHeader.substring(7);
           const user = await authService.verifyToken(token);
-          if (user && user.id) {
+          if (user?.id) {
             userId = user.id;
           }
         } catch (err) {

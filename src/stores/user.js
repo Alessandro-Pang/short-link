@@ -5,6 +5,16 @@
  */
 
 import { defineStore } from "pinia";
+
+/**
+ * 用户缓存配置
+ */
+const USER_CACHE_CONFIG = {
+  // 缓存有效期（毫秒）- 5分钟
+  CACHE_DURATION: 5 * 60 * 1000,
+  // 初始化检查间隔（毫秒）
+  INIT_CHECK_INTERVAL: 50,
+};
 import { ref, computed } from "vue";
 import {
   getCurrentUser,
@@ -44,9 +54,6 @@ export const useUserStore = defineStore("user", () => {
 
   // 上次获取用户信息的时间戳
   const lastFetchTime = ref(null);
-
-  // 缓存有效期（毫秒）- 5分钟
-  const CACHE_DURATION = 5 * 60 * 1000;
 
   // ==================== Getters ====================
 
@@ -97,7 +104,7 @@ export const useUserStore = defineStore("user", () => {
   // 缓存是否有效
   const isCacheValid = computed(() => {
     if (!lastFetchTime.value) return false;
-    return Date.now() - lastFetchTime.value < CACHE_DURATION;
+    return Date.now() - lastFetchTime.value < USER_CACHE_CONFIG.CACHE_DURATION;
   });
 
   // ==================== Actions ====================
@@ -117,7 +124,7 @@ export const useUserStore = defineStore("user", () => {
             clearInterval(checkInterval);
             resolve();
           }
-        }, 50);
+        }, USER_CACHE_CONFIG.INIT_CHECK_INTERVAL);
       });
     }
 

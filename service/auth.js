@@ -3,10 +3,11 @@
  * @Date: 2025-12-27
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-01-01 00:00:00
- * @Description: 认证服务 - Supabase Auth 验证
+ * @Description: 认证服务 - Supabase Auth 验证（使用配置常量）
  * @FilePath: /short-link/service/auth.js
  */
 import supabase from "./db.js";
+import { USER_CONFIG } from "../api/config/index.js";
 
 /**
  * 验证 Supabase JWT Token
@@ -207,7 +208,7 @@ export async function getUserIdentities(userId) {
     }
 
     // 同步到 user_identities 表
-    if (user && user.identities) {
+    if (user?.identities) {
       for (const identity of user.identities) {
         await supabase.from("user_identities").upsert(
           {
@@ -489,7 +490,9 @@ export async function toggleUserStatus(userId, banned) {
       data: { user },
       error,
     } = await supabase.auth.admin.updateUserById(userId, {
-      ban_duration: banned ? "876000h" : "none", // 禁用：100年，启用：none
+      ban_duration: banned
+        ? USER_CONFIG.BAN_DURATION_HOURS
+        : USER_CONFIG.BAN_NONE,
     });
 
     if (error) {

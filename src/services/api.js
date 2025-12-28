@@ -3,63 +3,17 @@
  * 所有请求都通过 Fastify 后端 API
  */
 
-import { getSession } from "./auth.js";
+import { fetchApi, buildUrl, ApiError } from "./request.js";
 
-/**
- * 通用 API 请求函数
- * @param {string} url - API 端点
- * @param {Object} options - 请求选项
- * @returns {Promise} - 返回请求结果的 Promise
- */
-export async function fetchApi(
-  url,
-  { method = "GET", body, headers = {} } = {},
-) {
-  try {
-    // 获取当前 session，如果存在则添加到请求头
-    const session = await getSession();
-    if (session?.access_token) {
-      headers["Authorization"] = `Bearer ${session.access_token}`;
-    }
-
-    // 只有在有 body 的时候才设置 Content-Type
-    const fetchOptions = {
-      method,
-      headers: headers,
-    };
-
-    if (body) {
-      fetchOptions.headers["Content-Type"] = "application/json;charset=utf-8";
-      fetchOptions.body = JSON.stringify(body);
-    }
-
-    const response = await fetch(url, fetchOptions);
-
-    const data = await response.json();
-
-    if (data.code === 200) {
-      return data;
-    } else if (data.code === 409) {
-      // 处理重复链接的特殊错误
-      const error = new Error(data.msg || "链接已存在");
-      error.code = "DUPLICATE_LINK";
-      error.existingLink = data.existingLink;
-      throw error;
-    } else {
-      throw new Error(data.msg || "请求失败");
-    }
-  } catch (error) {
-    console.error("API 请求失败:", error);
-    throw error;
-  }
-}
+// 导出 ApiError 供外部使用
+export { ApiError };
 
 /**
  * 获取过期时间选项
  * @returns {Promise} - 返回过期时间选项列表
  */
 export async function getExpirationOptions() {
-  return fetchApi("/api/expiration-options");
+  return fetchApi("/api/expiration-options", { auth: false });
 }
 
 /**
@@ -117,22 +71,16 @@ export async function getDashboardLinks(options = {}) {
     keyword = null,
   } = options;
 
-  const params = new URLSearchParams({
-    limit: limit.toString(),
-    offset: offset.toString(),
+  const url = buildUrl("/api/dashboard/links", {
+    limit,
+    offset,
     orderBy,
-    ascending: ascending.toString(),
+    ascending,
+    linkId,
+    keyword,
   });
 
-  // 添加可选的过滤参数
-  if (linkId) {
-    params.append("linkId", linkId);
-  }
-  if (keyword) {
-    params.append("keyword", keyword);
-  }
-
-  return fetchApi(`/api/dashboard/links?${params.toString()}`);
+  return fetchApi(url);
 }
 
 /**
@@ -153,12 +101,12 @@ export async function getLinkDetail(linkId) {
 export async function getLinkAccessLogs(linkId, options = {}) {
   const { limit = 50, offset = 0 } = options;
 
-  const params = new URLSearchParams({
-    limit: limit.toString(),
-    offset: offset.toString(),
+  const url = buildUrl(`/api/dashboard/links/${linkId}/logs`, {
+    limit,
+    offset,
   });
 
-  return fetchApi(`/api/dashboard/links/${linkId}/logs?${params.toString()}`);
+  return fetchApi(url);
 }
 
 /**
@@ -191,7 +139,7 @@ export async function updateLink(linkId, updates) {
  * @returns {Promise} - 返回更新结果
  */
 export async function toggleLinkStatus(linkId, isActive) {
-  return fetchApi(`/api/dashboard/links/${linkId}/toggle`, {
+  return fetchApi(`/api/dashboard/links/${linkId}/status`, {
     method: "PATCH",
     body: { is_active: isActive },
   });
@@ -227,7 +175,7 @@ export async function batchDeleteLinks(linkIds) {
  * @returns {Promise} - 返回操作结果
  */
 export async function batchToggleLinks(linkIds, isActive) {
-  return fetchApi("/api/dashboard/links/batch-toggle", {
+  return fetchApi("/api/dashboard/links/batch-status", {
     method: "POST",
     body: { linkIds, is_active: isActive },
   });

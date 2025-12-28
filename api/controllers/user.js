@@ -1,5 +1,4 @@
 import * as authService from "../../service/auth.js";
-import * as dashboardService from "../../service/dashboard.js";
 
 /**
  * 获取用户绑定的身份列表

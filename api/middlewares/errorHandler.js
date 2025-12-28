@@ -1,13 +1,19 @@
 /*
  * @Author: zi.yang
- * @Date: 2025-01-01 00:00:00
+ * @Date: 2025-12-29 00:00:00
  * @LastEditors: zi.yang
- * @LastEditTime: 2025-01-01 00:00:00
+ * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 统一的错误处理中间件
  * @FilePath: /short-link/api/middlewares/errorHandler.js
  */
 
-import { ERROR_CODES } from "../config/index.js";
+import { ENV } from "../config/index.js";
+
+/**
+ * 判断是否为开发环境
+ * 明确检查 development，避免 NODE_ENV 未设置时泄露信息
+ */
+const isDevelopment = ENV.NODE_ENV === "development";
 
 /**
  * 自定义业务错误类
@@ -83,12 +89,7 @@ export class AppError extends Error {
    * 从错误码创建错误
    */
   static fromErrorCode(errorCode, data = null, customMsg = null) {
-    return new AppError(
-      customMsg || errorCode.msg,
-      errorCode.code,
-      null,
-      data
-    );
+    return new AppError(customMsg || errorCode.msg, errorCode.code, null, data);
   }
 }
 
@@ -137,10 +138,9 @@ export class AuthorizationError extends AppError {
 /**
  * 格式化错误响应
  * @param {Error} error - 错误对象
- * @param {boolean} isDev - 是否开发环境
  * @returns {Object}
  */
-function formatErrorResponse(error, isDev = false) {
+function formatErrorResponse(error) {
   const response = {
     code: error.statusCode || 500,
     msg: error.message || "服务器内部错误",
@@ -156,8 +156,8 @@ function formatErrorResponse(error, isDev = false) {
     response.data = error.data;
   }
 
-  // 开发环境添加堆栈信息
-  if (isDev && error.stack) {
+  // 仅在开发环境添加堆栈信息（明确检查 development）
+  if (isDevelopment && error.stack) {
     response.stack = error.stack.split("\n").map((line) => line.trim());
   }
 
@@ -172,7 +172,10 @@ function formatErrorResponse(error, isDev = false) {
 function handleFastifyValidationError(error) {
   if (error.validation && Array.isArray(error.validation)) {
     const messages = error.validation.map((v) => {
-      const field = v.params?.missingProperty || v.instancePath?.replace("/", "") || "unknown";
+      const field =
+        v.params?.missingProperty ||
+        v.instancePath?.replace("/", "") ||
+        "unknown";
       return `${field}: ${v.message}`;
     });
 
@@ -236,24 +239,13 @@ function handleSupabaseError(error) {
 }
 
 /**
- * 判断是否为可信任的错误消息
- * @param {Error} error - 错误对象
- * @returns {boolean}
- */
-function isTrustedError(error) {
-  return error instanceof AppError && error.isOperational;
-}
-
-/**
  * 全局错误处理中间件
  * @param {Error} error - 错误对象
  * @param {Object} request - Fastify request 对象
  * @param {Object} reply - Fastify reply 对象
  */
 export async function globalErrorHandler(error, request, reply) {
-  const isDev = process.env.NODE_ENV !== "production";
-
-  // 记录错误日志
+  // 记录错误日志（始终记录，但生产环境不返回详细信息）
   request.log.error({
     err: error,
     request: {
@@ -267,7 +259,7 @@ export async function globalErrorHandler(error, request, reply) {
 
   // 处理自定义业务错误
   if (error instanceof AppError) {
-    const response = formatErrorResponse(error, isDev);
+    const response = formatErrorResponse(error);
     return reply.status(error.statusCode).send(response);
   }
 
@@ -284,7 +276,10 @@ export async function globalErrorHandler(error, request, reply) {
   }
 
   // 处理 JWT 错误
-  if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+  if (
+    error.name === "JsonWebTokenError" ||
+    error.name === "TokenExpiredError"
+  ) {
     return reply.status(401).send({
       code: 401,
       msg: error.name === "TokenExpiredError" ? "Token 已过期" : "无效的 Token",
@@ -293,7 +288,7 @@ export async function globalErrorHandler(error, request, reply) {
   }
 
   // 处理 CORS 错误
-  if (error.message && error.message.includes("CORS")) {
+  if (error.message?.includes("CORS")) {
     return reply.status(403).send({
       code: 403,
       msg: "跨域请求被拒绝",
@@ -314,12 +309,13 @@ export async function globalErrorHandler(error, request, reply) {
   const statusCode = error.statusCode || 500;
   const response = {
     code: statusCode,
-    msg: isDev ? error.message : "服务器内部错误",
+    // 仅在开发环境显示实际错误消息，生产环境统一返回通用消息
+    msg: isDevelopment ? error.message : "服务器内部错误",
     errorCode: "INTERNAL_ERROR",
   };
 
-  // 开发环境添加堆栈信息
-  if (isDev && error.stack) {
+  // 仅在开发环境添加堆栈信息
+  if (isDevelopment && error.stack) {
     response.stack = error.stack.split("\n").map((line) => line.trim());
   }
 
@@ -352,18 +348,12 @@ export function registerErrorHandlers(fastify) {
 }
 
 /**
- * 异步包装器 - 自动捕获异步错误
+ * 异步包装器 - Fastify 已自动处理异步错误，此函数仅用于兼容性
  * @param {Function} fn - 异步处理函数
  * @returns {Function}
  */
 export function asyncHandler(fn) {
-  return async (request, reply) => {
-    try {
-      return await fn(request, reply);
-    } catch (error) {
-      throw error; // 让 Fastify 的错误处理器处理
-    }
-  };
+  return fn;
 }
 
 /**
