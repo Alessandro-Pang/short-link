@@ -3,38 +3,64 @@
  * @Date: 2024-12-13 17:38:41
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-01-01 00:00:00
- * @Description: Fastify 后端 API
+ * @Description: Fastify 后端 API - 重构版
  * @FilePath: /short-link/api/index.js
  */
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import * as linkController from "./controllers/link.js";
 import apiRoutes from "./routes/api.js";
 import dashboardRoutes from "./routes/dashboard.js";
 import adminRoutes from "./routes/admin.js";
 import { checkHealth } from "../service/db.js";
+import { CORS_CONFIG, RATE_LIMIT_CONFIG, ENV } from "./config/index.js";
+import { registerErrorHandlers } from "./middlewares/errorHandler.js";
+import swagger from "@fastify/swagger";
+import swaggerUI from "@fastify/swagger-ui";
 
 const app = Fastify({
-  logger: true,
+  logger: {
+    level: ENV.IS_PRODUCTION ? "info" : "debug",
+    transport: ENV.IS_DEVELOPMENT
+      ? {
+          target: "pino-pretty",
+          options: {
+            colorize: true,
+            translateTime: "SYS:standard",
+            ignore: "pid,hostname",
+          },
+        }
+      : undefined,
+  },
+  // 请求 ID 生成
+  genReqId: () =>
+    `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+  // 信任代理（用于正确获取客户端 IP）
+  trustProxy: true,
 });
 
-/**
- * CORS 配置 - 安全的域名白名单
- * 生产环境只允许指定域名访问
- */
-const ALLOWED_ORIGINS = [
-  "https://short.pangcy.cn",
-  "https://www.short.pangcy.cn",
-];
+// 注册全局错误处理器
+registerErrorHandlers(app);
 
-// 开发环境添加本地地址
+await app.register(swagger, {
+  openapi: {
+    info: {
+      title: "API",
+      version: "1.0.0",
+    },
+  },
+});
+
+// 仅开发环境注册 UI
 if (process.env.NODE_ENV !== "production") {
-  ALLOWED_ORIGINS.push(
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:3000",
-  );
+  await app.register(swaggerUI, {
+    routePrefix: "/api/docs",
+    uiConfig: {
+      docExpansion: "list",
+      tryItOutEnabled: true,
+    },
+  });
 }
 
 // 启用 CORS
@@ -46,7 +72,7 @@ await app.register(cors, {
       return;
     }
 
-    if (ALLOWED_ORIGINS.includes(origin)) {
+    if (CORS_CONFIG.ALLOWED_ORIGINS.includes(origin)) {
       cb(null, true);
     } else {
       // 记录被拒绝的跨域请求
@@ -54,98 +80,69 @@ await app.register(cors, {
       cb(new Error("Not allowed by CORS"), false);
     }
   },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  exposedHeaders: [
-    "X-RateLimit-Limit",
-    "X-RateLimit-Remaining",
-    "X-RateLimit-Reset",
-  ],
-  maxAge: 86400, // 预检请求缓存 24 小时
+  credentials: CORS_CONFIG.CREDENTIALS,
+  methods: CORS_CONFIG.METHODS,
+  allowedHeaders: CORS_CONFIG.ALLOWED_HEADERS,
+  exposedHeaders: CORS_CONFIG.EXPOSED_HEADERS,
+  maxAge: CORS_CONFIG.MAX_AGE,
 });
 
-/**
- * 速率限制配置
- * 使用内存存储（生产环境建议使用 Redis）
- */
-const rateLimitStore = new Map();
-
-// 清理过期的速率限制记录（每分钟执行一次）
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of rateLimitStore) {
-    if (value.resetTime < now) {
-      rateLimitStore.delete(key);
-    }
-  }
-}, 60000);
-
-/**
- * 速率限制中间件
- * @param {Object} options - 配置选项
- * @param {number} options.max - 时间窗口内最大请求数
- * @param {number} options.timeWindow - 时间窗口（毫秒）
- */
-function createRateLimiter(options = {}) {
-  const { max = 100, timeWindow = 60000 } = options;
-
-  return async (request, reply) => {
-    // 获取客户端 IP
-    const clientIp =
+// 注册 @fastify/rate-limit 插件
+await app.register(rateLimit, {
+  global: true,
+  max: RATE_LIMIT_CONFIG.GLOBAL.MAX,
+  timeWindow: RATE_LIMIT_CONFIG.GLOBAL.TIME_WINDOW,
+  addHeaders: {
+    "x-ratelimit-limit": RATE_LIMIT_CONFIG.ADD_HEADERS,
+    "x-ratelimit-remaining": RATE_LIMIT_CONFIG.ADD_HEADERS,
+    "x-ratelimit-reset": RATE_LIMIT_CONFIG.ADD_HEADERS,
+    "retry-after": RATE_LIMIT_CONFIG.ADD_RETRY_AFTER_HEADER,
+  },
+  // 自定义错误响应
+  errorResponseBuilder: (_request, context) => {
+    return {
+      code: 429,
+      msg: "请求过于频繁，请稍后再试",
+      retryAfter: Math.ceil(context.ttl / 1000),
+    };
+  },
+  // 从请求中获取唯一标识（IP 地址）
+  keyGenerator: (request) => {
+    return (
       request.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
       request.headers["x-real-ip"] ||
-      request.ip;
-
-    const key = `${clientIp}:${request.routeOptions?.url || request.url}`;
-    const now = Date.now();
-
-    let record = rateLimitStore.get(key);
-
-    if (!record || record.resetTime < now) {
-      // 创建新记录或重置过期记录
-      record = {
-        count: 1,
-        resetTime: now + timeWindow,
-      };
-      rateLimitStore.set(key, record);
-    } else {
-      record.count++;
+      request.ip
+    );
+  },
+  // 跳过某些请求的速率限制
+  skip: (request) => {
+    // 健康检查端点不限制
+    if (request.url === "/health") {
+      return true;
     }
-
-    // 设置速率限制响应头
-    reply.header("X-RateLimit-Limit", max);
-    reply.header("X-RateLimit-Remaining", Math.max(0, max - record.count));
-    reply.header("X-RateLimit-Reset", Math.ceil(record.resetTime / 1000));
-
-    if (record.count > max) {
-      return reply.status(429).send({
-        code: 429,
-        msg: "请求过于频繁，请稍后再试",
-        retryAfter: Math.ceil((record.resetTime - now) / 1000),
-      });
-    }
-  };
-}
-
-// 全局速率限制：每分钟 100 次请求
-app.addHook("onRequest", createRateLimiter({ max: 100, timeWindow: 60000 }));
-
-// 短链接创建接口更严格的限制：每分钟 10 次
-app.addHook("onRequest", async (request, reply) => {
-  if (request.method === "POST" && request.url === "/api/link") {
-    const limiter = createRateLimiter({ max: 10, timeWindow: 60000 });
-    return limiter(request, reply);
-  }
+    return false;
+  },
 });
 
 // 注册短链接重定向路由（独立于 API 路由组）
-app.get("/u/:hash", linkController.redirectShortLink);
+// 为重定向接口设置更宽松的速率限制
+app.get(
+  "/u/:hash",
+  {
+    config: {
+      rateLimit: {
+        max: 200,
+        timeWindow: "1 minute",
+      },
+    },
+  },
+  linkController.redirectShortLink,
+);
 
 // 注册路由组
-app.register(apiRoutes, { prefix: "/api" });
-app.register(dashboardRoutes, { prefix: "/api/dashboard" });
-app.register(adminRoutes, { prefix: "/api/admin" });
+await app.register(apiRoutes, { prefix: "/api" });
+await app.register(dashboardRoutes, { prefix: "/api/dashboard" });
+await app.register(adminRoutes, { prefix: "/api/admin" });
 
 /**
  * 真实的健康检查端点
@@ -163,10 +160,26 @@ app.get("/health", async (_request, reply) => {
     data: {
       status,
       timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || "1.0.0",
+      environment: ENV.NODE_ENV,
       checks: {
         database: dbHealth.healthy ? "ok" : "error",
         ...(dbHealth.error && { databaseError: dbHealth.error }),
       },
+    },
+  });
+});
+
+/**
+ * 根路径
+ */
+app.get("/", async (_request, reply) => {
+  return reply.send({
+    code: 200,
+    msg: "Short Link API",
+    data: {
+      version: process.env.npm_package_version || "1.0.0",
+      docs: "/api/docs",
     },
   });
 });
@@ -178,11 +191,11 @@ export default async function handler(req, reply) {
 }
 
 // 本地开发启动
-if (process.env.NODE_ENV !== "production") {
+if (ENV.IS_DEVELOPMENT) {
   const start = async () => {
     try {
-      await app.listen({ port: 3000, host: "0.0.0.0" });
-      console.log("🚀 Server listening on http://localhost:3000");
+      await app.listen({ port: ENV.PORT, host: "0.0.0.0" });
+      console.log(`🚀 Server listening on http://localhost:${ENV.PORT}`);
     } catch (err) {
       app.log.error(err);
       process.exit(1);

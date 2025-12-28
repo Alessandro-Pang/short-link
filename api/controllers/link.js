@@ -10,6 +10,14 @@ import {
   validatePagination,
   sanitizeUrl,
 } from "../utils/validation.js";
+import {
+  success,
+  badRequest,
+  notFound,
+  conflict,
+  serverError,
+  validationError,
+} from "../utils/response.js";
 
 /**
  * 获取过期时间选项
@@ -17,17 +25,10 @@ import {
 export async function getExpirationOptions(request, reply) {
   try {
     const result = await linkService.getExpirationOptions();
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: result,
-    });
+    return success(reply, result);
   } catch (error) {
     request.log.error("获取过期时间选项失败:", error);
-    return reply.status(500).send({
-      code: 500,
-      msg: error.message || "服务器错误",
-    });
+    return serverError(reply, error.message || "服务器错误");
   }
 }
 
@@ -59,13 +60,9 @@ export async function createShortLink(request, reply) {
   }
 
   // 使用统一验证模块验证所有参数
-  const validationResult = validateCreateLinkParams({ url: inputUrl, options });
-  if (!validationResult.valid) {
-    return reply.status(400).send({
-      code: 400,
-      msg: validationResult.error,
-    });
-  }
+  const validation = validateCreateLinkParams({ url: inputUrl, options });
+  const validationErr = validationError(reply, validation);
+  if (validationErr) return validationErr;
 
   // 清理 URL
   const sanitizedUrl = sanitizeUrl(inputUrl);
@@ -75,30 +72,18 @@ export async function createShortLink(request, reply) {
 
     if (result.error) {
       if (result.error.code === "DUPLICATE_LINK") {
-        return reply.status(409).send({
-          code: 409,
-          msg: result.error.message,
-          existingLink: result.error.existingLink,
-        });
+        return conflict(reply, result.error.message, result.error.existingLink);
       }
-      return reply.status(400).send({
-        code: 400,
-        msg: result.error.message || "未知错误",
-      });
+      return badRequest(reply, result.error.message || "未知错误");
     }
 
-    return reply.send({
-      code: 200,
-      msg: "success",
+    return success(reply, {
+      ...result.data,
       url: `/u/${result.data.short}`,
-      data: result.data,
     });
   } catch (error) {
     request.log.error("创建短链接失败:", error);
-    return reply.status(500).send({
-      code: 500,
-      msg: error.message || "服务器错误",
-    });
+    return serverError(reply, error.message || "服务器错误");
   }
 }
 
@@ -133,10 +118,7 @@ export async function redirectShortLink(request, reply) {
         return reply.status(404).type("text/html").send(safeHtml);
       }
 
-      return reply.status(404).send({
-        code: 404,
-        msg: errorMsg,
-      });
+      return notFound(reply, errorMsg);
     }
 
     const linkData = result?.data;
@@ -162,10 +144,7 @@ export async function redirectShortLink(request, reply) {
     return reply.status(redirectType).redirect(targetUrl);
   } catch (error) {
     request.log.error("重定向失败:", error);
-    return reply.status(404).send({
-      code: 404,
-      msg: error.message || "短链接不存在",
-    });
+    return notFound(reply, error.message || "短链接不存在");
   }
 }
 
@@ -175,17 +154,10 @@ export async function redirectShortLink(request, reply) {
 export async function getUserStats(request, reply) {
   try {
     const stats = await dashboardService.getUserStats(request.user.id);
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: stats,
-    });
+    return success(reply, stats);
   } catch (error) {
     request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve statistics",
-    });
+    return serverError(reply, "获取统计数据失败");
   }
 }
 
@@ -202,13 +174,9 @@ export async function getUserLinks(request, reply) {
     } = request.query;
 
     // 验证分页参数
-    const paginationResult = validatePagination({ page, pageSize });
-    if (!paginationResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: paginationResult.error,
-      });
-    }
+    const paginationValidation = validatePagination({ page, pageSize });
+    const paginationErr = validationError(reply, paginationValidation);
+    if (paginationErr) return paginationErr;
 
     const result = await dashboardService.getUserLinks(request.user.id, {
       limit: parseInt(pageSize),
@@ -217,17 +185,10 @@ export async function getUserLinks(request, reply) {
       sortOrder,
     });
 
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: result,
-    });
+    return success(reply, result);
   } catch (error) {
     request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve links",
-    });
+    return serverError(reply, "获取链接列表失败");
   }
 }
 
@@ -251,23 +212,13 @@ export async function getLinkDetails(request, reply) {
     );
 
     if (!result) {
-      return reply.status(404).send({
-        code: 404,
-        msg: "Link not found or access denied",
-      });
+      return notFound(reply, "链接不存在或无权访问");
     }
 
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: result,
-    });
+    return success(reply, result);
   } catch (error) {
     request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve link details",
-    });
+    return serverError(reply, "获取链接详情失败");
   }
 }
 
@@ -279,10 +230,7 @@ export async function getLinkAccessLogs(request, reply) {
     const linkId = parseInt(request.params.id);
 
     if (Number.isNaN(linkId) || linkId < 1) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的链接 ID",
-      });
+      return badRequest(reply, "无效的链接 ID");
     }
 
     const result = await dashboardService.getLinkAccessLogs(
@@ -294,17 +242,10 @@ export async function getLinkAccessLogs(request, reply) {
       },
     );
 
-    return reply.send({
-      code: 200,
-      msg: "success",
-      data: result,
-    });
+    return success(reply, result);
   } catch (error) {
     request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to retrieve access logs",
-    });
+    return serverError(reply, "获取访问日志失败");
   }
 }
 
@@ -317,10 +258,7 @@ export async function updateLink(request, reply) {
     const updates = request.body;
 
     if (Number.isNaN(linkId) || linkId < 1) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的链接 ID",
-      });
+      return badRequest(reply, "无效的链接 ID");
     }
 
     // 使用统一验证模块
@@ -343,17 +281,10 @@ export async function updateLink(request, reply) {
       updates,
     );
 
-    return reply.send({
-      code: 200,
-      msg: "Link updated successfully",
-      data: result,
-    });
+    return success(reply, result, "链接更新成功");
   } catch (error) {
     request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to update link",
-    });
+    return serverError(reply, "更新链接失败");
   }
 }
 
@@ -366,25 +297,15 @@ export async function toggleLinkStatus(request, reply) {
     const { is_active } = request.body;
 
     if (Number.isNaN(linkId) || linkId < 1) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的链接 ID",
-      });
+      return badRequest(reply, "无效的链接 ID");
     }
 
-    const boolResult = validateBoolean(is_active, "is_active");
-    if (!boolResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: boolResult.error,
-      });
-    }
+    const boolValidation = validateBoolean(is_active, "is_active");
+    const boolErr = validationError(reply, boolValidation);
+    if (boolErr) return boolErr;
 
     if (is_active === undefined || is_active === null) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "is_active 是必填参数",
-      });
+      return badRequest(reply, "is_active 是必填参数");
     }
 
     const result = await dashboardService.batchToggleLinks(
@@ -393,17 +314,10 @@ export async function toggleLinkStatus(request, reply) {
       is_active,
     );
 
-    return reply.send({
-      code: 200,
-      msg: "Link status updated successfully",
-      data: result,
-    });
+    return success(reply, result, "链接状态更新成功");
   } catch (error) {
     request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to update link status",
-    });
+    return serverError(reply, "更新链接状态失败");
   }
 }
 
@@ -415,31 +329,19 @@ export async function deleteLink(request, reply) {
     const linkId = parseInt(request.params.id);
 
     if (Number.isNaN(linkId) || linkId < 1) {
-      return reply.status(400).send({
-        code: 400,
-        msg: "无效的链接 ID",
-      });
+      return badRequest(reply, "无效的链接 ID");
     }
 
     const result = await dashboardService.deleteLink(linkId, request.user.id);
 
     if (!result || result.error) {
-      return reply.status(404).send({
-        code: 404,
-        msg: "Link not found or access denied",
-      });
+      return notFound(reply, "链接不存在或无权访问");
     }
 
-    return reply.send({
-      code: 200,
-      msg: "Link deleted successfully",
-    });
+    return success(reply, null, "链接删除成功");
   } catch (error) {
     request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to delete link",
-    });
+    return serverError(reply, "删除链接失败");
   }
 }
 
@@ -464,17 +366,10 @@ export async function batchDeleteLinks(request, reply) {
       request.user.id,
     );
 
-    return reply.send({
-      code: 200,
-      msg: "Links deleted successfully",
-      data: result,
-    });
+    return success(reply, result, "批量删除成功");
   } catch (error) {
     request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to delete links",
-    });
+    return serverError(reply, "批量删除失败");
   }
 }
 
@@ -486,13 +381,9 @@ export async function batchUpdateLinkStatus(request, reply) {
     const { linkIds, is_active } = request.body;
 
     // 使用统一验证
-    const idsResult = validateBatchIds(linkIds);
-    if (!idsResult.valid) {
-      return reply.status(400).send({
-        code: 400,
-        msg: idsResult.error,
-      });
-    }
+    const idsValidation = validateBatchIds(linkIds);
+    const idsErr = validationError(reply, idsValidation);
+    if (idsErr) return idsErr;
 
     const boolResult = validateBoolean(is_active, "is_active");
     if (!boolResult.valid) {
@@ -515,17 +406,10 @@ export async function batchUpdateLinkStatus(request, reply) {
       is_active,
     );
 
-    const action = is_active ? "activated" : "deactivated";
-    return reply.send({
-      code: 200,
-      msg: `Links ${action} successfully`,
-      data: result,
-    });
+    const action = is_active ? "启用" : "禁用";
+    return success(reply, result, `批量${action}成功`);
   } catch (error) {
     request.log.error(error);
-    return reply.status(500).send({
-      code: 500,
-      msg: "Failed to update link status",
-    });
+    return serverError(reply, "批量更新状态失败");
   }
 }

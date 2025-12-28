@@ -3,11 +3,18 @@
  * @Date: 2024-12-11 19:47:42
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-01-01 00:00:00
- * @Description: 短链接服务 - 集成 Supabase，支持高级配置
+ * @Description: 短链接服务 - 集成 Supabase，支持高级配置和缓存
  * @FilePath: /short-link/service/link.js
  */
 import supabase from "./db.js";
 import { generateSecureHash, MAX_HASH_RETRIES } from "../api/utils/security.js";
+import cache, { CACHE_KEYS } from "../api/utils/cache.js";
+import { CACHE_CONFIG } from "../api/config/index.js";
+
+/**
+ * 缓存 TTL 配置（秒）
+ */
+const EXPIRATION_OPTIONS_CACHE_TTL = CACHE_CONFIG.EXPIRATION_OPTIONS_TTL; // 5 分钟
 
 /**
  * 解析 User-Agent 获取设备类型
@@ -481,11 +488,20 @@ export async function logAccess(linkId, accessInfo) {
 }
 
 /**
- * 获取过期时间选项列表
+ * 获取过期时间选项列表（带缓存）
  * @returns {Promise} 过期时间选项
  */
 export async function getExpirationOptions() {
   try {
+    // 尝试从缓存获取
+    const cacheKey = CACHE_KEYS.EXPIRATION_OPTIONS;
+    const cached = cache.get(cacheKey);
+
+    if (cached !== undefined) {
+      return { data: cached, error: null };
+    }
+
+    // 缓存未命中，从数据库查询
     const { data, error } = await supabase
       .from("expiration_options")
       .select("*")
@@ -496,11 +512,23 @@ export async function getExpirationOptions() {
       return { data: [], error };
     }
 
+    // 缓存结果
+    if (data && data.length > 0) {
+      cache.set(cacheKey, data, EXPIRATION_OPTIONS_CACHE_TTL);
+    }
+
     return { data, error: null };
   } catch (error) {
     console.error("获取过期时间选项异常:", error);
     return { data: [], error };
   }
+}
+
+/**
+ * 清除过期时间选项缓存
+ */
+export function clearExpirationOptionsCache() {
+  cache.delete(CACHE_KEYS.EXPIRATION_OPTIONS);
 }
 
 /**
