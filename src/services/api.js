@@ -11,7 +11,10 @@ import { getSession } from "./auth.js";
  * @param {Object} options - 请求选项
  * @returns {Promise} - 返回请求结果的 Promise
  */
-async function fetchApi(url, { method = "GET", body, headers = {} } = {}) {
+export async function fetchApi(
+  url,
+  { method = "GET", body, headers = {} } = {},
+) {
   try {
     // 获取当前 session，如果存在则添加到请求头
     const session = await getSession();

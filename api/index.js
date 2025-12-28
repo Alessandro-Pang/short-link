@@ -827,6 +827,134 @@ app.post(
 );
 
 // ============================================
+// 账号绑定管理接口（需要认证）
+// ============================================
+
+// 获取当前用户的所有身份绑定
+app.get(
+  "/api/account/identities",
+  { preHandler: authenticate },
+  async (req, reply) => {
+    try {
+      const identities = await authService.getUserIdentities(req.user.id);
+
+      return reply.send({
+        code: 200,
+        msg: "success",
+        data: identities,
+      });
+    } catch (error) {
+      console.error("获取身份绑定失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "获取身份绑定失败",
+      });
+    }
+  },
+);
+
+// 绑定新的身份认证方式（邮箱、GitHub、Google）
+app.post(
+  "/api/account/link",
+  { preHandler: authenticate },
+  async (req, reply) => {
+    try {
+      const { provider, provider_user_id, provider_email, provider_metadata } =
+        req.body;
+
+      if (!provider || !provider_user_id) {
+        return reply.send({
+          code: 400,
+          msg: "provider 和 provider_user_id 是必填参数",
+        });
+      }
+
+      if (!["email", "github", "google"].includes(provider)) {
+        return reply.send({
+          code: 400,
+          msg: "provider 必须是 email、github 或 google",
+        });
+      }
+
+      const result = await authService.linkIdentity(req.user.id, provider, {
+        provider_user_id,
+        provider_email,
+        provider_metadata: provider_metadata || {},
+      });
+
+      return reply.send({
+        code: 200,
+        msg: `成功绑定 ${provider} 账号`,
+        data: result,
+      });
+    } catch (error) {
+      console.error("绑定身份失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "绑定身份失败",
+      });
+    }
+  },
+);
+
+// 解绑身份认证方式
+app.delete(
+  "/api/account/unlink/:provider",
+  { preHandler: authenticate },
+  async (req, reply) => {
+    try {
+      const { provider } = req.params;
+
+      if (!["email", "github", "google"].includes(provider)) {
+        return reply.send({
+          code: 400,
+          msg: "provider 必须是 email、github 或 google",
+        });
+      }
+
+      const result = await authService.unlinkIdentity(req.user.id, provider);
+
+      return reply.send({
+        code: 200,
+        msg: result.message,
+        data: result,
+      });
+    } catch (error) {
+      console.error("解绑身份失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "解绑身份失败",
+      });
+    }
+  },
+);
+
+// 删除用户账号
+app.delete(
+  "/api/account/delete",
+  { preHandler: authenticate },
+  async (req, reply) => {
+    try {
+      const { reason } = req.body || {};
+
+      const result = await authService.deleteUserAccount(req.user.id, reason);
+
+      return reply.send({
+        code: 200,
+        msg: result.message,
+        data: result,
+      });
+    } catch (error) {
+      console.error("删除账号失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "删除账号失败",
+      });
+    }
+  },
+);
+
+// ============================================
 // 管理员专用接口
 // ============================================
 
