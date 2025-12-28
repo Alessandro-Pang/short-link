@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/index.js": {
-      "includeFiles": "api/**/*.js,service/**/*.js,config/**/*.js"
+      "includeFiles": "server/**/*.js,service/**/*.js,config/**/*.js"
     }
   },
   "rewrites": [
