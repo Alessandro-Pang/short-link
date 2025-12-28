@@ -64,10 +64,77 @@ async function optionalAuthenticate(request, reply) {
       const token = authHeader.substring(7);
       const user = await authService.verifyToken(token);
       request.user = user;
+      // 检查管理员状态
+      request.isAdmin = await authService.isAdmin(user.id);
     }
   } catch (error) {
     // 忽略认证错误，继续处理请求
     console.log("可选认证失败，继续处理请求");
+  }
+}
+
+// 认证中间件（带管理员状态检查）
+async function authenticateWithAdminCheck(request, reply) {
+  try {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      reply.status(401).send({
+        code: 401,
+        msg: "未授权：缺少认证令牌",
+      });
+      return;
+    }
+
+    const token = authHeader.substring(7);
+    const user = await authService.verifyToken(token);
+
+    if (!user) {
+      reply.status(401).send({
+        code: 401,
+        msg: "未授权：无效的令牌",
+      });
+      return;
+    }
+
+    request.user = user;
+    request.isAdmin = await authService.isAdmin(user.id);
+  } catch (error) {
+    reply.status(401).send({
+      code: 401,
+      msg: "未授权：" + error.message,
+    });
+  }
+}
+
+// 管理员认证中间件
+async function authenticateAdmin(request, reply) {
+  try {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      reply.status(401).send({
+        code: 401,
+        msg: "未授权：缺少认证令牌",
+      });
+      return;
+    }
+
+    const token = authHeader.substring(7);
+    const user = await authService.requireAdmin(token);
+
+    request.user = user;
+    request.isAdmin = true;
+  } catch (error) {
+    if (error.code === "ADMIN_REQUIRED") {
+      reply.status(403).send({
+        code: 403,
+        msg: "无权限：需要管理员权限",
+      });
+    } else {
+      reply.status(401).send({
+        code: 401,
+        msg: "未授权：" + error.message,
+      });
+    }
   }
 }
 
@@ -109,14 +176,21 @@ function buildForwardHeaders(request, forwardHeaderList) {
 // 认证相关接口
 // ============================================
 
-// 获取当前用户信息
-app.get("/api/auth/user", { preHandler: authenticate }, async (req, reply) => {
-  return reply.send({
-    code: 200,
-    msg: "success",
-    data: req.user,
-  });
-});
+// 获取当前用户信息（包含管理员状态）
+app.get(
+  "/api/auth/user",
+  { preHandler: authenticateWithAdminCheck },
+  async (req, reply) => {
+    return reply.send({
+      code: 200,
+      msg: "success",
+      data: {
+        ...req.user,
+        isAdmin: req.isAdmin || false,
+      },
+    });
+  },
+);
 
 // 验证 token
 app.post("/api/auth/verify", async (req, reply) => {
@@ -674,6 +748,279 @@ app.delete(
 );
 
 // ============================================
+// 管理员专用接口
+// ============================================
+
+// 获取全局统计数据（管理员专用）
+app.get(
+  "/api/admin/stats",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const stats = await dashboardService.getGlobalStats();
+
+      return reply.send({
+        code: 200,
+        msg: "success",
+        data: stats,
+      });
+    } catch (error) {
+      console.error("获取全局统计数据失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "获取全局统计数据失败",
+      });
+    }
+  },
+);
+
+// 获取所有链接列表（管理员专用）
+app.get(
+  "/api/admin/links",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const {
+        limit = 50,
+        offset = 0,
+        orderBy = "created_at",
+        ascending = false,
+        linkId,
+        keyword,
+        userId,
+      } = req.query;
+
+      const result = await dashboardService.getAllLinks({
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        orderBy,
+        ascending: ascending === "true",
+        linkId: linkId || null,
+        keyword: keyword || null,
+        userId: userId || null,
+      });
+
+      return reply.send({
+        code: 200,
+        msg: "success",
+        data: result,
+      });
+    } catch (error) {
+      console.error("获取全局链接列表失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "获取全局链接列表失败",
+      });
+    }
+  },
+);
+
+// 获取单个链接详情（管理员专用）
+app.get(
+  "/api/admin/links/:linkId",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { linkId } = req.params;
+
+      const result = await dashboardService.getLinkDetailAdmin(
+        parseInt(linkId),
+      );
+
+      if (!result) {
+        return reply.send({
+          code: 404,
+          msg: "链接不存在",
+        });
+      }
+
+      return reply.send({
+        code: 200,
+        msg: "success",
+        data: result,
+      });
+    } catch (error) {
+      console.error("获取链接详情失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "获取链接详情失败",
+      });
+    }
+  },
+);
+
+// 获取链接访问日志（管理员专用）
+app.get(
+  "/api/admin/links/:linkId/logs",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { linkId } = req.params;
+      const { limit = 50, offset = 0 } = req.query;
+
+      const result = await dashboardService.getLinkAccessLogsAdmin(
+        parseInt(linkId),
+        {
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+        },
+      );
+
+      return reply.send({
+        code: 200,
+        msg: "success",
+        data: result,
+      });
+    } catch (error) {
+      console.error("获取访问日志失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "获取访问日志失败",
+      });
+    }
+  },
+);
+
+// 更新链接（管理员专用）
+app.put(
+  "/api/admin/links/:linkId",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { linkId } = req.params;
+      const updates = req.body;
+
+      // 验证重定向类型
+      if (
+        updates.redirect_type &&
+        ![301, 302, 307, 308].includes(updates.redirect_type)
+      ) {
+        return reply.send({
+          code: 401,
+          msg: "重定向类型必须是 301、302、307 或 308",
+        });
+      }
+
+      // 验证最大点击次数
+      if (updates.max_clicks !== undefined && updates.max_clicks !== null) {
+        const maxClicks = parseInt(updates.max_clicks);
+        if (isNaN(maxClicks) || maxClicks < 1) {
+          return reply.send({
+            code: 401,
+            msg: "最大点击次数必须是大于0的整数",
+          });
+        }
+        updates.max_clicks = maxClicks;
+      }
+
+      const result = await dashboardService.updateLinkAdmin(
+        parseInt(linkId),
+        updates,
+      );
+
+      return reply.send({
+        code: 200,
+        msg: "success",
+        data: result,
+      });
+    } catch (error) {
+      console.error("更新链接失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "更新链接失败",
+      });
+    }
+  },
+);
+
+// 切换链接启用状态（管理员专用）
+app.patch(
+  "/api/admin/links/:linkId/toggle",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { linkId } = req.params;
+      const { is_active } = req.body;
+
+      if (typeof is_active !== "boolean") {
+        return reply.send({
+          code: 401,
+          msg: "is_active 必须是布尔值",
+        });
+      }
+
+      const result = await dashboardService.updateLinkAdmin(parseInt(linkId), {
+        is_active,
+      });
+
+      return reply.send({
+        code: 200,
+        msg: is_active ? "链接已启用" : "链接已禁用",
+        data: result,
+      });
+    } catch (error) {
+      console.error("切换链接状态失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "切换链接状态失败",
+      });
+    }
+  },
+);
+
+// 删除链接（管理员专用）
+app.delete(
+  "/api/admin/links/:linkId",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { linkId } = req.params;
+
+      await dashboardService.deleteLinkAdmin(parseInt(linkId));
+
+      return reply.send({
+        code: 200,
+        msg: "success",
+      });
+    } catch (error) {
+      console.error("删除链接失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "删除链接失败",
+      });
+    }
+  },
+);
+
+// 获取所有用户列表（管理员专用）
+app.get(
+  "/api/admin/users",
+  { preHandler: authenticateAdmin },
+  async (req, reply) => {
+    try {
+      const { page = 1, perPage = 50 } = req.query;
+
+      const users = await authService.getAllUsers({
+        page: parseInt(page),
+        perPage: parseInt(perPage),
+      });
+
+      return reply.send({
+        code: 200,
+        msg: "success",
+        data: users,
+      });
+    } catch (error) {
+      console.error("获取用户列表失败:", error);
+      return reply.send({
+        code: 500,
+        msg: error.message || "获取用户列表失败",
+      });
+    }
+  },
+);
+
+// ============================================
 // 健康检查
 // ============================================
 app.get("/api/health", async (req, reply) => {
@@ -716,6 +1063,15 @@ if (process.env.NODE_ENV !== "production") {
       console.log("  - PUT    /api/dashboard/links/:linkId");
       console.log("  - PATCH  /api/dashboard/links/:linkId/toggle");
       console.log("  - DELETE /api/dashboard/links/:linkId");
+      console.log("📝 Admin API Endpoints:");
+      console.log("  - GET    /api/admin/stats");
+      console.log("  - GET    /api/admin/links");
+      console.log("  - GET    /api/admin/links/:linkId");
+      console.log("  - GET    /api/admin/links/:linkId/logs");
+      console.log("  - PUT    /api/admin/links/:linkId");
+      console.log("  - PATCH  /api/admin/links/:linkId/toggle");
+      console.log("  - DELETE /api/admin/links/:linkId");
+      console.log("  - GET    /api/admin/users");
     } catch (err) {
       app.log.error(err);
       process.exit(1);

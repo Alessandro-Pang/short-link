@@ -41,6 +41,29 @@
                     <template #icon><icon-link /></template>
                     链接管理
                 </a-menu-item>
+
+                <!-- 管理员菜单 -->
+                <template v-if="isAdmin">
+                    <a-divider class="my-3!" />
+                    <div
+                        v-if="!collapsed"
+                        class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider"
+                    >
+                        管理员
+                    </div>
+                    <a-menu-item key="admin-stats" class="rounded-lg! mb-1">
+                        <template #icon
+                            ><icon-dashboard class="text-orange-500"
+                        /></template>
+                        <span class="text-orange-600">全局统计</span>
+                    </a-menu-item>
+                    <a-menu-item key="admin-links" class="rounded-lg! mb-1">
+                        <template #icon
+                            ><icon-apps class="text-orange-500"
+                        /></template>
+                        <span class="text-orange-600">所有链接</span>
+                    </a-menu-item>
+                </template>
             </a-menu>
         </a-layout-sider>
 
@@ -52,6 +75,10 @@
                     <h2 class="text-lg font-semibold text-gray-800">
                         {{ currentTitle }}
                     </h2>
+                    <a-tag v-if="isAdminRoute" color="orange" size="small">
+                        <template #icon><icon-lock /></template>
+                        管理员模式
+                    </a-tag>
                 </div>
                 <div class="flex items-center gap-4">
                     <a-tooltip content="刷新数据">
@@ -70,17 +97,26 @@
                         <div
                             class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-gray-100"
                         >
-                            <a-avatar :size="32" class="bg-blue-600">{{
-                                userEmail?.[0]?.toUpperCase()
-                            }}</a-avatar>
+                            <a-avatar
+                                :size="32"
+                                :class="
+                                    isAdmin ? 'bg-orange-500' : 'bg-blue-600'
+                                "
+                                >{{ userEmail?.[0]?.toUpperCase() }}</a-avatar
+                            >
                             <div class="hidden sm:flex flex-col items-start">
                                 <span
                                     class="text-sm font-medium text-gray-700 leading-none"
                                     >{{ userEmail?.split("@")[0] }}</span
                                 >
                                 <span
-                                    class="text-xs text-gray-400 leading-none mt-1"
-                                    >Pro Plan</span
+                                    class="text-xs leading-none mt-1"
+                                    :class="
+                                        isAdmin
+                                            ? 'text-orange-500'
+                                            : 'text-gray-400'
+                                    "
+                                    >{{ isAdmin ? "管理员" : "Pro Plan" }}</span
                                 >
                             </div>
                             <icon-down class="text-gray-400 text-xs ml-1" />
@@ -101,7 +137,7 @@
 
             <a-layout-content class="flex-1 overflow-y-auto bg-gray-50 p-6">
                 <div class="max-w-7xl mx-auto">
-                    <router-view ref="childViewRef" />
+                    <router-view ref="childViewRef" :is-admin="isAdmin" />
                 </div>
             </a-layout-content>
         </a-layout>
@@ -120,8 +156,11 @@ import {
     IconHome,
     IconExport,
     IconDashboard,
+    IconApps,
+    IconLock,
 } from "@arco-design/web-vue/es/icon";
 import { getCurrentUser, signOut } from "@/services/auth.js";
+import { getCurrentUserWithAdminStatus } from "@/services/admin.js";
 
 const router = useRouter();
 const route = useRoute();
@@ -129,17 +168,31 @@ const route = useRoute();
 // State
 const collapsed = ref(false);
 const userEmail = ref("");
+const isAdmin = ref(false);
 const childViewRef = ref(null);
 
 // Computed
 const currentRoute = computed(() => {
     const path = route.path;
+    if (path.includes("/admin/links")) return "admin-links";
+    if (path.includes("/admin/stats")) return "admin-stats";
     if (path.includes("/links")) return "links";
     return "stats";
 });
 
+const isAdminRoute = computed(() => {
+    return route.path.includes("/admin");
+});
+
 const currentTitle = computed(() => {
-    return currentRoute.value === "stats" ? "数据概览" : "链接管理";
+    const routeKey = currentRoute.value;
+    const titles = {
+        stats: "数据概览",
+        links: "链接管理",
+        "admin-stats": "全局统计",
+        "admin-links": "所有链接",
+    };
+    return titles[routeKey] || "控制台";
 });
 
 // Methods
@@ -148,10 +201,14 @@ const onCollapse = (val) => {
 };
 
 const handleMenuClick = (key) => {
-    if (key === "stats") {
-        router.push("/dashboard/stats");
-    } else if (key === "links") {
-        router.push("/dashboard/links");
+    const routes = {
+        stats: "/dashboard/stats",
+        links: "/dashboard/links",
+        "admin-stats": "/dashboard/admin/stats",
+        "admin-links": "/dashboard/admin/links",
+    };
+    if (routes[key]) {
+        router.push(routes[key]);
     }
 };
 
@@ -182,12 +239,22 @@ const handleRefresh = () => {
 
 const loadUserInfo = async () => {
     try {
+        // 先获取基本用户信息
         const user = await getCurrentUser();
         if (!user) {
             router.push("/login");
             return;
         }
         userEmail.value = user.email;
+
+        // 获取管理员状态
+        try {
+            const userWithAdmin = await getCurrentUserWithAdminStatus();
+            isAdmin.value = userWithAdmin?.isAdmin === true;
+        } catch (error) {
+            console.error("获取管理员状态失败:", error);
+            isAdmin.value = false;
+        }
     } catch (error) {
         console.error("获取用户信息失败:", error);
         router.push("/login");
