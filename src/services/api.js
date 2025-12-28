@@ -19,14 +19,18 @@ async function fetchApi(url, { method = "GET", body, headers = {} } = {}) {
       headers["Authorization"] = `Bearer ${session.access_token}`;
     }
 
-    const response = await fetch(url, {
+    // 只有在有 body 的时候才设置 Content-Type
+    const fetchOptions = {
       method,
-      headers: {
-        "Content-Type": "application/json;charset=utf-8",
-        ...headers,
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+      headers: headers,
+    };
+
+    if (body) {
+      fetchOptions.headers["Content-Type"] = "application/json;charset=utf-8";
+      fetchOptions.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, fetchOptions);
 
     const data = await response.json();
 

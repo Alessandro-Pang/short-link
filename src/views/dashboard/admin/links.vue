@@ -329,7 +329,7 @@ defineExpose({
 <template>
     <div class="space-y-6">
         <div
-            class="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden"
+            class="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden pb-3"
         >
             <div
                 class="px-6 py-4 border-b border-orange-100 flex justify-between items-center bg-orange-50"
@@ -460,6 +460,7 @@ defineExpose({
                     v-model:selected-keys="selectedRowKeys"
                     row-key="id"
                     @page-change="handlePageChange"
+                    :scroll="{ maxHeight: 'calc(100vh - 250px)' }"
                 >
                     <template #columns>
                         <!-- 创建者列 -->
@@ -764,3 +765,8 @@ defineExpose({
         />
     </div>
 </template>
+<style lang="css" scoped>
+::v-deep(.arco-table-pagination) {
+    margin-right: 10px;
+}
+</style>

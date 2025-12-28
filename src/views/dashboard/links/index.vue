@@ -306,16 +306,17 @@ defineExpose({
 <template>
     <div class="space-y-6">
         <div
-            class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+            class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden pb-3"
         >
             <div
                 class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50"
             >
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-4 flex-2">
                     <a-input-search
                         v-model="searchInput"
                         placeholder="搜索链接..."
-                        class="w-64 bg-white!"
+                        class="bg-white!"
+                        style="width: 240px"
                         @search="handleSearch"
                         @clear="handleClear"
                         @press-enter="handleSearch"
@@ -429,6 +430,7 @@ defineExpose({
                     v-model:selected-keys="selectedRowKeys"
                     row-key="id"
                     @page-change="handlePageChange"
+                    :scroll="{ maxHeight: 'calc(100vh - 250px)' }"
                 >
                     <template #columns>
                         <a-table-column title="链接信息" data-index="link">
@@ -693,3 +695,8 @@ defineExpose({
         />
     </div>
 </template>
+<style lang="css" scoped>
+::v-deep(.arco-table-pagination) {
+    margin-right: 10px;
+}
+</style>
