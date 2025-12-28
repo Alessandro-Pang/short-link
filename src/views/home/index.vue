@@ -164,7 +164,9 @@
                                                 示例：https://example.com/path?utm_source=...
                                             </span>
                                             <a-tooltip
-                                                v-if="!user"
+                                                v-if="
+                                                    !userStore.isAuthenticated
+                                                "
                                                 content="登录后可使用高级配置"
                                             >
                                                 <a-button
@@ -180,7 +182,7 @@
                                                 </a-button>
                                             </a-tooltip>
                                             <a-button
-                                                v-else
+                                                v-if="userStore.isAuthenticated"
                                                 type="text"
                                                 size="mini"
                                                 @click="showConfigDrawer = true"
@@ -244,7 +246,10 @@
                                             </div>
                                             <!-- 显示配置摘要（仅登录用户可见） -->
                                             <div
-                                                v-if="user && hasAdvancedConfig"
+                                                v-if="
+                                                    userStore.isAuthenticated &&
+                                                    hasAdvancedConfig
+                                                "
                                                 class="mt-4 pt-4 border-t border-blue-100"
                                             >
                                                 <div
