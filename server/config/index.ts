@@ -2,9 +2,9 @@
  * @Author: zi.yang
  * @Date: 2025-01-01 00:00:00
  * @LastEditors: zi.yang
- * @LastEditTime: 2025-01-01 00:00:00
+ * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 配置管理模块 - 集中管理所有配置常量
- * @FilePath: /short-link/api/config/index.js
+ * @FilePath: /short-link/server/config/index.ts
  */
 
 /**
@@ -14,8 +14,8 @@ export const ENV = {
   NODE_ENV: process.env.NODE_ENV || "development",
   IS_PRODUCTION: process.env.NODE_ENV !== "development",
   IS_DEVELOPMENT: process.env.NODE_ENV === "development",
-  PORT: parseInt(process.env.PORT, 10) || 3000,
-};
+  PORT: Number.parseInt(process.env.PORT ?? "3000", 10),
+} as const;
 
 /**
  * CORS 配置
@@ -33,20 +33,24 @@ export const CORS_CONFIG = {
         "http://127.0.0.1:3000",
       ],
   // 允许的请求方法
-  METHODS: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  METHODS: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const,
   // 允许的请求头
-  ALLOWED_HEADERS: ["Content-Type", "Authorization", "X-Requested-With"],
+  ALLOWED_HEADERS: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+  ] as const,
   // 暴露给客户端的响应头
   EXPOSED_HEADERS: [
     "X-RateLimit-Limit",
     "X-RateLimit-Remaining",
     "X-RateLimit-Reset",
-  ],
+  ] as const,
   // 预检请求缓存时间（秒）
   MAX_AGE: 86400,
   // 是否允许携带凭证
   CREDENTIALS: true,
-};
+} as const;
 
 /**
  * 速率限制配置
@@ -55,48 +59,48 @@ export const RATE_LIMIT_CONFIG = {
   // 全局速率限制
   GLOBAL: {
     MAX: 100,
-    TIME_WINDOW: "1 minute",
+    TIME_WINDOW: "1 minute" as const,
   },
   // 创建短链接接口限制
   CREATE_LINK: {
     MAX: 10,
-    TIME_WINDOW: "1 minute",
+    TIME_WINDOW: "1 minute" as const,
   },
   // 登录接口限制
   LOGIN: {
     MAX: 5,
-    TIME_WINDOW: "1 minute",
+    TIME_WINDOW: "1 minute" as const,
   },
   // 管理员接口限制
   ADMIN: {
     MAX: 50,
-    TIME_WINDOW: "1 minute",
+    TIME_WINDOW: "1 minute" as const,
   },
   // Dashboard 接口限制
   DASHBOARD: {
     MAX: 100,
-    TIME_WINDOW: "1 minute",
+    TIME_WINDOW: "1 minute" as const,
   },
   // 批量操作限制
   BATCH: {
     MAX: 20,
-    TIME_WINDOW: "1 minute",
+    TIME_WINDOW: "1 minute" as const,
   },
   // 写操作限制
   WRITE: {
     MAX: 30,
-    TIME_WINDOW: "1 minute",
+    TIME_WINDOW: "1 minute" as const,
   },
   // 重定向接口限制（更宽松）
   REDIRECT: {
     MAX: 200,
-    TIME_WINDOW: "1 minute",
+    TIME_WINDOW: "1 minute" as const,
   },
   // 是否添加响应头
   ADD_HEADERS: true,
   // 是否添加 Retry-After 头
   ADD_RETRY_AFTER_HEADER: true,
-};
+} as const;
 
 /**
  * 缓存配置（秒）
@@ -118,7 +122,7 @@ export const CACHE_CONFIG = {
   MAX_SIZE: 10000,
   // 清理间隔（毫秒）
   CLEANUP_INTERVAL: 60000, // 1 分钟
-};
+} as const;
 
 /**
  * 短链接配置
@@ -129,14 +133,14 @@ export const LINK_CONFIG = {
   // 最大哈希生成重试次数
   MAX_HASH_RETRIES: 10,
   // 有效的重定向类型
-  VALID_REDIRECT_TYPES: [301, 302, 307, 308],
+  VALID_REDIRECT_TYPES: [301, 302, 307, 308] as const,
   // 默认重定向类型
   DEFAULT_REDIRECT_TYPE: 302,
   // 有效的设备类型
-  VALID_DEVICE_TYPES: ["mobile", "tablet", "desktop"],
+  VALID_DEVICE_TYPES: ["mobile", "tablet", "desktop"] as const,
   // 最大点击数上限
   MAX_CLICKS_LIMIT: 1000000000, // 10亿
-};
+} as const;
 
 /**
  * 验证限制配置
@@ -166,30 +170,32 @@ export const VALIDATION_LIMITS = {
   PAGE_SIZE_MIN: 1,
   PAGE_SIZE_MAX: 100,
   PAGE_SIZE_DEFAULT: 10,
-};
+} as const;
 
 /**
  * 用户管理配置
  */
 export const USER_CONFIG = {
   // 用户禁用时长（小时）- 100年
-  BAN_DURATION_HOURS: "876000h",
+  BAN_DURATION_HOURS: "876000h" as const,
   // 禁用解除标识
-  BAN_NONE: "none",
+  BAN_NONE: "none" as const,
   // 登录日志保留天数
   LOGIN_LOG_RETENTION_DAYS: 90,
   // 失败登录尝试告警阈值
   FAILED_LOGIN_ALERT_THRESHOLD: 3,
   // 失败登录监控时间窗口（小时）
   FAILED_LOGIN_WINDOW_HOURS: 24,
-};
+} as const;
 
 /**
  * 安全配置
  */
 export const SECURITY_CONFIG = {
   // 危险端口列表（SSRF 保护）
-  DANGEROUS_PORTS: [22, 23, 25, 110, 143, 445, 3306, 5432, 6379, 27017],
+  DANGEROUS_PORTS: [
+    22, 23, 25, 110, 143, 445, 3306, 5432, 6379, 27017,
+  ] as const,
   // 禁止的协议
   BLOCKED_PROTOCOLS: [
     "javascript",
@@ -199,7 +205,7 @@ export const SECURITY_CONFIG = {
     "ftp",
     "mailto",
     "tel",
-  ],
+  ] as const,
   // 云服务元数据端点
   BLOCKED_HOSTNAMES: [
     "metadata.google.internal",
@@ -211,13 +217,18 @@ export const SECURITY_CONFIG = {
     "127.0.0.1",
     "0.0.0.0",
     "[::1]",
-  ],
-};
+  ] as const,
+} as const;
+
+interface ErrorCode {
+  code: number;
+  msg: string;
+}
 
 /**
  * 错误码定义
  */
-export const ERROR_CODES = {
+export const ERROR_CODES: Record<string, ErrorCode> = {
   // 通用错误
   SUCCESS: { code: 200, msg: "success" },
   CREATED: { code: 201, msg: "Created" },
@@ -257,7 +268,7 @@ export const LOG_LEVELS = {
   WARN: "warn",
   ERROR: "error",
   FATAL: "fatal",
-};
+} as const;
 
 /**
  * API 版本

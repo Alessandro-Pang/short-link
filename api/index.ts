@@ -4,8 +4,8 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: Vercel Serverless Function 入口 - 转发到 server 模块
- * @FilePath: /short-link/api/index.js
+ * @FilePath: /short-link/api/index.ts
  */
 
 // 导出 server 模块的 handler
-export { default } from '../server/index.js';
+export { default } from "../server/index";

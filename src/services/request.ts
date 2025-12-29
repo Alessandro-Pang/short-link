@@ -8,7 +8,7 @@ import { getSession } from "./auth.js";
 /**
  * 错误码映射
  */
-const ERROR_CODE_MAP = {
+const ERROR_CODE_MAP: Record<number, string> = {
   400: "请求参数错误",
   401: "未授权访问",
   403: "禁止访问",
@@ -23,7 +23,10 @@ const ERROR_CODE_MAP = {
  * 自定义 API 错误类
  */
 export class ApiError extends Error {
-  constructor(message, code, data = null) {
+  code: number;
+  data: any;
+
+  constructor(message: string, code: number, data: any = null) {
     super(message);
     this.name = "ApiError";
     this.code = code;
@@ -31,21 +34,27 @@ export class ApiError extends Error {
   }
 }
 
+export interface FetchApiOptions {
+  method?: string;
+  body?: any;
+  headers?: Record<string, string>;
+  auth?: boolean;
+  throwOnError?: boolean;
+}
+
 /**
  * 通用 API 请求函数
- * @param {string} url - API 端点
- * @param {Object} options - 请求选项
- * @param {string} options.method - 请求方法，默认 GET
- * @param {Object} options.body - 请求体
- * @param {Object} options.headers - 自定义请求头
- * @param {boolean} options.auth - 是否添加认证头，默认 true
- * @param {boolean} options.throwOnError - 是否在错误时抛出异常，默认 true
- * @returns {Promise<Object>} - 返回请求结果的 Promise
  */
 export async function fetchApi(
-  url,
-  { method = "GET", body, headers = {}, auth = true, throwOnError = true } = {},
-) {
+  url: string,
+  {
+    method = "GET",
+    body,
+    headers = {},
+    auth = true,
+    throwOnError = true,
+  }: FetchApiOptions = {},
+): Promise<any> {
   try {
     // 准备请求头
     const requestHeaders = { ...headers };

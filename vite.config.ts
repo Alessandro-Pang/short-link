@@ -2,13 +2,13 @@
  * @Author: zi.yang
  * @Date: 2025-06-09 19:48:21
  * @LastEditors: zi.yang
- * @LastEditTime: 2025-06-10 14:19:50
+ * @LastEditTime: 2025-12-29 00:00:00
  * @Description:
- * @FilePath: /short-link/vite.config.js
+ * @FilePath: /short-link/vite.config.ts
  */
 import { fileURLToPath, URL } from "node:url";
 
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, type UserConfig } from "vite";
 
 import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
@@ -18,7 +18,7 @@ import { ArcoResolver } from "unplugin-vue-components/resolvers";
 import { codeInspectorPlugin } from "code-inspector-plugin";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode }): UserConfig => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
     plugins: [

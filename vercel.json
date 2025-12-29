@@ -2,14 +2,14 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/index.js": {
-      "includeFiles": "server/**/*.js,service/**/*.js,config/**/*.js"
+    "api/index.ts": {
+      "includeFiles": "server/**/*.ts,service/**/*.ts,config/**/*.ts"
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.js" },
-    { "source": "/u/(.*)", "destination": "/api/index.js" },
-    { "source": "/health", "destination": "/api/index.js" },
+    { "source": "/api/(.*)", "destination": "/api/index.ts" },
+    { "source": "/u/(.*)", "destination": "/api/index.ts" },
+    { "source": "/health", "destination": "/api/index.ts" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
