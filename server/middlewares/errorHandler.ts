@@ -19,13 +19,23 @@ const isDevelopment = ENV.NODE_ENV === "development";
  * 自定义业务错误类
  */
 export class AppError extends Error {
+  statusCode: number;
+  code: string | null;
+  data: any;
+  isOperational: boolean;
+
   /**
    * @param {string} message - 错误消息
    * @param {number} statusCode - HTTP 状态码
    * @param {string} [code] - 错误代码
    * @param {any} [data] - 附加数据
    */
-  constructor(message, statusCode = 400, code = null, data = null) {
+  constructor(
+    message: string,
+    statusCode: number = 400,
+    code: string | null = null,
+    data: any = null,
+  ) {
     super(message);
     this.name = "AppError";
     this.statusCode = statusCode;
@@ -97,7 +107,9 @@ export class AppError extends Error {
  * 验证错误类
  */
 export class ValidationError extends AppError {
-  constructor(message, field = null) {
+  field: string | null;
+
+  constructor(message: string, field: string | null = null) {
     super(message, 400, "VALIDATION_ERROR", field ? { field } : null);
     this.name = "ValidationError";
     this.field = field;
@@ -108,7 +120,9 @@ export class ValidationError extends AppError {
  * 数据库错误类
  */
 export class DatabaseError extends AppError {
-  constructor(message, originalError = null) {
+  originalError: Error | null;
+
+  constructor(message: string, originalError: Error | null = null) {
     super(message, 500, "DATABASE_ERROR");
     this.name = "DatabaseError";
     this.originalError = originalError;
@@ -140,8 +154,8 @@ export class AuthorizationError extends AppError {
  * @param {Error} error - 错误对象
  * @returns {Object}
  */
-function formatErrorResponse(error) {
-  const response = {
+function formatErrorResponse(error: any) {
+  const response: any = {
     code: error.statusCode || 500,
     msg: error.message || "服务器内部错误",
   };
@@ -158,7 +172,7 @@ function formatErrorResponse(error) {
 
   // 仅在开发环境添加堆栈信息（明确检查 development）
   if (isDevelopment && error.stack) {
-    response.stack = error.stack.split("\n").map((line) => line.trim());
+    response.stack = error.stack.split("\n").map((line: string) => line.trim());
   }
 
   return response;
@@ -169,9 +183,9 @@ function formatErrorResponse(error) {
  * @param {Error} error - 错误对象
  * @returns {Object|null}
  */
-function handleFastifyValidationError(error) {
+function handleFastifyValidationError(error: any) {
   if (error.validation && Array.isArray(error.validation)) {
-    const messages = error.validation.map((v) => {
+    const messages = error.validation.map((v: any) => {
       const field =
         v.params?.missingProperty ||
         v.instancePath?.replace("/", "") ||
@@ -196,7 +210,7 @@ function handleFastifyValidationError(error) {
  * @param {Error} error - 错误对象
  * @returns {Object|null}
  */
-function handleSupabaseError(error) {
+function handleSupabaseError(error: any) {
   // Supabase 错误通常有特定的 code
   if (error.code) {
     switch (error.code) {
@@ -244,7 +258,7 @@ function handleSupabaseError(error) {
  * @param {Object} request - Fastify request 对象
  * @param {Object} reply - Fastify reply 对象
  */
-export async function globalErrorHandler(error, request, reply) {
+export async function globalErrorHandler(error: any, request: any, reply: any) {
   // 记录错误日志（始终记录，但生产环境不返回详细信息）
   request.log.error({
     err: error,
@@ -307,7 +321,7 @@ export async function globalErrorHandler(error, request, reply) {
 
   // 默认服务器错误
   const statusCode = error.statusCode || 500;
-  const response = {
+  const response: any = {
     code: statusCode,
     // 仅在开发环境显示实际错误消息，生产环境统一返回通用消息
     msg: isDevelopment ? error.message : "服务器内部错误",
@@ -316,7 +330,7 @@ export async function globalErrorHandler(error, request, reply) {
 
   // 仅在开发环境添加堆栈信息
   if (isDevelopment && error.stack) {
-    response.stack = error.stack.split("\n").map((line) => line.trim());
+    response.stack = error.stack.split("\n").map((line: string) => line.trim());
   }
 
   return reply.status(statusCode).send(response);

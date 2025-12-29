@@ -28,16 +28,17 @@ function clearUserCache(userId) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 用户列表
  */
-export async function getAllUsers(options = {}) {
+export async function getAllUsers(options: any = {}) {
   try {
     const { page = 1, perPage = 50 } = options;
 
     // 从 auth.users 获取用户列表
-    const { data: authData, error: authError } =
-      await supabase.auth.admin.listUsers({
-        page,
-        perPage,
-      });
+    const { data: authData, error: authError } = await (
+      supabase.auth as any
+    ).admin.listUsers({
+      page,
+      perPage,
+    });
 
     if (authError) {
       console.error("获取用户列表失败:", authError);
@@ -57,8 +58,8 @@ export async function getAllUsers(options = {}) {
 
     // 合并用户数据
     const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
-    const users = authData.users.map((user) => {
-      const profile = profileMap.get(user.id) || {};
+    const users = authData.users.map((user: any) => {
+      const profile: any = profileMap.get(user.id) || {};
       // Supabase 中用户被封禁时，banned_until 字段会有值
       const isBanned = user.banned_until
         ? new Date(user.banned_until) > new Date()
@@ -94,8 +95,9 @@ export async function getAllUsers(options = {}) {
 export async function getUserDetails(userId) {
   try {
     // 从 auth.users 获取用户基本信息
-    const { data: authData, error: authError } =
-      await supabase.auth.admin.getUserById(userId);
+    const { data: authData, error: authError } = await (
+      supabase.auth as any
+    ).admin.getUserById(userId);
 
     if (authError) {
       console.error("获取用户信息失败:", authError);
@@ -166,7 +168,7 @@ export async function createUser(userData) {
     }
 
     // 创建用户
-    const { data, error } = await supabase.auth.admin.createUser({
+    const { data, error } = await (supabase.auth as any).admin.createUser({
       email,
       password,
       email_confirm: true,
@@ -200,8 +202,8 @@ export async function updateUser(userId, updates) {
     const allowedProfileFields = ["is_admin"];
 
     // 分离 auth 字段和 profile 字段
-    const authUpdates = {};
-    const profileUpdates = {};
+    const authUpdates: any = {};
+    const profileUpdates: any = {};
 
     for (const [key, value] of Object.entries(updates)) {
       if (allowedAuthFields.includes(key) && value !== undefined) {
@@ -213,10 +215,9 @@ export async function updateUser(userId, updates) {
 
     // 更新 auth 信息
     if (Object.keys(authUpdates).length > 0) {
-      const { error: authError } = await supabase.auth.admin.updateUserById(
-        userId,
-        authUpdates,
-      );
+      const { error: authError } = await (
+        supabase.auth as any
+      ).admin.updateUserById(userId, authUpdates);
 
       if (authError) {
         console.error("更新用户 auth 信息失败:", authError);
@@ -254,7 +255,7 @@ export async function updateUser(userId, updates) {
 export async function deleteUser(userId) {
   try {
     // 删除用户（这会级联删除相关数据）
-    const { error } = await supabase.auth.admin.deleteUser(userId);
+    const { error } = await (supabase.auth as any).admin.deleteUser(userId);
 
     if (error) {
       console.error("删除用户失败:", error);
@@ -283,9 +284,12 @@ export async function resetPassword(userId, password) {
       throw new Error("密码不能为空");
     }
 
-    const { error } = await supabase.auth.admin.updateUserById(userId, {
-      password,
-    });
+    const { error } = await (supabase.auth as any).admin.updateUserById(
+      userId,
+      {
+        password,
+      },
+    );
 
     if (error) {
       console.error("重置密码失败:", error);
@@ -314,11 +318,14 @@ export async function toggleBanStatus(userId, banned) {
       throw new Error("banned 必须是布尔值");
     }
 
-    const { error } = await supabase.auth.admin.updateUserById(userId, {
-      ban_duration: banned
-        ? USER_CONFIG.BAN_DURATION_HOURS
-        : USER_CONFIG.BAN_NONE,
-    });
+    const { error } = await (supabase.auth as any).admin.updateUserById(
+      userId,
+      {
+        ban_duration: banned
+          ? USER_CONFIG.BAN_DURATION_HOURS
+          : USER_CONFIG.BAN_NONE,
+      },
+    );
 
     if (error) {
       console.error("更新用户封禁状态失败:", error);

@@ -4,9 +4,10 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 统一的 Supabase 数据库连接模块
- * @FilePath: /short-link/service/db.js
+ * @FilePath: /short-link/service/db.ts
  */
 import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // 验证环境变量
 if (!process.env.SUPABASE_URL) {
@@ -22,7 +23,7 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
  * 使用 Service Role Key，具有管理员权限
  * 仅在服务端使用，切勿暴露给客户端
  */
-const supabase = createClient(
+const supabase: SupabaseClient = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   {
@@ -42,13 +43,15 @@ const supabase = createClient(
       },
     },
   },
-);
+) as any;
 
 /**
  * 健康检查 - 验证数据库连接是否正常
- * @returns {Promise<{healthy: boolean, error?: string}>}
  */
-export async function checkHealth() {
+export async function checkHealth(): Promise<{
+  healthy: boolean;
+  error?: string;
+}> {
   try {
     const { error } = await supabase.from("links").select("id").limit(1);
 
@@ -57,7 +60,7 @@ export async function checkHealth() {
     }
 
     return { healthy: true };
-  } catch (err) {
+  } catch (err: any) {
     return { healthy: false, error: err.message };
   }
 }

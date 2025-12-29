@@ -172,7 +172,7 @@ function isPrivateHost(hostname) {
  * @param {boolean} options.allowPrivateHosts - 是否允许私有/内网地址（默认 false）
  * @returns {ValidationResult}
  */
-export function validateUrl(url, options = {}) {
+export function validateUrl(url: string, options: any = {}) {
   const { allowPrivateHosts = false } = options;
 
   if (!url || typeof url !== "string") {

@@ -5,8 +5,15 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "types": ["node"]
+    "strict": false,
+    "noImplicitAny": false,
+    "types": ["node"],
   },
-  "include": ["vite.config.ts", "server/**/*.ts", "service/**/*.ts", "api/**/*.ts"]
+  "include": [
+    "vite.config.ts",
+    "server/**/*.ts",
+    "service/**/*.ts",
+    "api/**/*.ts",
+    "service/**/*.d.ts",
+  ],
 }

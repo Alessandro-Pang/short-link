@@ -14,6 +14,28 @@ import {
 import cache, { CACHE_KEYS } from "../server/utils/cache.js";
 import { CACHE_CONFIG } from "../server/config/index.js";
 
+interface VisitorInfo {
+  userAgent?: string;
+  ip?: string;
+  referrer?: string;
+  country?: string;
+  device?: string;
+}
+
+interface AddUrlOptions {
+  expiration_option_id?: number;
+  expiration_date?: string;
+  is_active?: boolean;
+  title?: string;
+  description?: string;
+  redirect_type?: number;
+  pass_query_params?: boolean;
+  forward_headers?: boolean;
+  forward_header_list?: string[];
+  max_clicks?: number;
+  access_restrictions?: any;
+}
+
 /**
  * 缓存 TTL 配置（秒）
  */
@@ -103,7 +125,10 @@ function checkIpInList(ip, ipList) {
  * @param {Object} visitorInfo - 访问者信息
  * @returns {Object} { allowed: boolean, reason: string }
  */
-export function validateAccessRestrictions(restrictions, visitorInfo) {
+export function validateAccessRestrictions(
+  restrictions: any,
+  visitorInfo: VisitorInfo,
+) {
   if (!restrictions || Object.keys(restrictions).length === 0) {
     return { allowed: true };
   }
@@ -227,7 +252,7 @@ export function buildRedirectUrl(targetUrl, queryString, passQueryParams) {
  * @param {Object} visitorInfo - 访问者信息（可选）
  * @returns {Promise} 链接信息
  */
-export async function getUrl(short, visitorInfo = {}) {
+export async function getUrl(short: string, visitorInfo: VisitorInfo = {}) {
   try {
     const { data, error } = await supabase
       .from("links")
@@ -262,7 +287,7 @@ export async function getUrl(short, visitorInfo = {}) {
       data.access_restrictions &&
       Object.keys(data.access_restrictions).length > 0
     ) {
-      const deviceType = parseDeviceType(visitorInfo.userAgent);
+      const deviceType = parseDeviceType(visitorInfo.userAgent || "");
       const validation = validateAccessRestrictions(data.access_restrictions, {
         ip: visitorInfo.ip,
         device: deviceType,
@@ -319,7 +344,11 @@ async function generateUniqueHash(retryCount = 0) {
  * @param {Object} options - 高级配置选项
  * @returns {Promise} 创建结果
  */
-export async function addUrl(link, userId = null, options = {}) {
+export async function addUrl(
+  link: string,
+  userId: string | null = null,
+  options: AddUrlOptions = {},
+) {
   try {
     if (userId) {
       // 已登录用户：检查该用户是否已创建过相同链接
@@ -386,7 +415,7 @@ export async function addUrl(link, userId = null, options = {}) {
     }
 
     // 构建插入数据 - 基础字段
-    const insertData = {
+    const insertData: any = {
       link,
       short,
       user_id: userId,

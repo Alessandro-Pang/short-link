@@ -59,7 +59,7 @@ export async function logLogin(logData) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 登录日志列表
  */
-export async function getUserLoginLogs(userId, options = {}) {
+export async function getUserLoginLogs(userId: string, options: any = {}) {
   try {
     const { limit = 50, offset = 0 } = options;
 
@@ -90,7 +90,7 @@ export async function getUserLoginLogs(userId, options = {}) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 登录日志列表
  */
-export async function getAllLoginLogs(options = {}) {
+export async function getAllLoginLogs(options: any = {}) {
   try {
     const {
       limit = 50,
@@ -251,7 +251,7 @@ export async function getLoginStats(userId = null) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 登录趋势数据
  */
-export async function getLoginTrend(options = {}) {
+export async function getLoginTrend(options: any = {}) {
   try {
     const { userId = null, days = 30 } = options;
 
@@ -276,7 +276,7 @@ export async function getLoginTrend(options = {}) {
     }
 
     // 按日期聚合
-    const dailyStats = {};
+    const dailyStats: any = {};
 
     for (const log of data || []) {
       const date = new Date(log.login_at).toISOString().split("T")[0];
@@ -295,7 +295,7 @@ export async function getLoginTrend(options = {}) {
 
     // 转换为数组格式
     const trend = Object.entries(dailyStats)
-      .map(([date, stats]) => ({
+      .map(([date, stats]: [string, any]) => ({
         date,
         ...stats,
       }))
@@ -346,7 +346,7 @@ export async function cleanOldLoginLogs() {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 失败登录列表
  */
-export async function getRecentFailedAttempts(options = {}) {
+export async function getRecentFailedAttempts(options: any = {}) {
   try {
     const { limit = 100, hours = 24 } = options;
 
@@ -367,7 +367,7 @@ export async function getRecentFailedAttempts(options = {}) {
     }
 
     // 按 IP 分组统计
-    const ipStats = {};
+    const ipStats: any = {};
     for (const log of data || []) {
       const ip = log.ip_address || "unknown";
       if (!ipStats[ip]) {
@@ -381,7 +381,7 @@ export async function getRecentFailedAttempts(options = {}) {
 
     // 转换为数组并按次数排序
     const suspiciousIps = Object.entries(ipStats)
-      .map(([ip, stats]) => ({
+      .map(([ip, stats]: [string, any]) => ({
         ip,
         attempts: stats.count,
         uniqueEmails: stats.emails.size,

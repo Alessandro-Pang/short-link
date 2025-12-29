@@ -102,7 +102,7 @@ function sendAuthError(reply, msg, statusCode = 401) {
  * @param {boolean} options.requireAdmin - 是否需要管理员权限
  * @returns {Promise<boolean>} 是否继续处理请求
  */
-async function handleAuth(request, reply, options = {}) {
+async function handleAuth(request: any, reply: any, options: any = {}) {
   const { required = true, requireAdmin = false } = options;
 
   try {
@@ -212,7 +212,7 @@ export async function authenticateAdmin(request, reply) {
  * @param {string} options.customCheckErrorMsg - 自定义检查失败时的错误消息
  * @returns {Function} 中间件函数
  */
-export function createAuthMiddleware(options = {}) {
+export function createAuthMiddleware(options: any = {}) {
   const {
     required = true,
     requireAdmin = false,

@@ -15,7 +15,12 @@
  * @param {number} [statusCode] - HTTP 状态码
  * @returns {Object}
  */
-export function success(reply, data = null, msg = "success", statusCode = 200) {
+export function success(
+  reply: any,
+  data: any = null,
+  msg: string = "success",
+  statusCode: number = 200,
+) {
   return reply.status(statusCode).send({
     code: 200,
     msg,
@@ -31,8 +36,13 @@ export function success(reply, data = null, msg = "success", statusCode = 200) {
  * @param {any} [data] - 附加数据
  * @returns {Object}
  */
-export function error(reply, msg, statusCode = 400, data = null) {
-  const response = {
+export function error(
+  reply: any,
+  msg: string,
+  statusCode: number = 400,
+  data: any = null,
+) {
+  const response: any = {
     code: statusCode,
     msg,
   };
@@ -52,8 +62,13 @@ export function error(reply, msg, statusCode = 400, data = null) {
  * @param {string} [customMsg] - 自定义消息（覆盖默认消息）
  * @returns {Object}
  */
-export function errorWithCode(reply, errorCode, data = null, customMsg = null) {
-  const response = {
+export function errorWithCode(
+  reply: any,
+  errorCode: any,
+  data: any = null,
+  customMsg: string | null = null,
+) {
+  const response: any = {
     code: errorCode.code,
     msg: customMsg || errorCode.msg,
   };
@@ -223,7 +238,11 @@ export function validationError(reply, validationResult) {
  * @param {string} [options.notFoundMsg] - 未找到时的消息
  * @returns {Object}
  */
-export function handleServiceResult(reply, result, options = {}) {
+export function handleServiceResult(
+  reply: any,
+  result: any,
+  options: any = {},
+) {
   const {
     successMsg = "success",
     notFoundCode = 404,

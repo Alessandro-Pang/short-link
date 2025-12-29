@@ -15,12 +15,32 @@
  * @property {number} createdAt - 创建时间戳（毫秒）
  */
 
+interface CacheItem {
+  value: any;
+  expireAt: number;
+  createdAt: number;
+}
+
+interface CacheStats {
+  hits: number;
+  misses: number;
+  sets: number;
+  deletes: number;
+}
+
 /**
  * 简单的内存缓存类
  * 适用于单实例部署，生产环境建议使用 Redis
  */
 class MemoryCache {
-  constructor(options = {}) {
+  private store: Map<string, CacheItem>;
+  private defaultTTL: number;
+  private maxSize: number;
+  private cleanupInterval: number;
+  private stats: CacheStats;
+  private _cleanupTimer: any;
+
+  constructor(options: any = {}) {
     /**
      * 缓存存储
      * @type {Map<string, CacheItem>}

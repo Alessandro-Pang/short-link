@@ -64,7 +64,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // 启用 CORS
-await app.register(cors, {
+await app.register(cors as any, {
   origin: (origin, cb) => {
     // 允许无 origin 的请求（如服务端请求、curl 等）
     if (!origin) {
@@ -88,7 +88,7 @@ await app.register(cors, {
 });
 
 // 注册 @fastify/rate-limit 插件
-await app.register(rateLimit, {
+await app.register(rateLimit as any, {
   global: true,
   max: RATE_LIMIT_CONFIG.GLOBAL.MAX,
   timeWindow: RATE_LIMIT_CONFIG.GLOBAL.TIME_WINDOW,
@@ -108,14 +108,18 @@ await app.register(rateLimit, {
   },
   // 从请求中获取唯一标识（IP 地址）
   keyGenerator: (request) => {
-    return (
-      request.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
-      request.headers["x-real-ip"] ||
-      request.ip
-    );
+    const forwardedFor = request.headers["x-forwarded-for"];
+    const forwardedIp =
+      typeof forwardedFor === "string"
+        ? forwardedFor.split(",")[0]?.trim()
+        : Array.isArray(forwardedFor)
+          ? forwardedFor[0]?.trim()
+          : undefined;
+
+    return forwardedIp || request.headers["x-real-ip"] || request.ip;
   },
   // 跳过某些请求的速率限制
-  skip: (request) => {
+  skipOnError: (request) => {
     // 健康检查端点不限制
     if (request.url === "/health") {
       return true;

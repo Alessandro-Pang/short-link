@@ -59,7 +59,7 @@ export async function getUserStats(userId) {
     }
 
     const avgClicksPerLink =
-      totalLinks > 0 ? (totalClicks / totalLinks).toFixed(2) : 0;
+      totalLinks > 0 ? (totalClicks / totalLinks).toFixed(2) : "0";
 
     return {
       total_links: totalLinks,
@@ -79,7 +79,7 @@ export async function getUserStats(userId) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 链接列表和总数
  */
-export async function getUserLinks(userId, options = {}) {
+export async function getUserLinks(userId: string, options: any = {}) {
   try {
     const {
       limit = 10,
@@ -155,7 +155,11 @@ export async function getLinkDetail(linkId, userId) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 访问日志
  */
-export async function getLinkAccessLogs(linkId, userId, options = {}) {
+export async function getLinkAccessLogs(
+  linkId: number,
+  userId: string,
+  options: any = {},
+) {
   try {
     const { limit = 50, offset = 0 } = options;
 
@@ -407,7 +411,11 @@ export async function batchToggleLinks(linkIds, userId, isActive) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 访问统计
  */
-export async function getLinkAccessStats(linkId, userId, options = {}) {
+export async function getLinkAccessStats(
+  linkId: number,
+  userId: string,
+  options: any = {},
+) {
   try {
     // 先验证链接所有权
     const { data: link } = await supabase
@@ -514,7 +522,7 @@ export async function getGlobalStats() {
       0;
 
     const avgClicksPerLink =
-      totalLinks > 0 ? (totalClicks / totalLinks).toFixed(2) : 0;
+      totalLinks > 0 ? (totalClicks / totalLinks).toFixed(2) : "0";
 
     // 统计独立用户数
     const userIds = new Set(links?.map((l) => l.user_id).filter(Boolean));
@@ -539,7 +547,7 @@ export async function getGlobalStats() {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 链接列表和总数
  */
-export async function getAllLinks(options = {}) {
+export async function getAllLinks(options: any = {}) {
   try {
     const {
       limit = 10,
@@ -621,7 +629,10 @@ export async function getLinkDetailAdmin(linkId) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 访问日志
  */
-export async function getLinkAccessLogsAdmin(linkId, options = {}) {
+export async function getLinkAccessLogsAdmin(
+  linkId: number,
+  options: any = {},
+) {
   try {
     const { limit = 50, offset = 0 } = options;
 
@@ -721,7 +732,10 @@ export async function deleteLinkAdmin(linkId) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 访问统计
  */
-export async function getLinkAccessStatsAdmin(linkId, options = {}) {
+export async function getLinkAccessStatsAdmin(
+  linkId: number,
+  options: any = {},
+) {
   try {
     const { days = 30 } = options;
     const startDate = new Date();
