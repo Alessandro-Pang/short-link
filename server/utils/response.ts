@@ -7,17 +7,25 @@
  * @FilePath: /short-link/api/utils/response.js
  */
 
+import type {
+  FastifyReply,
+  SuccessResponse,
+  ErrorResponse,
+  ServiceResult,
+  HandleServiceResultOptions,
+} from "../types/index.js";
+
 /**
  * 成功响应
  * @param {Object} reply - Fastify reply 对象
- * @param {any} data - 响应数据
+ * @param {T} data - 响应数据
  * @param {string} [msg] - 响应消息
  * @param {number} [statusCode] - HTTP 状态码
  * @returns {Object}
  */
-export function success(
-  reply: any,
-  data: any = null,
+export function success<T = unknown>(
+  reply: FastifyReply,
+  data: T | null = null,
   msg: string = "success",
   statusCode: number = 200,
 ) {
@@ -33,16 +41,16 @@ export function success(
  * @param {Object} reply - Fastify reply 对象
  * @param {string} msg - 错误消息
  * @param {number} [statusCode] - HTTP 状态码
- * @param {any} [data] - 附加数据
+ * @param {unknown} [data] - 附加数据
  * @returns {Object}
  */
 export function error(
-  reply: any,
+  reply: FastifyReply,
   msg: string,
   statusCode: number = 400,
-  data: any = null,
+  data: unknown = null,
 ) {
-  const response: any = {
+  const response: { code: number; msg: string; data?: unknown } = {
     code: statusCode,
     msg,
   };
@@ -58,17 +66,17 @@ export function error(
  * 使用预定义错误码响应
  * @param {Object} reply - Fastify reply 对象
  * @param {Object} errorCode - 错误码对象 { code, msg }
- * @param {any} [data] - 附加数据
+ * @param {unknown} [data] - 附加数据
  * @param {string} [customMsg] - 自定义消息（覆盖默认消息）
  * @returns {Object}
  */
 export function errorWithCode(
-  reply: any,
-  errorCode: any,
-  data: any = null,
+  reply: FastifyReply,
+  errorCode: { code: number; msg: string },
+  data: unknown = null,
   customMsg: string | null = null,
 ) {
-  const response: any = {
+  const response: { code: number; msg: string; data?: unknown } = {
     code: errorCode.code,
     msg: customMsg || errorCode.msg,
   };
@@ -84,10 +92,14 @@ export function errorWithCode(
  * 400 Bad Request
  * @param {Object} reply - Fastify reply 对象
  * @param {string} [msg] - 错误消息
- * @param {any} [data] - 附加数据
+ * @param {unknown} [data] - 附加数据
  * @returns {Object}
  */
-export function badRequest(reply, msg = "请求参数错误", data = null) {
+export function badRequest(
+  reply: FastifyReply,
+  msg = "请求参数错误",
+  data: unknown = null,
+) {
   return error(reply, msg, 400, data);
 }
 
@@ -97,7 +109,7 @@ export function badRequest(reply, msg = "请求参数错误", data = null) {
  * @param {string} [msg] - 错误消息
  * @returns {Object}
  */
-export function unauthorized(reply, msg = "未授权访问") {
+export function unauthorized(reply: FastifyReply, msg = "未授权访问") {
   return error(reply, msg, 401);
 }
 
@@ -107,7 +119,7 @@ export function unauthorized(reply, msg = "未授权访问") {
  * @param {string} [msg] - 错误消息
  * @returns {Object}
  */
-export function forbidden(reply, msg = "禁止访问") {
+export function forbidden(reply: FastifyReply, msg = "禁止访问") {
   return error(reply, msg, 403);
 }
 
@@ -117,7 +129,7 @@ export function forbidden(reply, msg = "禁止访问") {
  * @param {string} [msg] - 错误消息
  * @returns {Object}
  */
-export function notFound(reply, msg = "资源不存在") {
+export function notFound(reply: FastifyReply, msg = "资源不存在") {
   return error(reply, msg, 404);
 }
 
@@ -125,10 +137,14 @@ export function notFound(reply, msg = "资源不存在") {
  * 409 Conflict
  * @param {Object} reply - Fastify reply 对象
  * @param {string} [msg] - 错误消息
- * @param {any} [data] - 附加数据（如冲突的资源信息）
+ * @param {unknown} [data] - 附加数据（如冲突的资源信息）
  * @returns {Object}
  */
-export function conflict(reply, msg = "资源冲突", data = null) {
+export function conflict(
+  reply: FastifyReply,
+  msg = "资源冲突",
+  data: unknown = null,
+) {
   return error(reply, msg, 409, data);
 }
 
@@ -139,7 +155,11 @@ export function conflict(reply, msg = "资源冲突", data = null) {
  * @param {number} [retryAfter] - 重试等待时间（秒）
  * @returns {Object}
  */
-export function tooManyRequests(reply, msg = "请求过于频繁", retryAfter = 60) {
+export function tooManyRequests(
+  reply: FastifyReply,
+  msg = "请求过于频繁",
+  retryAfter = 60,
+) {
   reply.header("Retry-After", retryAfter);
   return error(reply, msg, 429, { retryAfter });
 }
@@ -150,7 +170,7 @@ export function tooManyRequests(reply, msg = "请求过于频繁", retryAfter = 
  * @param {string} [msg] - 错误消息
  * @returns {Object}
  */
-export function serverError(reply, msg = "服务器内部错误") {
+export function serverError(reply: FastifyReply, msg = "服务器内部错误") {
   return error(reply, msg, 500);
 }
 
@@ -160,7 +180,10 @@ export function serverError(reply, msg = "服务器内部错误") {
  * @param {string} [msg] - 错误消息
  * @returns {Object}
  */
-export function serviceUnavailable(reply, msg = "服务暂时不可用") {
+export function serviceUnavailable(
+  reply: FastifyReply,
+  msg = "服务暂时不可用",
+) {
   return error(reply, msg, 503);
 }
 
@@ -175,7 +198,11 @@ export function serviceUnavailable(reply, msg = "服务暂时不可用") {
  * @param {string} [msg] - 响应消息
  * @returns {Object}
  */
-export function paginated(reply, options, msg = "success") {
+export function paginated<T>(
+  reply: FastifyReply,
+  options: { list: T[]; total: number; page: number; pageSize: number },
+  msg = "success",
+) {
   const { list, total, page, pageSize } = options;
   const totalPages = Math.ceil(total / pageSize);
 
@@ -198,11 +225,15 @@ export function paginated(reply, options, msg = "success") {
 /**
  * 创建响应
  * @param {Object} reply - Fastify reply 对象
- * @param {any} data - 响应数据
+ * @param {T} data - 响应数据
  * @param {string} [msg] - 响应消息
  * @returns {Object}
  */
-export function created(reply, data = null, msg = "创建成功") {
+export function created<T = unknown>(
+  reply: FastifyReply,
+  data: T | null = null,
+  msg = "创建成功",
+) {
   return success(reply, data, msg, 201);
 }
 
@@ -211,7 +242,7 @@ export function created(reply, data = null, msg = "创建成功") {
  * @param {Object} reply - Fastify reply 对象
  * @returns {Object}
  */
-export function noContent(reply) {
+export function noContent(reply: FastifyReply) {
   return reply.status(204).send();
 }
 
@@ -221,7 +252,10 @@ export function noContent(reply) {
  * @param {Object} validationResult - 验证结果 { valid, error }
  * @returns {Object|null} 如果验证失败返回错误响应，否则返回 null
  */
-export function validationError(reply, validationResult) {
+export function validationError(
+  reply: FastifyReply,
+  validationResult: { valid: boolean; error?: string },
+) {
   if (!validationResult.valid) {
     return badRequest(reply, validationResult.error);
   }
@@ -238,10 +272,10 @@ export function validationError(reply, validationResult) {
  * @param {string} [options.notFoundMsg] - 未找到时的消息
  * @returns {Object}
  */
-export function handleServiceResult(
-  reply: any,
-  result: any,
-  options: any = {},
+export function handleServiceResult<T>(
+  reply: FastifyReply,
+  result: ServiceResult<T>,
+  options: Partial<HandleServiceResultOptions> = {},
 ) {
   const {
     successMsg = "success",
@@ -250,7 +284,10 @@ export function handleServiceResult(
   } = options;
 
   if (result.error) {
-    const errorMsg = result.error.message || result.error;
+    const errorMsg =
+      typeof result.error === "string"
+        ? result.error
+        : result.error.message || String(result.error);
 
     // 根据错误类型返回不同状态码
     if (

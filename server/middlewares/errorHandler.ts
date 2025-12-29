@@ -8,6 +8,11 @@
  */
 
 import { ENV } from "../config/index.js";
+import type {
+  FastifyRequest,
+  FastifyReply,
+  ErrorResponse,
+} from "../types/index.js";
 
 /**
  * 判断是否为开发环境
@@ -21,20 +26,20 @@ const isDevelopment = ENV.NODE_ENV === "development";
 export class AppError extends Error {
   statusCode: number;
   code: string | null;
-  data: any;
+  data: unknown;
   isOperational: boolean;
 
   /**
    * @param {string} message - 错误消息
    * @param {number} statusCode - HTTP 状态码
    * @param {string} [code] - 错误代码
-   * @param {any} [data] - 附加数据
+   * @param {unknown} [data] - 附加数据
    */
   constructor(
     message: string,
     statusCode: number = 400,
     code: string | null = null,
-    data: any = null,
+    data: unknown = null,
   ) {
     super(message);
     this.name = "AppError";
@@ -49,7 +54,7 @@ export class AppError extends Error {
   /**
    * 创建 400 Bad Request 错误
    */
-  static badRequest(message, data = null) {
+  static badRequest(message: string, data: unknown = null) {
     return new AppError(message, 400, "BAD_REQUEST", data);
   }
 
@@ -77,7 +82,7 @@ export class AppError extends Error {
   /**
    * 创建 409 Conflict 错误
    */
-  static conflict(message, data = null) {
+  static conflict(message: string, data: unknown = null) {
     return new AppError(message, 409, "CONFLICT", data);
   }
 
@@ -98,7 +103,11 @@ export class AppError extends Error {
   /**
    * 从错误码创建错误
    */
-  static fromErrorCode(errorCode, data = null, customMsg = null) {
+  static fromErrorCode(
+    errorCode: { code: number; msg: string },
+    data: unknown = null,
+    customMsg: string | null = null,
+  ) {
     return new AppError(customMsg || errorCode.msg, errorCode.code, null, data);
   }
 }
@@ -154,8 +163,15 @@ export class AuthorizationError extends AppError {
  * @param {Error} error - 错误对象
  * @returns {Object}
  */
-function formatErrorResponse(error: any) {
-  const response: any = {
+function formatErrorResponse(
+  error: Error & {
+    statusCode?: number;
+    code?: string;
+    data?: unknown;
+    stack?: string;
+  },
+): ErrorResponse {
+  const response: ErrorResponse = {
     code: error.statusCode || 500,
     msg: error.message || "服务器内部错误",
   };
@@ -183,9 +199,17 @@ function formatErrorResponse(error: any) {
  * @param {Error} error - 错误对象
  * @returns {Object|null}
  */
-function handleFastifyValidationError(error: any) {
+function handleFastifyValidationError(
+  error: Error & {
+    validation?: Array<{
+      params?: { missingProperty?: string };
+      instancePath?: string;
+      message?: string;
+    }>;
+  },
+): ErrorResponse | null {
   if (error.validation && Array.isArray(error.validation)) {
-    const messages = error.validation.map((v: any) => {
+    const messages = error.validation.map((v) => {
       const field =
         v.params?.missingProperty ||
         v.instancePath?.replace("/", "") ||
@@ -210,7 +234,9 @@ function handleFastifyValidationError(error: any) {
  * @param {Error} error - 错误对象
  * @returns {Object|null}
  */
-function handleSupabaseError(error: any) {
+function handleSupabaseError(
+  error: Error & { code?: string },
+): ErrorResponse | null {
   // Supabase 错误通常有特定的 code
   if (error.code) {
     switch (error.code) {
@@ -258,7 +284,16 @@ function handleSupabaseError(error: any) {
  * @param {Object} request - Fastify request 对象
  * @param {Object} reply - Fastify reply 对象
  */
-export async function globalErrorHandler(error: any, request: any, reply: any) {
+export async function globalErrorHandler(
+  error: Error & {
+    statusCode?: number;
+    code?: string;
+    message?: string;
+    stack?: string;
+  },
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
   // 记录错误日志（始终记录，但生产环境不返回详细信息）
   request.log.error({
     err: error,
@@ -321,7 +356,7 @@ export async function globalErrorHandler(error: any, request: any, reply: any) {
 
   // 默认服务器错误
   const statusCode = error.statusCode || 500;
-  const response: any = {
+  const response: ErrorResponse = {
     code: statusCode,
     // 仅在开发环境显示实际错误消息，生产环境统一返回通用消息
     msg: isDevelopment ? error.message : "服务器内部错误",
@@ -341,7 +376,10 @@ export async function globalErrorHandler(error: any, request: any, reply: any) {
  * @param {Object} request - Fastify request 对象
  * @param {Object} reply - Fastify reply 对象
  */
-export async function notFoundHandler(request, reply) {
+export async function notFoundHandler(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
   return reply.status(404).send({
     code: 404,
     msg: `路由不存在: ${request.method} ${request.url}`,
@@ -353,7 +391,10 @@ export async function notFoundHandler(request, reply) {
  * 注册错误处理器到 Fastify 实例
  * @param {Object} fastify - Fastify 实例
  */
-export function registerErrorHandlers(fastify) {
+export function registerErrorHandlers(fastify: {
+  setErrorHandler: (handler: typeof globalErrorHandler) => void;
+  setNotFoundHandler: (handler: typeof notFoundHandler) => void;
+}) {
   // 设置全局错误处理器
   fastify.setErrorHandler(globalErrorHandler);
 
@@ -362,21 +403,26 @@ export function registerErrorHandlers(fastify) {
 }
 
 /**
- * 异步包装器 - Fastify 已自动处理异步错误，此函数仅用于兼容性
+ * 异步包装器 - Fastify 已自动处理异步错误,此函数仅用于兼容性
  * @param {Function} fn - 异步处理函数
  * @returns {Function}
  */
-export function asyncHandler(fn) {
+export function asyncHandler<
+  T extends (...args: unknown[]) => Promise<unknown>,
+>(fn: T): T {
   return fn;
 }
 
 /**
  * 安全执行函数（不抛出错误）
  * @param {Function} fn - 要执行的函数
- * @param {any} defaultValue - 错误时的默认返回值
- * @returns {Promise<any>}
+ * @param {T} defaultValue - 错误时的默认返回值
+ * @returns {Promise<T>}
  */
-export async function safeExecute(fn, defaultValue = null) {
+export async function safeExecute<T>(
+  fn: () => Promise<T>,
+  defaultValue: T | null = null,
+): Promise<T | null> {
   try {
     return await fn();
   } catch (error) {

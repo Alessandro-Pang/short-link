@@ -7,6 +7,7 @@
  * @FilePath: /short-link/service/login-log.js
  */
 import supabase from "./db.js";
+import type { LoginLogQueryOptions } from "../server/types/index.js";
 
 /**
  * 记录登录日志
@@ -59,7 +60,10 @@ export async function logLogin(logData) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 登录日志列表
  */
-export async function getUserLoginLogs(userId: string, options: any = {}) {
+export async function getUserLoginLogs(
+  userId: string,
+  options: Partial<LoginLogQueryOptions> = {},
+) {
   try {
     const { limit = 50, offset = 0 } = options;
 
@@ -90,7 +94,9 @@ export async function getUserLoginLogs(userId: string, options: any = {}) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 登录日志列表
  */
-export async function getAllLoginLogs(options: any = {}) {
+export async function getAllLoginLogs(
+  options: Partial<LoginLogQueryOptions> = {},
+) {
   try {
     const {
       limit = 50,
@@ -251,7 +257,9 @@ export async function getLoginStats(userId = null) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 登录趋势数据
  */
-export async function getLoginTrend(options: any = {}) {
+export async function getLoginTrend(
+  options: Partial<LoginLogQueryOptions> = {},
+) {
   try {
     const { userId = null, days = 30 } = options;
 
@@ -276,18 +284,21 @@ export async function getLoginTrend(options: any = {}) {
     }
 
     // 按日期聚合
-    const dailyStats: any = {};
+    const dailyStats: Record<
+      string,
+      { total: number; success: number; failed: number }
+    > = {};
 
     for (const log of data || []) {
       const date = new Date(log.login_at).toISOString().split("T")[0];
 
       if (!dailyStats[date]) {
-        dailyStats[date] = { total: 0, successful: 0, failed: 0 };
+        dailyStats[date] = { total: 0, success: 0, failed: 0 };
       }
 
       dailyStats[date].total++;
       if (log.success) {
-        dailyStats[date].successful++;
+        dailyStats[date].success++;
       } else {
         dailyStats[date].failed++;
       }
@@ -346,12 +357,14 @@ export async function cleanOldLoginLogs() {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 失败登录列表
  */
-export async function getRecentFailedAttempts(options: any = {}) {
+export async function getRecentFailedAttempts(
+  options: Partial<LoginLogQueryOptions> = {},
+) {
   try {
     const { limit = 100, hours = 24 } = options;
 
     const sinceTime = new Date();
-    sinceTime.setHours(sinceTime.getHours() - hours);
+    sinceTime.setHours(sinceTime.getHours() - Number(hours));
 
     const { data, error, count } = await supabase
       .from("login_logs")
@@ -367,11 +380,24 @@ export async function getRecentFailedAttempts(options: any = {}) {
     }
 
     // 按 IP 分组统计
-    const ipStats: any = {};
+    const ipStats: Record<
+      string,
+      {
+        count: number;
+        lastAttempt: string;
+        user_id: string | null;
+        emails: Set<string>;
+      }
+    > = {};
     for (const log of data || []) {
       const ip = log.ip_address || "unknown";
       if (!ipStats[ip]) {
-        ipStats[ip] = { count: 0, emails: new Set() };
+        ipStats[ip] = {
+          count: 0,
+          lastAttempt: "",
+          user_id: null,
+          emails: new Set(),
+        };
       }
       ipStats[ip].count++;
       if (log.email) {

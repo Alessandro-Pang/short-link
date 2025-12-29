@@ -9,12 +9,13 @@
 import supabase from "./db.js";
 import cache, { CACHE_KEYS, buildCacheKey } from "../server/utils/cache.js";
 import { USER_CONFIG } from "../server/config/index.js";
+import type { UserListOptions, UserUpdateData } from "../server/types/index.js";
 
 /**
  * 清除用户相关缓存
  * @param {string} userId - 用户 ID
  */
-function clearUserCache(userId) {
+function clearUserCache(userId: string): void {
   if (!userId) return;
 
   // 清除所有与该用户相关的缓存
@@ -28,7 +29,7 @@ function clearUserCache(userId) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 用户列表
  */
-export async function getAllUsers(options: any = {}) {
+export async function getAllUsers(options: Partial<UserListOptions> = {}) {
   try {
     const { page = 1, perPage = 50 } = options;
 
@@ -46,7 +47,7 @@ export async function getAllUsers(options: any = {}) {
     }
 
     // 获取用户的 profile 信息
-    const userIds = authData.users.map((u) => u.id);
+    const userIds = authData.users.map((u: { id: string }) => u.id);
     const { data: profiles, error: profileError } = await supabase
       .from("user_profiles")
       .select("*")
@@ -57,23 +58,35 @@ export async function getAllUsers(options: any = {}) {
     }
 
     // 合并用户数据
-    const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
-    const users = authData.users.map((user: any) => {
-      const profile: any = profileMap.get(user.id) || {};
-      // Supabase 中用户被封禁时，banned_until 字段会有值
-      const isBanned = user.banned_until
-        ? new Date(user.banned_until) > new Date()
-        : false;
+    const profileMap = new Map(
+      profiles?.map((p: { id: string }) => [p.id, p]) || [],
+    );
+    const users = authData.users.map(
+      (user: {
+        id: string;
+        banned_until?: string;
+        identities?: unknown;
+        [key: string]: unknown;
+      }) => {
+        const profile = (profileMap.get(user.id) || {}) as Record<
+          string,
+          unknown
+        >;
+        // Supabase 中用户被封禁时，banned_until 字段会有值
+        const isBanned = user.banned_until
+          ? new Date(user.banned_until) > new Date()
+          : false;
 
-      // 移除用不到的敏感信息
-      const { identities: _identities, ...userWithoutIdentities } = user;
-      return {
-        banned: isBanned,
-        ...userWithoutIdentities,
-        ...profile,
-        is_admin: profile.is_admin === true,
-      };
-    });
+        // 移除用不到的敏感信息
+        const { identities: _identities, ...userWithoutIdentities } = user;
+        return {
+          banned: isBanned,
+          ...userWithoutIdentities,
+          ...profile,
+          is_admin: profile.is_admin === true,
+        };
+      },
+    );
 
     return {
       users,
@@ -196,14 +209,17 @@ export async function createUser(userData) {
  * @param {Object} updates - 更新数据
  * @returns {Promise<Object>} 更新结果
  */
-export async function updateUser(userId, updates) {
+export async function updateUser(
+  userId: string,
+  updates: Partial<UserUpdateData>,
+) {
   try {
     const allowedAuthFields = ["email", "password"];
     const allowedProfileFields = ["is_admin"];
 
     // 分离 auth 字段和 profile 字段
-    const authUpdates: any = {};
-    const profileUpdates: any = {};
+    const authUpdates: Record<string, unknown> = {};
+    const profileUpdates: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(updates)) {
       if (allowedAuthFields.includes(key) && value !== undefined) {

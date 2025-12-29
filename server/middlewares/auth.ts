@@ -11,13 +11,19 @@ import * as authService from "../../service/auth.js";
 import cache, { CACHE_KEYS, buildCacheKey } from "../utils/cache.js";
 import { CACHE_CONFIG } from "../config/index.js";
 import { AuthenticationError, AuthorizationError } from "./errorHandler.js";
+import type {
+  FastifyRequest,
+  FastifyReply,
+  AuthenticatedRequest,
+  AuthMiddlewareOptions,
+} from "../types/index.js";
 
 /**
  * 从请求头中提取 Bearer Token
  * @param {Object} request - Fastify request 对象
  * @returns {string|null} Token 或 null
  */
-function extractToken(request) {
+function extractToken(request: FastifyRequest): string | null {
   const authHeader = request.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return null;
@@ -31,7 +37,10 @@ function extractToken(request) {
  * @param {Object} request - Fastify request 对象（用于日志）
  * @returns {Promise<Object>} 用户信息
  */
-async function verifyAndGetUser(token, _request) {
+async function verifyAndGetUser(
+  token: string,
+  _request: FastifyRequest,
+): Promise<AuthenticatedRequest["user"]> {
   // 首先验证 token（这步必须每次执行，不能缓存）
   const user = await authService.verifyToken(token);
 
@@ -54,15 +63,16 @@ async function verifyAndGetUser(token, _request) {
   }
 
   // 如果 user_profiles 没有数据，使用 auth user 数据
-  const userData = userProfile || {
-    id: user.id,
-    email: user.email,
-    is_admin: false,
-    banned: false,
-  };
+  const userData: AuthenticatedRequest["user"] =
+    (userProfile as AuthenticatedRequest["user"]) || {
+      id: user.id,
+      email: user.email,
+      is_admin: false,
+      banned: false,
+    };
 
   // 检查用户是否被禁用
-  if (userData.banned) {
+  if (userData && userData.banned) {
     throw new AuthorizationError("用户已被禁用");
   }
 
@@ -73,7 +83,7 @@ async function verifyAndGetUser(token, _request) {
  * 清除用户缓存
  * @param {string} userId - 用户 ID
  */
-export function clearUserCache(userId) {
+export function clearUserCache(userId: string): void {
   cache.delete(buildCacheKey(CACHE_KEYS.USER_PROFILE, userId));
   cache.delete(buildCacheKey(CACHE_KEYS.USER_ADMIN_STATUS, userId));
   cache.delete(buildCacheKey(CACHE_KEYS.USER_INFO, userId));
@@ -86,7 +96,7 @@ export function clearUserCache(userId) {
  * @param {number} statusCode - HTTP 状态码
  * @returns {Object}
  */
-function sendAuthError(reply, msg, statusCode = 401) {
+function sendAuthError(reply: FastifyReply, msg: string, statusCode = 401) {
   return reply.status(statusCode).send({
     code: statusCode === 401 ? "UNAUTHORIZED" : "FORBIDDEN",
     msg,
@@ -102,7 +112,11 @@ function sendAuthError(reply, msg, statusCode = 401) {
  * @param {boolean} options.requireAdmin - 是否需要管理员权限
  * @returns {Promise<boolean>} 是否继续处理请求
  */
-async function handleAuth(request: any, reply: any, options: any = {}) {
+async function handleAuth(
+  request: AuthenticatedRequest,
+  reply: FastifyReply,
+  options: Partial<AuthMiddlewareOptions> = {},
+): Promise<boolean | void> {
   const { required = true, requireAdmin = false } = options;
 
   try {
@@ -154,7 +168,10 @@ async function handleAuth(request: any, reply: any, options: any = {}) {
  * @param {Object} request - Fastify request 对象
  * @param {Object} reply - Fastify reply 对象
  */
-export async function authenticate(request, reply) {
+export async function authenticate(
+  request: AuthenticatedRequest,
+  reply: FastifyReply,
+): Promise<boolean | void> {
   const result = await handleAuth(request, reply, {
     required: true,
     requireAdmin: false,
@@ -171,7 +188,10 @@ export async function authenticate(request, reply) {
  * @param {Object} request - Fastify request 对象
  * @param {Object} reply - Fastify reply 对象
  */
-export async function optionalAuthenticate(request, reply) {
+export async function optionalAuthenticate(
+  request: AuthenticatedRequest,
+  reply: FastifyReply,
+): Promise<void> {
   await handleAuth(request, reply, {
     required: false,
     requireAdmin: false,
@@ -183,7 +203,10 @@ export async function optionalAuthenticate(request, reply) {
  * @param {Object} request - Fastify request 对象
  * @param {Object} reply - Fastify reply 对象
  */
-export async function authenticateWithAdminCheck(request, reply) {
+export async function authenticateWithAdminCheck(
+  request: AuthenticatedRequest,
+  reply: FastifyReply,
+): Promise<boolean | void> {
   const result = await handleAuth(request, reply, {
     required: true,
     requireAdmin: true,
@@ -199,7 +222,10 @@ export async function authenticateWithAdminCheck(request, reply) {
  * @param {Object} request - Fastify request 对象
  * @param {Object} reply - Fastify reply 对象
  */
-export async function authenticateAdmin(request, reply) {
+export async function authenticateAdmin(
+  request: AuthenticatedRequest,
+  reply: FastifyReply,
+): Promise<boolean | void> {
   return authenticateWithAdminCheck(request, reply);
 }
 
@@ -212,7 +238,9 @@ export async function authenticateAdmin(request, reply) {
  * @param {string} options.customCheckErrorMsg - 自定义检查失败时的错误消息
  * @returns {Function} 中间件函数
  */
-export function createAuthMiddleware(options: any = {}) {
+export function createAuthMiddleware(
+  options: Partial<AuthMiddlewareOptions> = {},
+) {
   const {
     required = true,
     requireAdmin = false,
@@ -220,7 +248,7 @@ export function createAuthMiddleware(options: any = {}) {
     customCheckErrorMsg = "权限验证失败",
   } = options;
 
-  return async (request, reply) => {
+  return async (request: AuthenticatedRequest, reply: FastifyReply) => {
     const result = await handleAuth(request, reply, {
       required,
       requireAdmin,
@@ -251,7 +279,11 @@ export function createAuthMiddleware(options: any = {}) {
  * @param {Function} getResourceOwnerId - 获取资源所有者 ID 的函数 (request) => string|Promise<string>
  * @returns {Function} 中间件函数
  */
-export function requireOwnership(getResourceOwnerId) {
+export function requireOwnership(
+  getResourceOwnerId: (
+    request: AuthenticatedRequest,
+  ) => string | Promise<string>,
+) {
   return createAuthMiddleware({
     required: true,
     requireAdmin: false,

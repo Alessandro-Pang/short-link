@@ -60,8 +60,9 @@ export async function checkHealth(): Promise<{
     }
 
     return { healthy: true };
-  } catch (err: any) {
-    return { healthy: false, error: err.message };
+  } catch (err: unknown) {
+    const error = err as Error;
+    return { healthy: false, error: error.message };
   }
 }
 

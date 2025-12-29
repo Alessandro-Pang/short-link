@@ -7,6 +7,8 @@
  * @FilePath: /short-link/api/utils/validation.js
  */
 
+import type { UrlValidationOptions } from "../types/index.js";
+
 /**
  * 验证配置常量
  */
@@ -125,10 +127,11 @@ const HASH_PATTERN = /^[A-Za-z0-9]+$/;
 
 /**
  * 验证结果对象
- * @typedef {Object} ValidationResult
- * @property {boolean} valid - 是否验证通过
- * @property {string|null} error - 错误消息
  */
+export interface ValidationResult {
+  valid: boolean;
+  error: string | null;
+}
 
 /**
  * 创建验证结果
@@ -136,7 +139,7 @@ const HASH_PATTERN = /^[A-Za-z0-9]+$/;
  * @param {string|null} error
  * @returns {ValidationResult}
  */
-function result(valid, error = null) {
+function result(valid: boolean, error: string | null = null): ValidationResult {
   return { valid, error };
 }
 
@@ -145,7 +148,7 @@ function result(valid, error = null) {
  * @param {string} url - URL 字符串
  * @returns {boolean} 是否使用禁止的协议
  */
-function hasBlockedProtocol(url) {
+function hasBlockedProtocol(url: string): boolean {
   return BLOCKED_PROTOCOLS.some((pattern) => pattern.test(url));
 }
 
@@ -154,7 +157,7 @@ function hasBlockedProtocol(url) {
  * @param {string} hostname - 主机名
  * @returns {boolean} 是否为私有地址
  */
-function isPrivateHost(hostname) {
+function isPrivateHost(hostname: string): boolean {
   // 检查是否为明确禁止的主机名
   const lowerHostname = hostname.toLowerCase();
   if (BLOCKED_HOSTNAMES.includes(lowerHostname)) {
@@ -172,7 +175,10 @@ function isPrivateHost(hostname) {
  * @param {boolean} options.allowPrivateHosts - 是否允许私有/内网地址（默认 false）
  * @returns {ValidationResult}
  */
-export function validateUrl(url: string, options: any = {}) {
+export function validateUrl(
+  url: string,
+  options: Partial<UrlValidationOptions> = {},
+): ValidationResult {
   const { allowPrivateHosts = false } = options;
 
   if (!url || typeof url !== "string") {
@@ -263,12 +269,14 @@ export function validateUrl(url: string, options: any = {}) {
  * @param {number} redirectType - 重定向类型
  * @returns {ValidationResult}
  */
-export function validateRedirectType(redirectType) {
+export function validateRedirectType(
+  redirectType: number | string | undefined | null,
+): ValidationResult {
   if (redirectType === undefined || redirectType === null) {
     return result(true); // 可选参数
   }
 
-  const type = parseInt(redirectType, 10);
+  const type = parseInt(String(redirectType), 10);
 
   if (Number.isNaN(type) || !VALID_REDIRECT_TYPES.includes(type)) {
     return result(
@@ -285,12 +293,14 @@ export function validateRedirectType(redirectType) {
  * @param {number|string|null|undefined} maxClicks - 最大点击次数
  * @returns {ValidationResult}
  */
-export function validateMaxClicks(maxClicks) {
+export function validateMaxClicks(
+  maxClicks: number | string | null | undefined,
+): ValidationResult {
   if (maxClicks === undefined || maxClicks === null || maxClicks === "") {
     return result(true); // 可选参数
   }
 
-  const clicks = parseInt(maxClicks, 10);
+  const clicks = parseInt(String(maxClicks), 10);
 
   if (Number.isNaN(clicks) || clicks < 1) {
     return result(false, "最大点击次数必须是大于 0 的整数");
@@ -308,7 +318,9 @@ export function validateMaxClicks(maxClicks) {
  * @param {string} title - 标题
  * @returns {ValidationResult}
  */
-export function validateTitle(title) {
+export function validateTitle(
+  title: string | undefined | null,
+): ValidationResult {
   if (!title || typeof title !== "string") {
     return result(true); // 可选参数
   }
@@ -328,7 +340,9 @@ export function validateTitle(title) {
  * @param {string} description - 描述
  * @returns {ValidationResult}
  */
-export function validateDescription(description) {
+export function validateDescription(
+  description: string | undefined | null,
+): ValidationResult {
   if (!description || typeof description !== "string") {
     return result(true); // 可选参数
   }
@@ -348,7 +362,7 @@ export function validateDescription(description) {
  * @param {string} ip - IP 地址
  * @returns {boolean}
  */
-export function isValidIp(ip) {
+export function isValidIp(ip: string | undefined | null): boolean {
   if (!ip || typeof ip !== "string") {
     return false;
   }
@@ -361,7 +375,9 @@ export function isValidIp(ip) {
  * @param {Array} ipList - IP 地址列表
  * @returns {ValidationResult}
  */
-export function validateIpList(ipList) {
+export function validateIpList(
+  ipList: string[] | undefined | null,
+): ValidationResult {
   if (!ipList) {
     return result(true); // 可选参数
   }
@@ -388,7 +404,9 @@ export function validateIpList(ipList) {
  * @param {Array} devices - 设备类型列表
  * @returns {ValidationResult}
  */
-export function validateDeviceTypes(devices) {
+export function validateDeviceTypes(
+  devices: string[] | undefined | null,
+): ValidationResult {
   if (!devices) {
     return result(true); // 可选参数
   }
@@ -414,14 +432,18 @@ export function validateDeviceTypes(devices) {
  * @param {Object} restrictions - 访问限制配置
  * @returns {ValidationResult}
  */
-export function validateAccessRestrictions(restrictions) {
+export function validateAccessRestrictions(
+  restrictions: Record<string, unknown> | undefined | null,
+): ValidationResult {
   if (!restrictions || typeof restrictions !== "object") {
     return result(true); // 可选参数
   }
 
   // 验证 IP 白名单
   if (restrictions.ip_whitelist) {
-    const ipWhitelistResult = validateIpList(restrictions.ip_whitelist);
+    const ipWhitelistResult = validateIpList(
+      restrictions.ip_whitelist as string[],
+    );
     if (!ipWhitelistResult.valid) {
       return result(false, `IP 白名单${ipWhitelistResult.error}`);
     }
@@ -429,7 +451,9 @@ export function validateAccessRestrictions(restrictions) {
 
   // 验证 IP 黑名单
   if (restrictions.ip_blacklist) {
-    const ipBlacklistResult = validateIpList(restrictions.ip_blacklist);
+    const ipBlacklistResult = validateIpList(
+      restrictions.ip_blacklist as string[],
+    );
     if (!ipBlacklistResult.valid) {
       return result(false, `IP 黑名单${ipBlacklistResult.error}`);
     }
@@ -437,7 +461,9 @@ export function validateAccessRestrictions(restrictions) {
 
   // 验证设备类型
   if (restrictions.allowed_devices) {
-    const devicesResult = validateDeviceTypes(restrictions.allowed_devices);
+    const devicesResult = validateDeviceTypes(
+      restrictions.allowed_devices as string[],
+    );
     if (!devicesResult.valid) {
       return devicesResult;
     }
@@ -481,7 +507,7 @@ export function validateAccessRestrictions(restrictions) {
  * @param {string} email - 邮箱地址
  * @returns {ValidationResult}
  */
-export function validateEmail(email) {
+export function validateEmail(email: string): ValidationResult {
   if (!email || typeof email !== "string") {
     return result(false, "邮箱是必填参数");
   }
@@ -507,7 +533,7 @@ export function validateEmail(email) {
  * @param {string} password - 密码
  * @returns {ValidationResult}
  */
-export function validatePassword(password) {
+export function validatePassword(password: string): ValidationResult {
   if (!password || typeof password !== "string") {
     return result(false, "密码是必填参数");
   }
@@ -534,7 +560,7 @@ export function validatePassword(password) {
  * @param {string} hash - 短链接哈希
  * @returns {ValidationResult}
  */
-export function validateShortHash(hash) {
+export function validateShortHash(hash: string): ValidationResult {
   if (!hash || typeof hash !== "string") {
     return result(false, "短链接哈希是必填参数");
   }
@@ -558,7 +584,9 @@ export function validateShortHash(hash) {
  * @param {Array} ids - ID 列表
  * @returns {ValidationResult}
  */
-export function validateBatchIds(ids) {
+export function validateBatchIds(
+  ids: Array<number | string>,
+): ValidationResult {
   if (!ids) {
     return result(false, "ID 列表是必填参数");
   }
@@ -594,18 +622,23 @@ export function validateBatchIds(ids) {
  * @param {number|string} params.pageSize - 每页数量
  * @returns {ValidationResult}
  */
-export function validatePagination(params) {
+export function validatePagination(
+  params:
+    | { page?: number | string; pageSize?: number | string }
+    | undefined
+    | null,
+): ValidationResult {
   const { page, pageSize } = params || {};
 
   if (page !== undefined) {
-    const pageNum = parseInt(page, 10);
+    const pageNum = parseInt(String(page), 10);
     if (Number.isNaN(pageNum) || pageNum < 1) {
       return result(false, "页码必须是大于 0 的整数");
     }
   }
 
   if (pageSize !== undefined) {
-    const size = parseInt(pageSize, 10);
+    const size = parseInt(String(pageSize), 10);
     if (Number.isNaN(size) || size < 1) {
       return result(false, "每页数量必须是大于 0 的整数");
     }
@@ -619,11 +652,14 @@ export function validatePagination(params) {
 
 /**
  * 验证布尔值
- * @param {any} value - 值
+ * @param {unknown} value - 值
  * @param {string} fieldName - 字段名称
  * @returns {ValidationResult}
  */
-export function validateBoolean(value, fieldName) {
+export function validateBoolean(
+  value: unknown,
+  fieldName: string,
+): ValidationResult {
   if (value === undefined || value === null) {
     return result(true); // 可选参数
   }
@@ -640,7 +676,10 @@ export function validateBoolean(value, fieldName) {
  * @param {Object} params - 创建参数
  * @returns {ValidationResult}
  */
-export function validateCreateLinkParams(params) {
+export function validateCreateLinkParams(params: {
+  url: string;
+  options?: Record<string, unknown>;
+}): ValidationResult {
   const { url, options = {} } = params || {};
 
   // 验证 URL
@@ -650,32 +689,32 @@ export function validateCreateLinkParams(params) {
   }
 
   // 验证标题
-  const titleResult = validateTitle(options.title);
+  const titleResult = validateTitle(options.title as string);
   if (!titleResult.valid) {
     return titleResult;
   }
 
   // 验证描述
-  const descResult = validateDescription(options.description);
+  const descResult = validateDescription(options.description as string);
   if (!descResult.valid) {
     return descResult;
   }
 
   // 验证重定向类型
-  const redirectResult = validateRedirectType(options.redirect_type);
+  const redirectResult = validateRedirectType(options.redirect_type as number);
   if (!redirectResult.valid) {
     return redirectResult;
   }
 
   // 验证最大点击次数
-  const clicksResult = validateMaxClicks(options.max_clicks);
+  const clicksResult = validateMaxClicks(options.max_clicks as number);
   if (!clicksResult.valid) {
     return clicksResult;
   }
 
   // 验证访问限制
   const restrictionsResult = validateAccessRestrictions(
-    options.access_restrictions,
+    options.access_restrictions as Record<string, unknown>,
   );
   if (!restrictionsResult.valid) {
     return restrictionsResult;
@@ -689,14 +728,16 @@ export function validateCreateLinkParams(params) {
  * @param {Object} updates - 更新参数
  * @returns {ValidationResult}
  */
-export function validateUpdateLinkParams(updates) {
+export function validateUpdateLinkParams(
+  updates: Record<string, unknown>,
+): ValidationResult {
   if (!updates || typeof updates !== "object") {
     return result(false, "更新参数不能为空");
   }
 
   // 验证标题
   if (updates.title !== undefined) {
-    const titleResult = validateTitle(updates.title);
+    const titleResult = validateTitle(updates.title as string);
     if (!titleResult.valid) {
       return titleResult;
     }
@@ -704,7 +745,7 @@ export function validateUpdateLinkParams(updates) {
 
   // 验证描述
   if (updates.description !== undefined) {
-    const descResult = validateDescription(updates.description);
+    const descResult = validateDescription(updates.description as string);
     if (!descResult.valid) {
       return descResult;
     }
@@ -712,7 +753,9 @@ export function validateUpdateLinkParams(updates) {
 
   // 验证重定向类型
   if (updates.redirect_type !== undefined) {
-    const redirectResult = validateRedirectType(updates.redirect_type);
+    const redirectResult = validateRedirectType(
+      updates.redirect_type as number,
+    );
     if (!redirectResult.valid) {
       return redirectResult;
     }
@@ -720,7 +763,7 @@ export function validateUpdateLinkParams(updates) {
 
   // 验证最大点击次数
   if (updates.max_clicks !== undefined) {
-    const clicksResult = validateMaxClicks(updates.max_clicks);
+    const clicksResult = validateMaxClicks(updates.max_clicks as number);
     if (!clicksResult.valid) {
       return clicksResult;
     }
@@ -729,7 +772,7 @@ export function validateUpdateLinkParams(updates) {
   // 验证访问限制
   if (updates.access_restrictions !== undefined) {
     const restrictionsResult = validateAccessRestrictions(
-      updates.access_restrictions,
+      updates.access_restrictions as Record<string, unknown>,
     );
     if (!restrictionsResult.valid) {
       return restrictionsResult;
@@ -752,7 +795,7 @@ export function validateUpdateLinkParams(updates) {
  * @param {string} str - 输入字符串
  * @returns {string}
  */
-export function sanitizeString(str) {
+export function sanitizeString(str: string | undefined | null): string {
   if (!str || typeof str !== "string") {
     return "";
   }
@@ -764,7 +807,7 @@ export function sanitizeString(str) {
  * @param {string} url - 输入 URL
  * @returns {string}
  */
-export function sanitizeUrl(url) {
+export function sanitizeUrl(url: string | undefined | null): string {
   if (!url || typeof url !== "string") {
     return "";
   }
@@ -776,6 +819,6 @@ export function sanitizeUrl(url) {
  * @param {string} hostname - 主机名或 IP
  * @returns {boolean}
  */
-export function isPrivateIp(hostname) {
+export function isPrivateIp(hostname: string): boolean {
   return isPrivateHost(hostname);
 }

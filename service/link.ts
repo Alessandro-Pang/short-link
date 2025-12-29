@@ -13,28 +13,11 @@ import {
 } from "../server/utils/security.js";
 import cache, { CACHE_KEYS } from "../server/utils/cache.js";
 import { CACHE_CONFIG } from "../server/config/index.js";
-
-interface VisitorInfo {
-  userAgent?: string;
-  ip?: string;
-  referrer?: string;
-  country?: string;
-  device?: string;
-}
-
-interface AddUrlOptions {
-  expiration_option_id?: number;
-  expiration_date?: string;
-  is_active?: boolean;
-  title?: string;
-  description?: string;
-  redirect_type?: number;
-  pass_query_params?: boolean;
-  forward_headers?: boolean;
-  forward_header_list?: string[];
-  max_clicks?: number;
-  access_restrictions?: any;
-}
+import type {
+  VisitorInfo,
+  LinkCreateOptions,
+  AccessRestrictions,
+} from "../server/types/index.js";
 
 /**
  * 缓存 TTL 配置（秒）
@@ -46,7 +29,7 @@ const EXPIRATION_OPTIONS_CACHE_TTL = CACHE_CONFIG.EXPIRATION_OPTIONS_TTL; // 5 �
  * @param {string} userAgent - User-Agent 字符串
  * @returns {string} 设备类型: mobile/tablet/desktop
  */
-export function parseDeviceType(userAgent) {
+export function parseDeviceType(userAgent: string | undefined): string {
   if (!userAgent) return "unknown";
 
   const ua = userAgent.toLowerCase();
@@ -126,7 +109,7 @@ function checkIpInList(ip, ipList) {
  * @returns {Object} { allowed: boolean, reason: string }
  */
 export function validateAccessRestrictions(
-  restrictions: any,
+  restrictions: AccessRestrictions | null | undefined,
   visitorInfo: VisitorInfo,
 ) {
   if (!restrictions || Object.keys(restrictions).length === 0) {
@@ -347,7 +330,7 @@ async function generateUniqueHash(retryCount = 0) {
 export async function addUrl(
   link: string,
   userId: string | null = null,
-  options: AddUrlOptions = {},
+  options: Partial<LinkCreateOptions> = {},
 ) {
   try {
     if (userId) {
@@ -415,7 +398,7 @@ export async function addUrl(
     }
 
     // 构建插入数据 - 基础字段
-    const insertData: any = {
+    const insertData: Record<string, unknown> = {
       link,
       short,
       user_id: userId,

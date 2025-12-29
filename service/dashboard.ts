@@ -7,13 +7,18 @@
  * @FilePath: /short-link/service/dashboard.js
  */
 import supabase from "./db.js";
+import type {
+  LinkQueryOptions,
+  QueryOptions,
+  LinkAccessStatsOptions,
+} from "../server/types/index.js";
 
 /**
  * 获取用户统计数据（使用数据库聚合查询优化）
  * @param {string} userId - 用户 ID
  * @returns {Promise<Object>} 统计数据
  */
-export async function getUserStats(userId) {
+export async function getUserStats(userId: string) {
   try {
     // 使用数据库聚合查询，避免拉取所有数据到内存
     // 查询 1：获取总链接数和总点击数
@@ -79,7 +84,10 @@ export async function getUserStats(userId) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 链接列表和总数
  */
-export async function getUserLinks(userId: string, options: any = {}) {
+export async function getUserLinks(
+  userId: string,
+  options: Partial<QueryOptions> = {},
+) {
   try {
     const {
       limit = 10,
@@ -158,7 +166,7 @@ export async function getLinkDetail(linkId, userId) {
 export async function getLinkAccessLogs(
   linkId: number,
   userId: string,
-  options: any = {},
+  options: Partial<QueryOptions> = {},
 ) {
   try {
     const { limit = 50, offset = 0 } = options;
@@ -414,7 +422,7 @@ export async function batchToggleLinks(linkIds, userId, isActive) {
 export async function getLinkAccessStats(
   linkId: number,
   userId: string,
-  options: any = {},
+  options: Partial<QueryOptions> = {},
 ) {
   try {
     // 先验证链接所有权
@@ -431,7 +439,7 @@ export async function getLinkAccessStats(
 
     const { days = 30 } = options;
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    startDate.setDate(startDate.getDate() - Number(days));
 
     // 获取访问日志
     const { data, error } = await supabase
@@ -547,7 +555,7 @@ export async function getGlobalStats() {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 链接列表和总数
  */
-export async function getAllLinks(options: any = {}) {
+export async function getAllLinks(options: Partial<QueryOptions> = {}) {
   try {
     const {
       limit = 10,
@@ -631,7 +639,7 @@ export async function getLinkDetailAdmin(linkId) {
  */
 export async function getLinkAccessLogsAdmin(
   linkId: number,
-  options: any = {},
+  options: Partial<QueryOptions> = {},
 ) {
   try {
     const { limit = 50, offset = 0 } = options;
@@ -734,12 +742,12 @@ export async function deleteLinkAdmin(linkId) {
  */
 export async function getLinkAccessStatsAdmin(
   linkId: number,
-  options: any = {},
+  options: Partial<QueryOptions> = {},
 ) {
   try {
     const { days = 30 } = options;
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    startDate.setDate(startDate.getDate() - Number(days));
 
     const { data, error } = await supabase
       .from("link_access_logs")

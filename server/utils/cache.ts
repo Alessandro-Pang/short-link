@@ -7,16 +7,13 @@
  * @FilePath: /short-link/api/utils/cache.js
  */
 
+import type { CacheOptions } from "../types/index.js";
+
 /**
  * 缓存项结构
- * @typedef {Object} CacheItem
- * @property {any} value - 缓存的值
- * @property {number} expireAt - 过期时间戳（毫秒）
- * @property {number} createdAt - 创建时间戳（毫秒）
  */
-
 interface CacheItem {
-  value: any;
+  value: unknown;
   expireAt: number;
   createdAt: number;
 }
@@ -38,9 +35,9 @@ class MemoryCache {
   private maxSize: number;
   private cleanupInterval: number;
   private stats: CacheStats;
-  private _cleanupTimer: any;
+  private _cleanupTimer: NodeJS.Timeout | null;
 
-  constructor(options: any = {}) {
+  constructor(options: Partial<CacheOptions> = {}) {
     /**
      * 缓存存储
      * @type {Map<string, CacheItem>}

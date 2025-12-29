@@ -125,7 +125,9 @@ export async function requireAdmin(token: string) {
   const adminStatus = await isAdmin(user.id);
 
   if (!adminStatus) {
-    const error: any = new Error("需要管理员权限");
+    const error: Error & { statusCode?: number; code?: string } = new Error(
+      "需要管理员权限",
+    );
     error.code = "ADMIN_REQUIRED";
     throw error;
   }
@@ -141,7 +143,9 @@ export async function requireAdmin(token: string) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 用户列表
  */
-export async function getAllUsers(options: any = {}) {
+export async function getAllUsers(
+  options: Partial<{ page: number; perPage: number }> = {},
+) {
   const { page = 1, perPage = 50 } = options;
 
   try {
@@ -254,7 +258,12 @@ export async function getUserIdentities(userId: string) {
 export async function linkIdentity(
   userId: string,
   provider: string,
-  identityData: any,
+  identityData: {
+    provider: string;
+    provider_user_id: string;
+    provider_email?: string;
+    provider_metadata?: Record<string, unknown>;
+  },
 ) {
   try {
     const {
@@ -384,7 +393,11 @@ export async function deleteUserAccount(
  * @param {Object} userData - 用户数据
  * @returns {Promise<Object>} 创建结果
  */
-export async function createUser(userData: any) {
+export async function createUser(userData: {
+  email: string;
+  password: string;
+  [key: string]: unknown;
+}) {
   try {
     const { email, password, user_metadata = {} } = userData;
 
@@ -421,7 +434,15 @@ export async function createUser(userData: any) {
  * @param {Object} updates - 更新数据
  * @returns {Promise<Object>} 更新结果
  */
-export async function updateUser(userId: string, updates: any) {
+export async function updateUser(
+  userId: string,
+  updates: {
+    email?: string;
+    password?: string;
+    user_metadata?: Record<string, unknown>;
+    [key: string]: unknown;
+  },
+) {
   try {
     const {
       data: { user },
@@ -434,12 +455,15 @@ export async function updateUser(userId: string, updates: any) {
     }
 
     // 如果更新了 is_admin 字段，同时更新 user_profiles 表
-    if (updates.app_metadata?.is_admin !== undefined) {
+    const appMetadata = updates.app_metadata as
+      | { is_admin?: boolean }
+      | undefined;
+    if (appMetadata?.is_admin !== undefined) {
       const { error: profileError } = await supabase
         .from("user_profiles")
         .upsert({
           id: userId,
-          is_admin: updates.app_metadata.is_admin,
+          is_admin: appMetadata.is_admin,
         });
 
       if (profileError) {
@@ -577,10 +601,19 @@ export async function getUserDetails(userId: string) {
  * @param {Object} identityData - 身份数据
  * @returns {Promise<Object>} 绑定结果
  */
-export async function bindUserIdentity(userId: string, identityData: any) {
+export async function bindUserIdentity(
+  userId: string,
+  identityData: {
+    provider: string;
+    provider_user_id: string;
+    provider_email?: string;
+    provider_metadata?: Record<string, unknown>;
+  },
+) {
   const { provider, provider_user_id, provider_email, provider_metadata } =
     identityData;
   return linkIdentity(userId, provider, {
+    provider,
     provider_user_id,
     provider_email,
     provider_metadata,
