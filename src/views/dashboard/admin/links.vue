@@ -22,7 +22,7 @@ import {
     batchDeleteLinks,
     batchToggleLinks,
 } from "@/services/admin.js";
-import AdminLinkEditDrawer from "@/components/AdminLinkEditDrawer.vue";
+import BaseLinkEditDrawer from "@/components/BaseLinkEditDrawer.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -757,9 +757,10 @@ defineExpose({
         </a-modal>
 
         <!-- Admin Link Edit Drawer -->
-        <AdminLinkEditDrawer
+        <BaseLinkEditDrawer
             v-model:visible="editDrawerVisible"
             :link-id="editingLinkId"
+            mode="admin"
             @success="handleEditSuccess"
             @delete="handleEditDelete"
         />

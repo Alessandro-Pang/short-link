@@ -14,7 +14,7 @@ import {
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
 import { useLinksStore } from "@/stores";
-import LinkEditDrawer from "@/components/LinkEditDrawer.vue";
+import BaseLinkEditDrawer from "@/components/BaseLinkEditDrawer.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -632,9 +632,10 @@ defineExpose({
         </a-modal>
 
         <!-- Link Edit Drawer -->
-        <LinkEditDrawer
+        <BaseLinkEditDrawer
             v-model:visible="editDrawerVisible"
             :link-id="editingLinkId"
+            mode="user"
             @success="handleEditSuccess"
             @delete="handleEditDelete"
         />
