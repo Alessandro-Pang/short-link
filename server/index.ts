@@ -43,7 +43,7 @@ const app = Fastify({
 // 注册全局错误处理器
 registerErrorHandlers(app);
 
-await app.register(swagger, {
+app.register(swagger, {
   openapi: {
     info: {
       title: "API",
@@ -54,7 +54,7 @@ await app.register(swagger, {
 
 // 仅开发环境注册 UI
 if (process.env.NODE_ENV !== "production") {
-  await app.register(swaggerUI, {
+  app.register(swaggerUI, {
     routePrefix: "/api/docs",
     uiConfig: {
       docExpansion: "list",
@@ -64,7 +64,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // 启用 CORS
-await app.register(cors as any, {
+app.register(cors as any, {
   origin: (origin, cb) => {
     // 允许无 origin 的请求（如服务端请求、curl 等）
     if (!origin) {
@@ -88,7 +88,7 @@ await app.register(cors as any, {
 });
 
 // 注册 @fastify/rate-limit 插件
-await app.register(rateLimit as any, {
+app.register(rateLimit as any, {
   global: true,
   max: RATE_LIMIT_CONFIG.GLOBAL.MAX,
   timeWindow: RATE_LIMIT_CONFIG.GLOBAL.TIME_WINDOW,
@@ -144,9 +144,9 @@ app.get(
 );
 
 // 注册路由组
-await app.register(apiRoutes, { prefix: "/api" });
-await app.register(dashboardRoutes, { prefix: "/api/dashboard" });
-await app.register(adminRoutes, { prefix: "/api/admin" });
+app.register(apiRoutes, { prefix: "/api" });
+app.register(dashboardRoutes, { prefix: "/api/dashboard" });
+app.register(adminRoutes, { prefix: "/api/admin" });
 
 /**
  * 真实的健康检查端点
