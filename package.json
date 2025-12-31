@@ -9,6 +9,7 @@
   "author": "zi.yang <pcy1314@163.com> (https://github.com/Alessandro-Pang)",
   "scripts": {
     "dev": "concurrently -n \"VUE,FASTIFY\" -c \"bgBlue.bold,bgGreen.bold\" \"vite --mode development --host\" \"cross-env NODE_ENV=development nodemon --exec 'tsx --env-file=.env.development.local' api/index.ts\"",
+    "dev:web": "vite --mode development --host",
     "build": "vite build",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit"
