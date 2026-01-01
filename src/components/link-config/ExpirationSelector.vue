@@ -76,6 +76,8 @@ const emit = defineEmits<{
     (e: "update:modelValue", value: any): void;
 }>();
 
+const isInitialized = ref(false);
+
 // 有效期模式
 const expirationMode = ref<"preset" | "custom" | "none">("none");
 const localExpirationOptionId = ref<number | null>(null);
@@ -98,11 +100,14 @@ const initLocalValues = (val: any) => {
     }
 };
 
-// 监听 modelValue 变化，初始化本地值
+// 监听 modelValue 变化，初始化本地值（仅初始化时）
 watch(
     () => props.modelValue,
     (newVal) => {
-        initLocalValues(newVal);
+        if (!isInitialized.value) {
+            initLocalValues(newVal);
+            isInitialized.value = true;
+        }
     },
     { immediate: true, deep: true },
 );
@@ -131,8 +136,11 @@ watch(localExpirationDate, () => {
 
 // 更新父组件
 const updateParent = () => {
+    if (!isInitialized.value) return;
+
     const updated = {
         ...props.modelValue,
+        expirationMode: expirationMode.value,
         expiration_option_id: localExpirationOptionId.value,
         expiration_date: localExpirationDate.value,
     };

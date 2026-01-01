@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch } from "vue";
+import { reactive, watch, ref } from "vue";
 import {
     IconMobile,
     IconDesktop,
@@ -133,6 +133,8 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: "update:modelValue", value: any): void;
 }>();
+
+const isInitialized = ref(false);
 
 const localRestrictions = reactive({
     allowed_devices: [],
@@ -166,11 +168,14 @@ const initLocalRestrictions = (val: any) => {
     }
 };
 
-// 监听 modelValue 变化
+// 监听 modelValue 变化（仅初始化时）
 watch(
     () => props.modelValue,
     (newVal) => {
-        initLocalRestrictions(newVal);
+        if (!isInitialized.value) {
+            initLocalRestrictions(newVal);
+            isInitialized.value = true;
+        }
     },
     { immediate: true, deep: true },
 );
@@ -179,7 +184,9 @@ watch(
 watch(
     localRestrictions,
     (newVal) => {
-        emit("update:modelValue", { ...newVal });
+        if (isInitialized.value) {
+            emit("update:modelValue", { ...newVal });
+        }
     },
     { deep: true },
 );

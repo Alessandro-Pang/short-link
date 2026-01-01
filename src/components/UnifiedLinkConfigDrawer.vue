@@ -118,12 +118,8 @@
                         />
                     </a-form-item>
 
-                    <!-- 链接描述（仅编辑模式显示） -->
-                    <a-form-item
-                        v-if="!isNew"
-                        label="链接描述"
-                        field="description"
-                    >
+                    <!-- 链接描述 -->
+                    <a-form-item label="链接描述" field="description">
                         <a-textarea
                             v-model="formData.description"
                             placeholder="可选，添加备注说明"
@@ -255,7 +251,7 @@
                     <!-- 有效期 -->
                     <a-form-item label="有效期">
                         <ExpirationSelector
-                            v-model="formData"
+                            v-model="expiration"
                             :expiration-options="expirationOptions"
                             :is-new="isNew"
                             :is-expired="isExpired"
@@ -294,7 +290,10 @@
                     </a-form-item>
 
                     <!-- 访问密码（新建时显示） -->
-                    <a-form-item v-if="isNew" label="访问密码">
+                    <a-form-item
+                        v-if="isNew || mode === 'home'"
+                        label="访问密码"
+                    >
                         <a-input-password
                             v-model="formData.password"
                             placeholder="设置密码后访问需要验证"
@@ -314,7 +313,10 @@
                     </a-form-item>
 
                     <!-- 编辑时显示密码状态 -->
-                    <a-form-item v-else label="访问密码">
+                    <a-form-item
+                        v-else-if="!isNew && mode !== 'home'"
+                        label="访问密码"
+                    >
                         <div class="flex items-center gap-2">
                             <a-tag
                                 v-if="linkData?.password"
@@ -378,7 +380,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, watchEffect } from "vue";
 import { Message } from "@arco-design/web-vue";
 import {
     IconLink,
@@ -462,6 +464,18 @@ const {
     apiService.value,
     isNew,
 );
+
+const expiration = ref({});
+watch(expiration, (value) => {
+    console.log(JSON.stringify(value));
+    Object.keys(value).forEach((key) => {
+        if (key === "expirationMode") {
+            expirationMode.value = value[key];
+        } else {
+            formData[key] = value[key];
+        }
+    });
+});
 
 // 表单引用
 const formRef = ref(null);
