@@ -1,6 +1,6 @@
 import * as authController from "../controllers/auth";
 import { authenticate } from "../middlewares/auth";
-import * as authService from "../../service/auth";
+import * as authService from "../services/auth";
 
 /**
  * Debug 路由组 - 用于调试和检查用户状态

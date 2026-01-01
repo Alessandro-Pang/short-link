@@ -1,4 +1,4 @@
-import * as authService from "../../service/auth";
+import * as authService from "../services/auth";
 
 /**
  * 获取用户绑定的身份列表

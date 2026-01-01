@@ -7,9 +7,9 @@
  * @FilePath: /short-link/api/controllers/admin
  */
 
-import * as dashboardService from "../../service/dashboard";
-import * as userManagementService from "../../service/user-management";
-import * as loginLogService from "../../service/login-log";
+import * as dashboardService from "../services/dashboard";
+import * as userManagementService from "../services/user";
+import * as loginLogService from "../services/log";
 import {
   validateUpdateLinkParams,
   validateBatchIds,

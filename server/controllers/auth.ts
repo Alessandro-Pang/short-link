@@ -1,5 +1,5 @@
-import * as authService from "../../service/auth";
-import * as loginLogService from "../../service/login-log";
+import * as authService from "../services/auth";
+import * as loginLogService from "../services/log";
 import { getClientIp } from "../middlewares/utils";
 import dayjs from "dayjs";
 

@@ -7,7 +7,7 @@
  * @FilePath: /short-link/api/middlewares/auth
  */
 
-import * as authService from "../../service/auth";
+import * as authService from "../services/auth";
 import cache, { CACHE_KEYS, buildCacheKey } from "../utils/cache";
 import { CACHE_CONFIG } from "../config/index";
 import { AuthenticationError, AuthorizationError } from "./errorHandler";

@@ -1,5 +1,5 @@
-import * as linkService from "../../service/link";
-import * as dashboardService from "../../service/dashboard";
+import * as linkService from "../services/link";
+import * as dashboardService from "../services/dashboard";
 import { getClientIp } from "../middlewares/utils";
 import { generateErrorPageHtml } from "../utils/security";
 import {

@@ -6,9 +6,9 @@
  * @Description: 登录日志服务 - 优化版（使用数据库聚合查询）
  * @FilePath: /short-link/service/login-log
  */
-import supabase from "./db";
+import supabase from "../database/client";
 import dayjs from "dayjs";
-import type { LoginLogQueryOptions } from "../server/types/index";
+import type { LoginLogQueryOptions } from "../types/index";
 import type { LoginLog, LoginLogInsert } from "../types/database.schema.types";
 
 /**

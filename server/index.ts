@@ -14,7 +14,7 @@ import * as linkController from "./controllers/link";
 import apiRoutes from "./routes/api";
 import dashboardRoutes from "./routes/dashboard";
 import adminRoutes from "./routes/admin";
-import { checkHealth } from "../service/db";
+import { checkHealth } from "./database/client";
 import { CORS_CONFIG, RATE_LIMIT_CONFIG, ENV } from "./config/index";
 import { registerErrorHandlers } from "./middlewares/errorHandler";
 import swagger from "@fastify/swagger";

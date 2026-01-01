@@ -6,13 +6,13 @@
  * @Description: Dashboard 数据服务 - 优化版（使用数据库聚合查询）
  * @FilePath: /short-link/service/dashboard
  */
-import supabase from "./db";
+import supabase from "../database/client";
 import dayjs, { Dayjs } from "dayjs";
 import type {
   LinkQueryOptions,
   QueryOptions,
   LinkAccessStatsOptions,
-} from "../server/types/index";
+} from "../types/index";
 import type {
   Link,
   LinkAccessLog,
