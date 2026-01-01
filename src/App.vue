@@ -8,8 +8,8 @@
 import { onMounted, onUnmounted } from "vue";
 import { Message } from "@arco-design/web-vue";
 import { useRouter } from "vue-router";
-import { recordLoginAttempt, onAuthStateChange } from "@/services/auth.js";
-import { supabase } from "@/services/supabase.js";
+import { recordLoginAttempt, onAuthStateChange } from "@/services/auth";
+import { supabase } from "@/services/supabase";
 
 const router = useRouter();
 

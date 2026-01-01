@@ -4,12 +4,12 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 登录日志服务 - 优化版（使用数据库聚合查询）
- * @FilePath: /short-link/service/login-log.js
+ * @FilePath: /short-link/service/login-log
  */
-import supabase from "./db.js";
+import supabase from "./db";
 import dayjs from "dayjs";
-import type { LoginLogQueryOptions } from "../server/types/index.js";
-import type { LoginLog, LoginLogInsert } from "../types/db.js";
+import type { LoginLogQueryOptions } from "../server/types/index";
+import type { LoginLog, LoginLogInsert } from "../types/database.schema.types";
 
 /**
  * 记录登录日志

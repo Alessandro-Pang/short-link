@@ -4,12 +4,12 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-01-01 00:00:00
  * @Description: Admin 控制器 - 管理员专用接口（统一响应格式）
- * @FilePath: /short-link/api/controllers/admin.js
+ * @FilePath: /short-link/api/controllers/admin
  */
 
-import * as dashboardService from "../../service/dashboard.js";
-import * as userManagementService from "../../service/user-management.js";
-import * as loginLogService from "../../service/login-log.js";
+import * as dashboardService from "../../service/dashboard";
+import * as userManagementService from "../../service/user-management";
+import * as loginLogService from "../../service/login-log";
 import {
   validateUpdateLinkParams,
   validateBatchIds,
@@ -17,14 +17,14 @@ import {
   validatePagination,
   validateEmail,
   validatePassword,
-} from "../utils/validation.js";
+} from "../utils/validation";
 import {
   success,
   badRequest,
   notFound,
   serverError,
   validationError,
-} from "../utils/response.js";
+} from "../utils/response";
 
 /**
  * 获取系统统计信息
@@ -534,7 +534,7 @@ export async function getAccessLogs(request, reply) {
     }
 
     // 构建查询
-    let query = (await import("../../service/db.js")).default
+    let query = (await import("../../service/db")).default
       .from("link_access_logs")
       .select("*", { count: "exact" })
       .order("accessed_at", { ascending: false })

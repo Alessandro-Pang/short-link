@@ -3,7 +3,7 @@
  * 所有请求都通过 Fastify 后端 API
  */
 
-import { fetchApi, buildUrl, ApiError } from "./request.js";
+import { fetchApi, buildUrl, ApiError } from "./request";
 
 // 导出 ApiError 供外部使用
 export { ApiError };

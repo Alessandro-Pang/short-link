@@ -4,10 +4,10 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 输入验证模块 - 统一的验证逻辑（增强版）
- * @FilePath: /short-link/api/utils/validation.js
+ * @FilePath: /short-link/api/utils/validation
  */
 
-import type { UrlValidationOptions } from "../types/index.js";
+import type { UrlValidationOptions } from "../types/index";
 
 /**
  * 验证配置常量

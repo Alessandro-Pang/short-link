@@ -289,7 +289,7 @@ import {
     deleteAccount,
     formatIdentities,
     handleOAuthLinkCallback,
-} from "../../services/account.js";
+} from "../../services/account";
 
 export default {
     name: "AccountBindings",

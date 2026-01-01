@@ -3,7 +3,7 @@
  * 提供公共的 fetchApi 函数，供各个 API 服务模块使用
  */
 
-import { getSession } from "./auth.js";
+import { getSession } from "./auth";
 
 /**
  * 错误码映射

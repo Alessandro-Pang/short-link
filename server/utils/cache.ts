@@ -4,10 +4,10 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 简单的内存缓存模块
- * @FilePath: /short-link/api/utils/cache.js
+ * @FilePath: /short-link/api/utils/cache
  */
 
-import type { CacheOptions } from "../types/index.js";
+import type { CacheOptions } from "../types/index";
 
 /**
  * 缓存项结构

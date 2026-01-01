@@ -14,8 +14,8 @@ import {
   getLinkAccessLogs,
   batchDeleteLinks,
   batchToggleLinks,
-} from "./api.js";
-import { fetchApi } from "./request.js";
+} from "./api";
+import { fetchApi } from "./request";
 
 /**
  * 获取用户的链接统计数据

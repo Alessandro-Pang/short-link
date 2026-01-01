@@ -160,7 +160,7 @@ function checkOAuthError() {
             const email =
                 urlParams.get("email") || sessionStorage.getItem("oauth_email");
             if (email) {
-                import("@/services/auth.js").then(({ recordLoginAttempt }) => {
+                import("@/services/auth").then(({ recordLoginAttempt }) => {
                     recordLoginAttempt(email, false, "用户已被禁用", "oauth");
                 });
             }

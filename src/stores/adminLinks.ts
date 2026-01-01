@@ -10,7 +10,7 @@ import {
   deleteLink,
   batchDeleteLinks,
   batchToggleLinks,
-} from "@/services/admin.js";
+} from "@/services/admin";
 
 export const useAdminLinksStore = defineStore("adminLinks", () => {
   // ==================== State ====================
@@ -122,7 +122,7 @@ export const useAdminLinksStore = defineStore("adminLinks", () => {
 
       // 从选中列表中移除
       selectedLinkIds.value = selectedLinkIds.value.filter(
-        (id) => id !== linkId
+        (id) => id !== linkId,
       );
 
       return true;

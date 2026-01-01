@@ -152,8 +152,8 @@ import { useRouter } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import { IconLock, IconLeft } from "@arco-design/web-vue/es/icon";
 import { supabase } from "@/services/supabase";
-import { updatePassword } from "@/services/auth.js";
-import { makePasswordRules } from "@/utils/validator.js";
+import { updatePassword } from "@/services/auth";
+import { makePasswordRules } from "@/utils/validator";
 
 const router = useRouter();
 const isLoading = ref(false);

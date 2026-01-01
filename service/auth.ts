@@ -4,10 +4,10 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-01-01 00:00:00
  * @Description: 认证服务 - Supabase Auth 验证（使用配置常量）
- * @FilePath: /short-link/service/auth.js
+ * @FilePath: /short-link/service/auth
  */
-import supabase from "./db.js";
-import { USER_CONFIG } from "../server/config/index.js";
+import supabase from "./db";
+import { USER_CONFIG } from "../server/config/index";
 
 /**
  * 验证 Supabase JWT Token

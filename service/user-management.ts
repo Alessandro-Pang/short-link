@@ -4,13 +4,13 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-01-01 00:00:00
  * @Description: 用户管理服务（管理员专用）
- * @FilePath: /short-link/service/user-management.js
+ * @FilePath: /short-link/service/user-management
  */
-import supabase from "./db.js";
-import cache, { CACHE_KEYS, buildCacheKey } from "../server/utils/cache.js";
-import { USER_CONFIG } from "../server/config/index.js";
-import type { UserListOptions, UserUpdateData } from "../server/types/index.js";
-import type { UserProfile } from "../types/db.js";
+import supabase from "./db";
+import cache, { CACHE_KEYS, buildCacheKey } from "../server/utils/cache";
+import { USER_CONFIG } from "../server/config/index";
+import type { UserListOptions, UserUpdateData } from "../server/types/index";
+import type { UserProfile } from "../types/database.schema.types";
 
 /**
  * 清除用户相关缓存

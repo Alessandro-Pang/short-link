@@ -4,15 +4,15 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 统一的错误处理中间件
- * @FilePath: /short-link/api/middlewares/errorHandler.js
+ * @FilePath: /short-link/api/middlewares/errorHandler
  */
 
-import { ENV } from "../config/index.js";
+import { ENV } from "../config/index";
 import type {
   FastifyRequest,
   FastifyReply,
   ErrorResponse,
-} from "../types/index.js";
+} from "../types/index";
 
 /**
  * 判断是否为开发环境

@@ -595,8 +595,8 @@ import {
 } from "@arco-design/web-vue/es/icon";
 import { Message } from "@arco-design/web-vue";
 import QRCode from "qrcode";
-import { addUrl, REDIRECT_TYPE_OPTIONS } from "@/services/api.js";
-import { validateUrl } from "@/utils/validator.js";
+import { addUrl, REDIRECT_TYPE_OPTIONS } from "@/services/api";
+import { validateUrl } from "@/utils/validator";
 import LinkConfigForm from "@/components/LinkConfigForm.vue";
 import { useUserStore } from "@/stores";
 

@@ -4,19 +4,19 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 认证中间件 - 重构版，合并重复代码并添加缓存支持
- * @FilePath: /short-link/api/middlewares/auth.js
+ * @FilePath: /short-link/api/middlewares/auth
  */
 
-import * as authService from "../../service/auth.js";
-import cache, { CACHE_KEYS, buildCacheKey } from "../utils/cache.js";
-import { CACHE_CONFIG } from "../config/index.js";
-import { AuthenticationError, AuthorizationError } from "./errorHandler.js";
+import * as authService from "../../service/auth";
+import cache, { CACHE_KEYS, buildCacheKey } from "../utils/cache";
+import { CACHE_CONFIG } from "../config/index";
+import { AuthenticationError, AuthorizationError } from "./errorHandler";
 import type {
   FastifyRequest,
   FastifyReply,
   AuthenticatedRequest,
   AuthMiddlewareOptions,
-} from "../types/index.js";
+} from "../types/index";
 
 /**
  * 从请求头中提取 Bearer Token

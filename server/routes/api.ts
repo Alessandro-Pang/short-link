@@ -4,13 +4,13 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: API 路由组 - 公开接口
- * @FilePath: /short-link/api/routes/api.js
+ * @FilePath: /short-link/api/routes/api
  */
 
-import * as authController from "../controllers/auth.js";
-import * as linkController from "../controllers/link.js";
-import { optionalAuthenticate } from "../middlewares/auth.js";
-import { RATE_LIMIT_CONFIG } from "../config/index.js";
+import * as authController from "../controllers/auth";
+import * as linkController from "../controllers/link";
+import { optionalAuthenticate } from "../middlewares/auth";
+import { RATE_LIMIT_CONFIG } from "../config/index";
 
 /**
  * API 路由组 - 公开接口
@@ -66,5 +66,5 @@ export default async function apiRoutes(fastify) {
     authController.logLoginAttempt,
   );
 
-  // 健康检查已移至 index.js 的根路径 /health，包含真实的数据库连接检查
+  // 健康检查已移至 index 的根路径 /health，包含真实的数据库连接检查
 }

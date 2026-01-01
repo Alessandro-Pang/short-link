@@ -12,7 +12,7 @@ import {
     IconComputer,
     IconLocation,
 } from "@arco-design/web-vue/es/icon";
-import { getAllLoginLogs, getLoginStats } from "@/services/admin.js";
+import { getAllLoginLogs, getLoginStats } from "@/services/admin";
 
 // State
 const isLoading = ref(false);

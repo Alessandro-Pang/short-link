@@ -304,7 +304,7 @@ export function onAuthStateChange(callback) {
             },
           });
 
-          const result = await response.json();
+          const result = await responseon();
 
           if (response.ok && result.code === 200) {
             const userData = result.data;

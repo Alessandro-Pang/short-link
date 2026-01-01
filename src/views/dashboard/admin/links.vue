@@ -21,7 +21,7 @@ import {
     deleteLink,
     batchDeleteLinks,
     batchToggleLinks,
-} from "@/services/admin.js";
+} from "@/services/admin";
 import BaseLinkEditDrawer from "@/components/BaseLinkEditDrawer.vue";
 
 const router = useRouter();

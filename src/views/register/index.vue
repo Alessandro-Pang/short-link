@@ -164,7 +164,7 @@ import {
     IconLeft,
 } from "@arco-design/web-vue/es/icon";
 import { useUserStore } from "@/stores";
-import { makePasswordRules } from "@/utils/validator.js";
+import { makePasswordRules } from "@/utils/validator";
 import AuthLayout from "@/components/AuthLayout.vue";
 import SocialAuthButtons from "@/components/base/SocialAuthButtons.vue";
 

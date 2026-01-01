@@ -4,19 +4,19 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: Fastify 后端 API - 重构版
- * @FilePath: /short-link/api/index.js
+ * @FilePath: /short-link/api/index
  */
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import dayjs from "dayjs";
-import * as linkController from "./controllers/link.js";
-import apiRoutes from "./routes/api.js";
-import dashboardRoutes from "./routes/dashboard.js";
-import adminRoutes from "./routes/admin.js";
-import { checkHealth } from "../service/db.js";
-import { CORS_CONFIG, RATE_LIMIT_CONFIG, ENV } from "./config/index.js";
-import { registerErrorHandlers } from "./middlewares/errorHandler.js";
+import * as linkController from "./controllers/link";
+import apiRoutes from "./routes/api";
+import dashboardRoutes from "./routes/dashboard";
+import adminRoutes from "./routes/admin";
+import { checkHealth } from "../service/db";
+import { CORS_CONFIG, RATE_LIMIT_CONFIG, ENV } from "./config/index";
+import { registerErrorHandlers } from "./middlewares/errorHandler";
 import swagger from "@fastify/swagger";
 import swaggerUI from "@fastify/swagger-ui";
 

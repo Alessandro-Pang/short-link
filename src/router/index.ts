@@ -4,10 +4,10 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-27 20:00:00
  * @Description: 路由配置和认证守卫
- * @FilePath: /short-link/src/router/index.js
+ * @FilePath: /short-link/src/router/index
  */
 import { createRouter, createWebHistory } from "vue-router";
-import { getSession } from "@/services/auth.js";
+import { getSession } from "@/services/auth";
 
 import DashboardPage from "@/views/dashboard/index.vue";
 import HomePage from "@/views/home/index.vue";

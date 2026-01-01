@@ -22,7 +22,7 @@ import {
     resetUserPassword,
     toggleUserStatus,
     updateUser,
-} from "@/services/admin.js";
+} from "@/services/admin";
 
 // State
 const isLoading = ref(false);

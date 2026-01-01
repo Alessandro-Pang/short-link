@@ -11,7 +11,7 @@
     "dev": "concurrently -n \"VUE,FASTIFY\" -c \"bgBlue.bold,bgGreen.bold\" \"npm run dev:web\" \"npm run dev:api\"",
     "dev:api": "cross-env NODE_ENV=development nodemon --exec 'tsx --env-file=.env.development.local' api/index.ts",
     "dev:web": "vite --mode development --host",
-    "db:gen-types": "supabase gen types typescript --linked > types/database.types.d.ts",
+    "db:gen-types": "supabase gen types typescript --linked > types/database.types.ts",
     "db:dump": "supabase db dump --linked > supabase/seed.sql",
     "build": "vite build",
     "preview": "vite preview",

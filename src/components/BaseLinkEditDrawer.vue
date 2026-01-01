@@ -24,7 +24,10 @@
                 </a-alert>
 
                 <!-- 链接所有者信息（仅管理员模式显示） -->
-                <a-form-item v-if="mode === 'admin' && !isNew" label="链接所有者">
+                <a-form-item
+                    v-if="mode === 'admin' && !isNew"
+                    label="链接所有者"
+                >
                     <div class="flex items-center gap-2">
                         <a-tag
                             v-if="linkData?.user_id"
@@ -50,11 +53,7 @@
                 <!-- 基础信息 -->
                 <FormSection title="基础信息">
                     <!-- 原始链接（仅新建时可编辑） -->
-                    <a-form-item
-                        v-if="isNew"
-                        label="原始链接"
-                        field="link"
-                    >
+                    <a-form-item v-if="isNew" label="原始链接" field="link">
                         <a-input
                             v-model="formData.link"
                             placeholder="请输入要缩短的链接"
@@ -76,7 +75,10 @@
                     </a-form-item>
 
                     <!-- 短链接（仅编辑模式且管理员模式显示） -->
-                    <a-form-item v-if="!isNew && mode === 'admin'" label="短链接">
+                    <a-form-item
+                        v-if="!isNew && mode === 'admin'"
+                        label="短链接"
+                    >
                         <div class="flex items-center gap-2">
                             <a-link
                                 :href="`${origin}/u/${linkData?.short}`"
@@ -144,13 +146,17 @@
                 <FormSection v-if="!isNew && mode === 'admin'" title="统计信息">
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-gray-50 p-4 rounded-lg">
-                            <div class="text-gray-400 text-xs mb-1">点击次数</div>
+                            <div class="text-gray-400 text-xs mb-1">
+                                点击次数
+                            </div>
                             <div class="text-xl font-bold text-gray-800">
                                 {{ linkData?.click_count || 0 }}
                             </div>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
-                            <div class="text-gray-400 text-xs mb-1">创建时间</div>
+                            <div class="text-gray-400 text-xs mb-1">
+                                创建时间
+                            </div>
                             <div class="text-sm text-gray-800">
                                 {{ formatDate(linkData?.created_at) }}
                             </div>
@@ -274,7 +280,9 @@
                             <span class="text-gray-500">当前过期时间：</span>
                             <span
                                 :class="
-                                    isExpired ? 'text-red-500' : 'text-green-600'
+                                    isExpired
+                                        ? 'text-red-500'
+                                        : 'text-green-600'
                                 "
                             >
                                 {{ formatDate(formData.expiration_date) }}
@@ -360,8 +368,8 @@
                         />
                         <template #extra>
                             <span class="text-xs text-gray-400">
-                                例如: 192.168.1.1 或 192.168.1.0/24，设置后只有这些
-                                IP 可以访问
+                                例如: 192.168.1.1 或
+                                192.168.1.0/24，设置后只有这些 IP 可以访问
                             </span>
                         </template>
                     </a-form-item>
@@ -490,9 +498,9 @@ import {
     IconComputer,
     IconDelete,
 } from "@arco-design/web-vue/es/icon";
-import { REDIRECT_TYPE_OPTIONS } from "@/services/api.js";
-import * as userApi from "@/services/api.js";
-import * as adminApi from "@/services/admin.js";
+import { REDIRECT_TYPE_OPTIONS } from "@/services/api";
+import * as userApi from "@/services/api";
+import * as adminApi from "@/services/admin";
 import { useLinkForm } from "@/composables/useLinkForm";
 import FormSection from "@/components/base/FormSection.vue";
 import SwitchRow from "@/components/base/SwitchRow.vue";
@@ -531,7 +539,9 @@ const drawerTitle = computed(() => {
 });
 
 // 根据模式选择 API
-const apiService = computed(() => (props.mode === "admin" ? adminApi : userApi));
+const apiService = computed(() =>
+    props.mode === "admin" ? adminApi : userApi,
+);
 
 // 使用 composable
 const {

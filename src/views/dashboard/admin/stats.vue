@@ -232,7 +232,7 @@ import {
     getGlobalStats,
     getAllLinks,
     getGlobalTopLinks,
-} from "@/services/admin.js";
+} from "@/services/admin";
 import TopLinksRanking from "@/components/TopLinksRanking.vue";
 
 const router = useRouter();

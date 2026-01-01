@@ -599,7 +599,7 @@ import {
     unlinkIdentity,
     deleteAccount,
     formatIdentities,
-} from "@/services/account.js";
+} from "@/services/account";
 
 const router = useRouter();
 const userStore = useUserStore();

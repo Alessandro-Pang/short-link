@@ -4,16 +4,20 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: Dashboard 数据服务 - 优化版（使用数据库聚合查询）
- * @FilePath: /short-link/service/dashboard.js
+ * @FilePath: /short-link/service/dashboard
  */
-import supabase from "./db.js";
+import supabase from "./db";
 import dayjs, { Dayjs } from "dayjs";
 import type {
   LinkQueryOptions,
   QueryOptions,
   LinkAccessStatsOptions,
-} from "../server/types/index.js";
-import type { Link, LinkAccessLog, UserLinkStats } from "../types/db.js";
+} from "../server/types/index";
+import type {
+  Link,
+  LinkAccessLog,
+  UserLinkStats,
+} from "../types/database.schema.types";
 
 /**
  * 获取用户统计数据（使用数据库聚合查询优化）
@@ -916,7 +920,7 @@ export async function getTopLinks(
   limit: number = 20,
 ) {
   try {
-    if (userId) {
+    if (!userId) {
       console.error("查询排行榜失败:", "没有查询到用户 ID");
       throw new Error("没有查询到用户 ID");
     }

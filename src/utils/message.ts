@@ -3,7 +3,7 @@
  * 使用 Arco Design 的 Message 统一全局提示能力
  *
  * 注意：
- * - 该工具只依赖 Arco 的 Message，不再依赖 autolog.js 或 window 对象
+ * - 该工具只依赖 Arco 的 Message，不再依赖 autolog 或 window 对象
  * - type 入参兼容历史的 "warn" 写法，并映射到 Arco 的 "warning"
  */
 

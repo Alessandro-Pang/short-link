@@ -4,12 +4,12 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: Admin 路由组 - 需要管理员权限
- * @FilePath: /short-link/api/routes/admin.js
+ * @FilePath: /short-link/api/routes/admin
  */
 
-import * as adminController from "../controllers/admin.js";
-import { authenticateAdmin } from "../middlewares/auth.js";
-import { RATE_LIMIT_CONFIG } from "../config/index.js";
+import * as adminController from "../controllers/admin";
+import { authenticateAdmin } from "../middlewares/auth";
+import { RATE_LIMIT_CONFIG } from "../config/index";
 
 /**
  * Admin 路由组 - 需要管理员权限

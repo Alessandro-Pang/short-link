@@ -4,7 +4,7 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 统一的响应工具模块
- * @FilePath: /short-link/api/utils/response.js
+ * @FilePath: /short-link/api/utils/response
  */
 
 import type {
@@ -13,7 +13,7 @@ import type {
   ErrorResponse,
   ServiceResult,
   HandleServiceResultOptions,
-} from "../types/index.js";
+} from "../types/index";
 
 /**
  * 成功响应

@@ -1,6 +1,6 @@
 /*
  * @Description: 链接状态管理
- * @FilePath: /short-link/src/stores/links.js
+ * @FilePath: /short-link/src/stores/links
  */
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
@@ -18,7 +18,7 @@ import {
   formatLinkStatus,
   hasAdvancedConfig,
   getConfigSummary,
-} from "@/services/dashboard.js";
+} from "@/services/dashboard";
 
 interface fetchLinkOptions {
   limit: number;

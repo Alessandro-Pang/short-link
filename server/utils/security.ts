@@ -4,7 +4,7 @@
  * @LastEditors: zi.yang
  * @LastEditTime: 2025-12-29 00:00:00
  * @Description: 安全工具函数模块
- * @FilePath: /short-link/api/utils/security.js
+ * @FilePath: /short-link/api/utils/security
  */
 import { randomBytes } from "node:crypto";
 

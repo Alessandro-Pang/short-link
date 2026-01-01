@@ -133,7 +133,7 @@ import {
     IconLock,
     IconCheckCircleFill,
 } from "@arco-design/web-vue/es/icon";
-import { resetPassword } from "@/services/auth.js";
+import { resetPassword } from "@/services/auth";
 
 const router = useRouter();
 const route = useRoute();

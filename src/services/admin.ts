@@ -3,7 +3,7 @@
  * 所有管理员专用接口
  */
 
-import { fetchApi, buildUrl, ApiError } from "./request.js";
+import { fetchApi, buildUrl, ApiError } from "./request";
 
 // 导出 ApiError 供外部使用
 export { ApiError };

@@ -25,8 +25,8 @@ import {
   signUpWithEmail,
   updateUserProfile as authUpdateUserProfile,
   onAuthStateChange,
-} from "@/services/auth.js";
-import { getCurrentUserWithAdminStatus } from "@/services/admin.js";
+} from "@/services/auth";
+import { getCurrentUserWithAdminStatus } from "@/services/admin";
 
 export const useUserStore = defineStore("user", () => {
   // ==================== State ====================

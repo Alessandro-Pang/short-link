@@ -2,10 +2,10 @@
  * @Author: zi.yang
  * @Date: 2025-12-28
  * @Description: 账号绑定管理服务
- * @FilePath: /short-link/src/services/account.js
+ * @FilePath: /short-link/src/services/account
  */
-import { fetchApi } from "./request.js";
-import { supabase } from "./supabase.js";
+import { fetchApi } from "./request";
+import { supabase } from "./supabase";
 
 /**
  * 获取当前用户的所有身份绑定

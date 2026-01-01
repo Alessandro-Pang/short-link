@@ -278,7 +278,7 @@ import {
     IconDesktop,
     IconComputer,
 } from "@arco-design/web-vue/es/icon";
-import { getExpirationOptions, REDIRECT_TYPE_OPTIONS } from "@/services/api.js";
+import { getExpirationOptions, REDIRECT_TYPE_OPTIONS } from "@/services/api";
 
 const props = defineProps({
     modelValue: {

@@ -1,6 +1,6 @@
-import * as authController from "../controllers/auth.js";
-import { authenticate } from "../middlewares/auth.js";
-import * as authService from "../../service/auth.js";
+import * as authController from "../controllers/auth";
+import { authenticate } from "../middlewares/auth";
+import * as authService from "../../service/auth";
 
 /**
  * Debug 路由组 - 用于调试和检查用户状态
