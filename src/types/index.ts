@@ -22,7 +22,7 @@ export interface AuthUser extends User {
 }
 
 // 短链接相关类型（使用 database.types.d.ts 中的类型）
-import type { Link as DbLink } from "../../types/db";
+import type { Link as DbLink } from "../../types/database.schema.types";
 
 export type Link = DbLink;
 
@@ -68,7 +68,7 @@ export interface ClickLog {
 }
 
 // 登录日志类型（使用 database.types.d.ts 中的类型）
-import type { LoginLog as DbLoginLog } from "../../types/db";
+import type { LoginLog as DbLoginLog } from "../../types/database.schema.types";
 
 export type LoginLog = DbLoginLog;
 

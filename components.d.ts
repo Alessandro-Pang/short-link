@@ -53,6 +53,7 @@ declare module 'vue' {
     ATag: typeof import('@arco-design/web-vue')['Tag']
     ATextarea: typeof import('@arco-design/web-vue')['Textarea']
     ATooltip: typeof import('@arco-design/web-vue')['Tooltip']
+    ATypographyText: typeof import('@arco-design/web-vue')['TypographyText']
     AuthLayout: typeof import('./src/components/AuthLayout.vue')['default']
     BaseLinkEditDrawer: typeof import('./src/components/BaseLinkEditDrawer.vue')['default']
     BrandingSection: typeof import('./src/components/base/BrandingSection.vue')['default']
