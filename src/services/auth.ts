@@ -274,8 +274,6 @@ export async function getSession() {
  */
 export function onAuthStateChange(callback) {
   return supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log("Auth state changed:", event, session?.user?.email);
-
     // 只在真正的登录事件时处理
     // SIGNED_IN: 用户刚刚登录（包括 OAuth 回调）
     if (event === "SIGNED_IN" && session?.user) {
@@ -304,7 +302,7 @@ export function onAuthStateChange(callback) {
             },
           });
 
-          const result = await responseon();
+          const result = await response.json();
 
           if (response.ok && result.code === 200) {
             const userData = result.data;

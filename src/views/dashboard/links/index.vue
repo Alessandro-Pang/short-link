@@ -11,10 +11,12 @@ import {
     IconSearch,
     IconCheck,
     IconClose,
+    IconLock,
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
 import { useLinksStore } from "@/stores";
-import BaseLinkEditDrawer from "@/components/BaseLinkEditDrawer.vue";
+import { updateLinkPassword } from "@/services/api";
+import UnifiedLinkConfigDrawer from "@/components/UnifiedLinkConfigDrawer.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -30,6 +32,12 @@ const currentQrUrl = ref("");
 const qrcodeCanvas = ref(null);
 const editDrawerVisible = ref(false);
 const editingLinkId = ref(null);
+const passwordModalVisible = ref(false);
+const passwordFormData = ref({
+    linkId: null,
+    password: "",
+});
+const isPasswordSubmitting = ref(false);
 
 // Computed from store
 const isLoading = computed(() => linksStore.isLoading);
@@ -199,6 +207,47 @@ const handleEditSuccess = () => {
 
 const handleEditDelete = () => {
     loadData();
+};
+
+// 密码管理
+const openPasswordModal = (record) => {
+    passwordFormData.value = {
+        linkId: record.id,
+        password: "",
+    };
+    passwordModalVisible.value = true;
+};
+
+const handlePasswordSubmit = async () => {
+    if (!passwordFormData.value.password) {
+        Message.warning("请输入新密码");
+        return;
+    }
+
+    isPasswordSubmitting.value = true;
+    try {
+        await updateLinkPassword(
+            passwordFormData.value.linkId,
+            passwordFormData.value.password,
+        );
+        Message.success("密码修改成功");
+        passwordModalVisible.value = false;
+        loadData();
+    } catch (error) {
+        Message.error(error.message || "修改密码失败");
+    } finally {
+        isPasswordSubmitting.value = false;
+    }
+};
+
+const handlePasswordDelete = async (linkId) => {
+    try {
+        await updateLinkPassword(linkId, null);
+        Message.success("密码已删除");
+        loadData();
+    } catch (error) {
+        Message.error(error.message || "删除密码失败");
+    }
 };
 
 // 清空选择
@@ -420,9 +469,22 @@ defineExpose({
                                     </div>
                                     <!-- 配置标签 -->
                                     <div
-                                        v-if="hasAdvancedConfig(record)"
+                                        v-if="
+                                            hasAdvancedConfig(record) ||
+                                            record.password
+                                        "
                                         class="flex flex-wrap gap-1 mt-2"
                                     >
+                                        <a-tag
+                                            v-if="record.password"
+                                            size="small"
+                                            color="orange"
+                                        >
+                                            <template #icon
+                                                ><icon-lock
+                                            /></template>
+                                            密码保护
+                                        </a-tag>
                                         <a-tag
                                             v-if="
                                                 record.redirect_type &&
@@ -540,7 +602,7 @@ defineExpose({
                         </a-table-column>
                         <a-table-column
                             title="操作"
-                            :width="140"
+                            :width="180"
                             align="center"
                         >
                             <template #cell="{ record }">
@@ -558,6 +620,60 @@ defineExpose({
                                             /></template>
                                         </a-button>
                                     </a-tooltip>
+
+                                    <!-- 密码管理按钮 -->
+                                    <a-dropdown v-if="record.password">
+                                        <a-tooltip content="密码管理">
+                                            <a-button
+                                                size="small"
+                                                shape="circle"
+                                                class="hover:bg-orange-50"
+                                            >
+                                                <template #icon
+                                                    ><icon-lock
+                                                        class="text-orange-500"
+                                                /></template>
+                                            </a-button>
+                                        </a-tooltip>
+                                        <template #content>
+                                            <a-doption
+                                                @click="
+                                                    openPasswordModal(record)
+                                                "
+                                            >
+                                                <template #icon
+                                                    ><icon-edit
+                                                /></template>
+                                                修改密码
+                                            </a-doption>
+                                            <a-doption
+                                                @click="
+                                                    handlePasswordDelete(
+                                                        record.id,
+                                                    )
+                                                "
+                                            >
+                                                <template #icon
+                                                    ><icon-delete
+                                                /></template>
+                                                删除密码
+                                            </a-doption>
+                                        </template>
+                                    </a-dropdown>
+                                    <a-tooltip v-else content="设置密码">
+                                        <a-button
+                                            size="small"
+                                            shape="circle"
+                                            class="hover:bg-gray-100"
+                                            @click="openPasswordModal(record)"
+                                        >
+                                            <template #icon
+                                                ><icon-lock
+                                                    class="text-gray-400"
+                                            /></template>
+                                        </a-button>
+                                    </a-tooltip>
+
                                     <a-tooltip content="编辑">
                                         <a-button
                                             size="small"
@@ -650,8 +766,51 @@ defineExpose({
             </div>
         </a-modal>
 
+        <!-- 密码管理 Modal -->
+        <a-modal
+            v-model:visible="passwordModalVisible"
+            title="修改访问密码"
+            :width="400"
+            @ok="handlePasswordSubmit"
+            @cancel="passwordModalVisible = false"
+        >
+            <a-form layout="vertical">
+                <a-form-item label="新密码" required>
+                    <a-input-password
+                        v-model="passwordFormData.password"
+                        placeholder="请输入新密码"
+                        :max-length="50"
+                        allow-clear
+                    >
+                        <template #prefix>
+                            <icon-lock />
+                        </template>
+                    </a-input-password>
+                    <template #extra>
+                        <span class="text-xs text-gray-400">
+                            设置后访问短链接需要输入此密码
+                        </span>
+                    </template>
+                </a-form-item>
+            </a-form>
+            <template #footer>
+                <a-space>
+                    <a-button @click="passwordModalVisible = false"
+                        >取消</a-button
+                    >
+                    <a-button
+                        type="primary"
+                        :loading="isPasswordSubmitting"
+                        @click="handlePasswordSubmit"
+                    >
+                        确定
+                    </a-button>
+                </a-space>
+            </template>
+        </a-modal>
+
         <!-- Link Edit Drawer -->
-        <BaseLinkEditDrawer
+        <UnifiedLinkConfigDrawer
             v-model:visible="editDrawerVisible"
             :link-id="editingLinkId"
             mode="user"

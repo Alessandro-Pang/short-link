@@ -140,6 +140,19 @@ export async function batchToggleLinks(linkIds, isActive) {
 }
 
 /**
+ * 更新链接密码（管理员专用）
+ * @param {number} linkId - 链接 ID
+ * @param {string|null} password - 新密码，null 表示删除密码
+ * @returns {Promise} - 返回操作结果
+ */
+export async function updateLinkPassword(linkId, password) {
+  return fetchApi(`/api/admin/links/${linkId}`, {
+    method: "PUT",
+    body: { password },
+  });
+}
+
+/**
  * 获取所有用户列表（管理员专用）
  * @param {Object} options - 查询选项
  * @returns {Promise} - 返回用户列表

@@ -6,7 +6,7 @@
  * @Description: 安全工具函数模块
  * @FilePath: /short-link/api/utils/security
  */
-import { randomBytes } from "node:crypto";
+import { randomBytes, createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -127,6 +127,36 @@ export function hasSqlInjectionPattern(input) {
 let errorPageTemplate: string | null = null;
 
 /**
+ * 读取并缓存密码验证页面模板
+ */
+let passwordPageTemplate: string | null = null;
+
+/**
+ * MD5 加密密码
+ * @param {string} password - 原始密码
+ * @returns {string} MD5 哈希值
+ */
+export function hashPassword(password: string): string {
+  if (!password || typeof password !== "string") {
+    throw new Error("密码不能为空");
+  }
+  return createHash("md5").update(password).digest("hex");
+}
+
+/**
+ * 验证密码
+ * @param {string} password - 原始密码
+ * @param {string} hash - MD5 哈希值
+ * @returns {boolean} 是否匹配
+ */
+export function verifyPassword(password: string, hash: string): boolean {
+  if (!password || !hash) {
+    return false;
+  }
+  return hashPassword(password) === hash;
+}
+
+/**
  * 获取错误页面模板
  * @returns {string} HTML 模板内容
  */
@@ -136,6 +166,18 @@ function getErrorPageTemplate(): string {
     errorPageTemplate = readFileSync(templatePath, "utf-8");
   }
   return errorPageTemplate;
+}
+
+/**
+ * 获取密码验证页面模板
+ * @returns {string} HTML 模板内容
+ */
+function getPasswordPageTemplate(): string {
+  if (!passwordPageTemplate) {
+    const templatePath = join(__dirname, "../../templates/password.html");
+    passwordPageTemplate = readFileSync(templatePath, "utf-8");
+  }
+  return passwordPageTemplate;
 }
 
 /**
@@ -160,4 +202,21 @@ export function generateErrorPageHtml(
     .replace(/\{\{title\}\}/g, safeTitle)
     .replace(/\{\{message\}\}/g, safeMessage)
     .replace(/\{\{homeUrl\}\}/g, safeHomeUrl);
+}
+
+/**
+ * 生成密码验证页面 HTML（已转义）
+ * @param {string} shortCode - 短链接代码
+ * @param {string} errorMessage - 错误消息（可选）
+ * @returns {string} 安全的 HTML 字符串
+ */
+export function generatePasswordPageHtml(shortCode: string, errorMessage = "") {
+  const safeShortCode = escapeHtml(shortCode);
+  const safeErrorMessage = escapeHtml(errorMessage);
+
+  const template = getPasswordPageTemplate();
+
+  return template
+    .replace(/\{\{shortCode\}\}/g, safeShortCode)
+    .replace(/\{\{errorMessage\}\}/g, safeErrorMessage);
 }

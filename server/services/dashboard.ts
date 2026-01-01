@@ -8,6 +8,7 @@
  */
 import supabase from "../database/client";
 import dayjs, { Dayjs } from "dayjs";
+import { hashPassword } from "../utils/security";
 import type {
   LinkQueryOptions,
   QueryOptions,
@@ -262,13 +263,25 @@ export async function updateLink(
       "forward_headers",
       "forward_header_list",
       "access_restrictions",
+      "password",
     ];
-
     // 过滤更新字段
     const filteredUpdates = {};
     for (const [key, value] of Object.entries(updates)) {
       if (allowedFields.includes(key) && value !== undefined) {
-        filteredUpdates[key] = value;
+        // 特殊处理密码字段
+        if (key === "password") {
+          if (value === null || value === "") {
+            // 如果密码为 null 或空字符串，删除密码保护
+            filteredUpdates["password_hash"] = null;
+          } else if (typeof value === "string") {
+            // 使用 MD5 加密密码
+            const hashed = hashPassword(value);
+            filteredUpdates["password_hash"] = hashed;
+          }
+        } else {
+          filteredUpdates[key] = value;
+        }
       }
     }
 

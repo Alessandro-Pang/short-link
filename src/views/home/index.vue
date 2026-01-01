@@ -186,7 +186,7 @@
                                                 v-if="userStore.isAuthenticated"
                                                 type="text"
                                                 size="mini"
-                                                @click="showConfigDrawer = true"
+                                                @click="openAdvancedConfig"
                                                 class="text-blue-500!"
                                             >
                                                 <template #icon
@@ -269,100 +269,6 @@
                                                         </template>
                                                         查看二维码
                                                     </a-button>
-                                                </div>
-                                            </div>
-
-                                            <!-- 显示配置摘要（仅登录用户可见） -->
-                                            <div
-                                                v-if="
-                                                    userStore.isAuthenticated &&
-                                                    hasAdvancedConfig
-                                                "
-                                                class="mt-4 bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-white/80"
-                                            >
-                                                <div
-                                                    class="flex items-start gap-2"
-                                                >
-                                                    <icon-settings
-                                                        class="text-gray-500 mt-0.5 shrink-0"
-                                                    />
-                                                    <div class="flex-1">
-                                                        <span
-                                                            class="text-sm font-semibold text-gray-700 block mb-2"
-                                                        >
-                                                            已应用高级配置
-                                                        </span>
-                                                        <div
-                                                            class="flex flex-wrap gap-2"
-                                                        >
-                                                            <a-tag
-                                                                v-if="
-                                                                    linkConfig.redirect_type !==
-                                                                    302
-                                                                "
-                                                                color="arcoblue"
-                                                                size="medium"
-                                                            >
-                                                                {{
-                                                                    redirectTypeLabel
-                                                                }}
-                                                            </a-tag>
-                                                            <a-tag
-                                                                v-if="
-                                                                    linkConfig.expiration_option_id ||
-                                                                    linkConfig.expiration_date
-                                                                "
-                                                                color="orange"
-                                                                size="medium"
-                                                            >
-                                                                <icon-clock-circle
-                                                                    class="mr-1"
-                                                                />有效期限制
-                                                            </a-tag>
-                                                            <a-tag
-                                                                v-if="
-                                                                    linkConfig.max_clicks
-                                                                "
-                                                                color="green"
-                                                                size="medium"
-                                                            >
-                                                                <icon-thunderbolt
-                                                                    class="mr-1"
-                                                                />{{
-                                                                    linkConfig.max_clicks
-                                                                }}次点击限制
-                                                            </a-tag>
-                                                            <a-tag
-                                                                v-if="
-                                                                    linkConfig.pass_query_params
-                                                                "
-                                                                color="purple"
-                                                                size="medium"
-                                                            >
-                                                                参数透传
-                                                            </a-tag>
-                                                            <a-tag
-                                                                v-if="
-                                                                    linkConfig.forward_headers
-                                                                "
-                                                                color="cyan"
-                                                                size="medium"
-                                                            >
-                                                                Header转发
-                                                            </a-tag>
-                                                            <a-tag
-                                                                v-if="
-                                                                    hasAccessRestrictions
-                                                                "
-                                                                color="red"
-                                                                size="medium"
-                                                            >
-                                                                <icon-safe
-                                                                    class="mr-1"
-                                                                />访问限制
-                                                            </a-tag>
-                                                        </div>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -583,27 +489,13 @@
             </div>
         </a-modal>
 
-        <!-- 高级配置抽屉 -->
-        <a-drawer
-            v-model:visible="showConfigDrawer"
-            title="高级配置"
-            :width="420"
-            placement="right"
-            :footer="true"
-            class="config-drawer"
-        >
-            <div class="drawer-content">
-                <LinkConfigForm v-model="linkConfig" />
-            </div>
-            <template #footer>
-                <div class="drawer-footer">
-                    <a-button @click="resetConfig">重置配置</a-button>
-                    <a-button type="primary" @click="showConfigDrawer = false">
-                        确定
-                    </a-button>
-                </div>
-            </template>
-        </a-drawer>
+        <!-- 高级配置创建链接 -->
+        <UnifiedLinkConfigDrawer
+            v-model:visible="showAdvancedDrawer"
+            mode="home"
+            :initial-link="urlInput"
+            @confirm="handleAdvancedConfigConfirm"
+        />
     </div>
 </template>
 
@@ -623,14 +515,12 @@ import {
     IconDown,
     IconExport,
     IconSettings,
-    IconThunderbolt,
-    IconSafe,
 } from "@arco-design/web-vue/es/icon";
 import { Message } from "@arco-design/web-vue";
 import QRCode from "qrcode";
-import { addUrl, REDIRECT_TYPE_OPTIONS } from "@/services/api";
+import { addUrl } from "@/services/api";
 import { validateUrl } from "@/utils/validator";
-import LinkConfigForm from "@/components/LinkConfigForm.vue";
+import UnifiedLinkConfigDrawer from "@/components/UnifiedLinkConfigDrawer.vue";
 import { useUserStore } from "@/stores";
 
 const router = useRouter();
@@ -641,71 +531,31 @@ const currentShortUrl = ref("");
 const isLoading = ref(false);
 const qrcodeModalVisible = ref(false);
 const qrcodeCanvas = ref(null);
-const showConfigDrawer = ref(false);
+const showAdvancedDrawer = ref(false);
+const advancedConfig = ref(null);
 
-// 链接配置 - 使用 ref 而不是 reactive，以便正确接收子组件的更新
-const linkConfig = ref({
-    title: "",
-    expiration_option_id: null,
-    expiration_date: null,
-    redirect_type: 302,
-    max_clicks: null,
-    pass_query_params: false,
-    forward_headers: false,
-    forward_header_list: [],
-    access_restrictions: null,
-});
+// 打开高级配置
+const openAdvancedConfig = () => {
+    const inputUrl = urlInput.value.trim();
+    if (!inputUrl) {
+        Message.warning("请先输入链接");
+        return;
+    }
 
-// 计算是否有高级配置
-const hasAdvancedConfig = computed(() => {
-    const config = linkConfig.value;
-    return (
-        config.redirect_type !== 302 ||
-        config.expiration_option_id ||
-        config.expiration_date ||
-        config.max_clicks ||
-        config.pass_query_params ||
-        config.forward_headers ||
-        hasAccessRestrictions.value
-    );
-});
+    if (!validateUrl(inputUrl)) {
+        Message.error(
+            "请输入有效的链接，必须以 http://、https:// 或 #小程序:// 开头",
+        );
+        return;
+    }
 
-// 计算是否有访问限制
-const hasAccessRestrictions = computed(() => {
-    const config = linkConfig.value;
-    if (!config.access_restrictions) return false;
-    const r = config.access_restrictions;
-    return (
-        (r.ip_whitelist && r.ip_whitelist.length > 0) ||
-        (r.ip_blacklist && r.ip_blacklist.length > 0) ||
-        (r.allowed_devices && r.allowed_devices.length > 0) ||
-        (r.allowed_referrers && r.allowed_referrers.length > 0) ||
-        (r.blocked_referrers && r.blocked_referrers.length > 0) ||
-        (r.allowed_countries && r.allowed_countries.length > 0)
-    );
-});
+    showAdvancedDrawer.value = true;
+};
 
-// 获取重定向类型标签
-const redirectTypeLabel = computed(() => {
-    const option = REDIRECT_TYPE_OPTIONS.find(
-        (o) => o.value === linkConfig.value.redirect_type,
-    );
-    return option ? option.label : "302 临时重定向";
-});
-
-// 重置配置
-const resetConfig = () => {
-    linkConfig.value = {
-        title: "",
-        expiration_option_id: null,
-        expiration_date: null,
-        redirect_type: 302,
-        max_clicks: null,
-        pass_query_params: false,
-        forward_headers: false,
-        forward_header_list: [],
-        access_restrictions: null,
-    };
+// 高级配置确认回调
+const handleAdvancedConfigConfirm = (configData) => {
+    advancedConfig.value = configData;
+    Message.success("配置已保存，请点击创建短链接按钮完成创建");
 };
 
 onMounted(async () => {
@@ -744,48 +594,10 @@ const generateShortLink = async () => {
     currentShortUrl.value = "";
 
     try {
-        // 构建配置选项 - 仅登录用户可使用高级配置
-        const options = {};
+        // 使用高级配置（如果有）或默认配置
+        const config = advancedConfig.value || {};
 
-        if (userStore.isAuthenticated) {
-            const config = linkConfig.value;
-
-            if (config.title) {
-                options.title = config.title;
-            }
-            // 有效期：优先使用预设选项，其次使用自定义时间
-            if (config.expiration_option_id) {
-                options.expiration_option_id = config.expiration_option_id;
-            } else if (config.expiration_date) {
-                options.expiration_date = config.expiration_date;
-            }
-            // 始终传递 redirect_type
-            options.redirect_type = config.redirect_type || 302;
-
-            // 修复：使用更严格的判断，允许数字 0 以外的值
-            if (
-                config.max_clicks !== null &&
-                config.max_clicks !== undefined &&
-                config.max_clicks !== "" &&
-                config.max_clicks > 0
-            ) {
-                options.max_clicks = parseInt(config.max_clicks, 10);
-            }
-            if (config.pass_query_params) {
-                options.pass_query_params = true;
-            }
-            if (config.forward_headers) {
-                options.forward_headers = true;
-                if (config.forward_header_list?.length > 0) {
-                    options.forward_header_list = config.forward_header_list;
-                }
-            }
-            if (hasAccessRestrictions.value && config.access_restrictions) {
-                options.access_restrictions = config.access_restrictions;
-            }
-        }
-
-        const { data } = await addUrl(inputUrl, options);
+        const { data } = await addUrl(inputUrl, config);
         if (data && data.short) {
             currentShortUrl.value = `${window.location.origin}/u/${data.short}`;
         } else if (data && data.url) {
@@ -794,6 +606,8 @@ const generateShortLink = async () => {
             throw new Error("生成短链接失败，返回数据格式错误");
         }
         Message.success("短链接生成成功");
+        // 清空高级配置
+        advancedConfig.value = null;
     } catch (error) {
         // 处理重复链接的特殊错误
         if (error.code === "DUPLICATE_LINK" && error.existingLink) {

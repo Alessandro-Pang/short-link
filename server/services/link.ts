@@ -8,7 +8,11 @@
  */
 import supabase from "../database/client";
 import dayjs from "dayjs";
-import { generateSecureHash, MAX_HASH_RETRIES } from "../utils/security";
+import {
+  generateSecureHash,
+  MAX_HASH_RETRIES,
+  hashPassword,
+} from "../utils/security";
 import cache, { CACHE_KEYS } from "../utils/cache";
 import { CACHE_CONFIG } from "../config/index";
 import type {
@@ -445,6 +449,10 @@ export async function addUrl(
     ) {
       insertData.access_restrictions = options.access_restrictions;
     }
+    // 处理密码保护
+    if (options.password && typeof options.password === "string") {
+      insertData.password_hash = hashPassword(options.password);
+    }
 
     // 插入新链接
     const { data, error } = await supabase
@@ -607,13 +615,27 @@ export async function updateLinkConfig(
       "access_restrictions",
       "title",
       "description",
+      "password",
     ];
 
     // 过滤只保留允许更新的字段
     const filteredUpdates = {};
     for (const field of allowedFields) {
       if (updates[field] !== undefined) {
-        filteredUpdates[field] = updates[field];
+        // 特殊处理密码字段
+        if (field === "password") {
+          if (updates[field] === null || updates[field] === "") {
+            // 如果密码为 null 或空字符串，删除密码保护
+            filteredUpdates["password_hash"] = null;
+          } else if (typeof updates[field] === "string") {
+            // 否则使用 MD5 加密
+            filteredUpdates["password_hash"] = hashPassword(
+              updates[field] as string,
+            );
+          }
+        } else {
+          filteredUpdates[field] = updates[field];
+        }
       }
     }
 

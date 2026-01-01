@@ -15,6 +15,7 @@ declare module 'vue' {
     AAvatar: typeof import('@arco-design/web-vue')['Avatar']
     AButton: typeof import('@arco-design/web-vue')['Button']
     ACard: typeof import('@arco-design/web-vue')['Card']
+    AccessRestrictions: typeof import('./src/components/link-config/AccessRestrictions.vue')['default']
     ACheckbox: typeof import('@arco-design/web-vue')['Checkbox']
     ACheckboxGroup: typeof import('@arco-design/web-vue')['CheckboxGroup']
     ActionButton: typeof import('./src/components/base/ActionButton.vue')['default']
@@ -58,6 +59,7 @@ declare module 'vue' {
     AuthLayout: typeof import('./src/components/AuthLayout.vue')['default']
     BaseLinkEditDrawer: typeof import('./src/components/BaseLinkEditDrawer.vue')['default']
     BrandingSection: typeof import('./src/components/base/BrandingSection.vue')['default']
+    ExpirationSelector: typeof import('./src/components/link-config/ExpirationSelector.vue')['default']
     FormSection: typeof import('./src/components/base/FormSection.vue')['default']
     LinkConfigForm: typeof import('./src/components/LinkConfigForm.vue')['default']
     LoadingSpinner: typeof import('./src/components/base/LoadingSpinner.vue')['default']
@@ -68,6 +70,7 @@ declare module 'vue' {
     SocialAuthButtons: typeof import('./src/components/base/SocialAuthButtons.vue')['default']
     SwitchRow: typeof import('./src/components/base/SwitchRow.vue')['default']
     TopLinksRanking: typeof import('./src/components/TopLinksRanking.vue')['default']
+    UnifiedLinkConfigDrawer: typeof import('./src/components/UnifiedLinkConfigDrawer.vue')['default']
     UrlInput: typeof import('./src/components/base/UrlInput.vue')['default']
   }
 }

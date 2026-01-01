@@ -1,7 +1,11 @@
 import * as linkService from "../services/link";
 import * as dashboardService from "../services/dashboard";
 import { getClientIp } from "../middlewares/utils";
-import { generateErrorPageHtml } from "../utils/security";
+import {
+  generateErrorPageHtml,
+  generatePasswordPageHtml,
+  verifyPassword,
+} from "../utils/security";
 import {
   validateCreateLinkParams,
   validateUpdateLinkParams,
@@ -123,6 +127,22 @@ export async function redirectShortLink(request, reply) {
 
     const linkData = result?.data;
 
+    // 检查是否需要密码验证
+    if (linkData.password_hash) {
+      const acceptHeader = request.headers.accept || "";
+      if (acceptHeader.includes("text/html")) {
+        // 显示密码验证页面
+        const passwordHtml = generatePasswordPageHtml(request.params.hash);
+        return reply.status(200).type("text/html").send(passwordHtml);
+      }
+      // API 请求返回需要密码的提示
+      return reply.status(403).send({
+        code: 403,
+        msg: "该链接需要密码才能访问",
+        requirePassword: true,
+      });
+    }
+
     const accessInfo = {
       ip_address: visitorInfo.ip,
       user_agent: visitorInfo.userAgent,
@@ -145,6 +165,79 @@ export async function redirectShortLink(request, reply) {
   } catch (error) {
     request.log.error("重定向失败:", error);
     return notFound(reply, error.message || "短链接不存在");
+  }
+}
+
+/**
+ * 验证短链接密码
+ */
+export async function verifyLinkPassword(request, reply) {
+  const { hash } = request.params;
+  const { password } = request.body || {};
+
+  if (!hash) {
+    return badRequest(reply, "短链接代码不能为空");
+  }
+
+  if (!password || typeof password !== "string") {
+    return badRequest(reply, "密码不能为空");
+  }
+
+  try {
+    const visitorInfo = {
+      ip: getClientIp(request),
+      userAgent: request.headers["user-agent"],
+      referrer: request.headers.referer || request.headers.referrer,
+      country: request.headers["cf-ipcountry"] || null,
+    };
+
+    const result = await linkService.getUrl(hash, visitorInfo);
+
+    if (!result || result.error) {
+      return notFound(reply, result?.error?.message || "短链接不存在");
+    }
+
+    const linkData = result?.data;
+
+    // 检查链接是否设置了密码
+    if (!linkData.password_hash) {
+      return badRequest(reply, "该链接未设置密码保护");
+    }
+
+    // 验证密码
+    if (!verifyPassword(password, linkData.password_hash)) {
+      return reply.status(401).send({
+        code: 401,
+        msg: "密码错误",
+      });
+    }
+
+    // 密码正确，记录访问并返回目标链接
+    const accessInfo = {
+      ip_address: visitorInfo.ip,
+      user_agent: visitorInfo.userAgent,
+      referrer: visitorInfo.referrer,
+      country: visitorInfo.country,
+    };
+    await linkService.logAccess(linkData.id, accessInfo);
+
+    let targetUrl = linkData.link;
+
+    // 处理参数透传
+    if (linkData.pass_query_params) {
+      const queryString = request.url.split("?")[1];
+      if (queryString) {
+        targetUrl = linkService.buildRedirectUrl(targetUrl, queryString, true);
+      }
+    }
+
+    return success(reply, {
+      url: targetUrl,
+      redirectType: linkData.redirect_type || 302,
+    });
+  } catch (error) {
+    request.log.error("验证密码失败:", error);
+    return serverError(reply, "验证失败，请稍后重试");
   }
 }
 

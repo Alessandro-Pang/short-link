@@ -28,6 +28,7 @@ interface LinkFormData {
   expiration_option_id: number | null;
   expiration_date: string | null;
   max_clicks: number | null;
+  password: string;
 }
 
 // 访问限制类型
@@ -67,6 +68,7 @@ export function useLinkForm(
     expiration_option_id: null,
     expiration_date: null,
     max_clicks: null,
+    password: "",
   });
 
   // 访问限制
@@ -96,7 +98,7 @@ export function useLinkForm(
   const loadExpirationOptions = async () => {
     try {
       const result = await apiService.getExpirationOptions();
-      expirationOptions.value = result.data || [];
+      expirationOptions.value = result?.data?.data || [];
     } catch (error) {
       console.error("获取过期时间选项失败:", error);
     }
@@ -126,6 +128,7 @@ export function useLinkForm(
         forward_header_list: data.forward_header_list || [],
         expiration_date: data.expiration_date || null,
         max_clicks: data.max_clicks || null,
+        password: "", // 密码不从服务器加载，始终为空
       });
 
       // 设置过期模式
@@ -169,6 +172,7 @@ export function useLinkForm(
       expiration_option_id: null,
       expiration_date: null,
       max_clicks: null,
+      password: "",
     });
 
     Object.assign(accessRestrictions, {
@@ -198,6 +202,7 @@ export function useLinkForm(
         ? formData.forward_header_list
         : [],
       max_clicks: formData.max_clicks || null,
+      password: formData.password || null, // 直接包含密码字段
     };
 
     // 处理过期时间

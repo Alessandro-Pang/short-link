@@ -22,6 +22,27 @@ export default async function apiRoutes(fastify) {
   // 短链接相关
   fastify.get("/expiration-options", linkController.getExpirationOptions);
 
+  // 验证短链接密码
+  fastify.post(
+    "/verify-password/:hash",
+    {
+      config: {
+        rateLimit: {
+          max: RATE_LIMIT_CONFIG.LOGIN.MAX, // 使用登录限制防止暴力破解
+          timeWindow: RATE_LIMIT_CONFIG.LOGIN.TIME_WINDOW,
+          errorResponseBuilder: (_request, context) => {
+            return {
+              code: 429,
+              msg: "密码验证过于频繁，请稍后再试",
+              retryAfter: Math.ceil(context.ttl / 1000),
+            };
+          },
+        },
+      },
+    },
+    linkController.verifyLinkPassword,
+  );
+
   // 创建短链接 - 更严格的速率限制
   fastify.post(
     "/addUrl",

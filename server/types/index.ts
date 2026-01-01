@@ -2,7 +2,7 @@
  * @Description: Shared TypeScript type definitions
  */
 
-import type { FastifyRequest, FastifyReply } from 'fastify';
+import type { FastifyRequest, FastifyReply } from "fastify";
 
 /**
  * Fastify Request with user context
@@ -32,7 +32,7 @@ export interface PaginationOptions {
  */
 export interface SortOptions {
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   orderBy?: string;
   ascending?: boolean;
 }
@@ -98,7 +98,12 @@ export interface UrlValidationOptions {
 export interface AuthMiddlewareOptions {
   required?: boolean;
   requireAdmin?: boolean;
-  customCheck?: ((user: AuthenticatedRequest['user'], request: FastifyRequest) => boolean | Promise<boolean>) | null;
+  customCheck?:
+    | ((
+        user: AuthenticatedRequest["user"],
+        request: FastifyRequest,
+      ) => boolean | Promise<boolean>)
+    | null;
   customCheckErrorMsg?: string;
 }
 
@@ -177,6 +182,7 @@ export interface LinkCreateOptions {
   forward_headers?: boolean;
   forward_header_list?: string[];
   max_clicks?: number;
+  password?: string;
   access_restrictions?: AccessRestrictions;
 }
 

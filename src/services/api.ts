@@ -182,6 +182,19 @@ export async function batchToggleLinks(linkIds, isActive) {
 }
 
 /**
+ * 更新链接密码
+ * @param {number} linkId - 链接 ID
+ * @param {string|null} password - 新密码，null 表示删除密码
+ * @returns {Promise} - 返回操作结果
+ */
+export async function updateLinkPassword(linkId, password) {
+  return fetchApi(`/api/dashboard/links/${linkId}`, {
+    method: "PUT",
+    body: { password },
+  });
+}
+
+/**
  * 验证当前用户
  * @returns {Promise} - 返回用户信息
  */
