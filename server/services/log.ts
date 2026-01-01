@@ -9,7 +9,10 @@
 import supabase from "../database/client";
 import dayjs from "dayjs";
 import type { LoginLogQueryOptions } from "../types/index";
-import type { LoginLog, LoginLogInsert } from "../types/database.schema.types";
+import type {
+  LoginLog,
+  LoginLogInsert,
+} from "../../types/database.schema.types";
 
 /**
  * 记录登录日志

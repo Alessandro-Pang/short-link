@@ -7,6 +7,10 @@
  * @FilePath: /short-link/api/utils/security
  */
 import { randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+const __dirname = new URL(import.meta.url).pathname;
 
 /**
  * HTML 实体转义映射表
@@ -118,6 +122,23 @@ export function hasSqlInjectionPattern(input) {
 }
 
 /**
+ * 读取并缓存错误页面模板
+ */
+let errorPageTemplate: string | null = null;
+
+/**
+ * 获取错误页面模板
+ * @returns {string} HTML 模板内容
+ */
+function getErrorPageTemplate(): string {
+  if (!errorPageTemplate) {
+    const templatePath = join(__dirname, "../../templates/error.html");
+    errorPageTemplate = readFileSync(templatePath, "utf-8");
+  }
+  return errorPageTemplate;
+}
+
+/**
  * 生成错误页面 HTML（已转义）
  * @param {string} title - 页面标题
  * @param {string} message - 错误消息
@@ -133,27 +154,10 @@ export function generateErrorPageHtml(
   const safeMessage = escapeHtml(message);
   const safeHomeUrl = escapeHtml(homeUrl);
 
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${safeTitle}</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
-    .container { text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; }
-    h1 { color: #e74c3c; margin-bottom: 16px; }
-    p { color: #666; margin-bottom: 24px; }
-    a { color: #3498db; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>😕 ${safeTitle}</h1>
-    <p>${safeMessage}</p>
-    <a href="${safeHomeUrl}">返回首页</a>
-  </div>
-</body>
-</html>`;
+  const template = getErrorPageTemplate();
+
+  return template
+    .replace(/\{\{title\}\}/g, safeTitle)
+    .replace(/\{\{message\}\}/g, safeMessage)
+    .replace(/\{\{homeUrl\}\}/g, safeHomeUrl);
 }

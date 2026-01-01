@@ -21,7 +21,7 @@ import type {
   LinkInsert,
   ExpirationOption,
   LinkAccessLogInsert,
-} from "../types/database.schema.types";
+} from "../../types/database.schema.types";
 
 /**
  * 缓存 TTL 配置（秒）

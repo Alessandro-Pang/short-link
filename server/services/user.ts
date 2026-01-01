@@ -10,7 +10,7 @@ import supabase from "../database/client";
 import cache, { CACHE_KEYS, buildCacheKey } from "../utils/cache";
 import { USER_CONFIG } from "../config/index";
 import type { UserListOptions, UserUpdateData } from "../types/index";
-import type { UserProfile } from "../types/database.schema.types";
+import type { UserProfile } from "../../types/database.schema.types";
 
 /**
  * 清除用户相关缓存
