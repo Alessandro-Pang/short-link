@@ -7,6 +7,7 @@
  * @FilePath: /short-link/service/login-log.js
  */
 import supabase from "./db.js";
+import dayjs from "dayjs";
 import type { LoginLogQueryOptions } from "../server/types/index.js";
 
 /**
@@ -36,7 +37,7 @@ export async function logLogin(logData) {
         success,
         failure_reason,
         login_method,
-        login_at: new Date().toISOString(),
+        login_at: dayjs().toISOString(),
       })
       .select()
       .single();
@@ -157,14 +158,9 @@ export async function getAllLoginLogs(
 export async function getLoginStats(userId = null) {
   try {
     // 计算时间范围
-    const now = new Date();
-    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-    const last7d = new Date(
-      now.getTime() - 7 * 24 * 60 * 60 * 1000,
-    ).toISOString();
-    const last30d = new Date(
-      now.getTime() - 30 * 24 * 60 * 60 * 1000,
-    ).toISOString();
+    const last24h = dayjs().subtract(24, "hour").toISOString();
+    const last7d = dayjs().subtract(7, "day").toISOString();
+    const last30d = dayjs().subtract(30, "day").toISOString();
 
     // 构建基础查询条件
     const buildQuery = (baseQuery) => {
@@ -263,13 +259,12 @@ export async function getLoginTrend(
   try {
     const { userId = null, days = 30 } = options;
 
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    const startDate = dayjs().subtract(days, "day").toISOString();
 
     let query = supabase
       .from("login_logs")
       .select("login_at, success")
-      .gte("login_at", startDate.toISOString())
+      .gte("login_at", startDate)
       .order("login_at", { ascending: true });
 
     if (userId) {
@@ -290,7 +285,7 @@ export async function getLoginTrend(
     > = {};
 
     for (const log of data || []) {
-      const date = new Date(log.login_at).toISOString().split("T")[0];
+      const date = dayjs(log.login_at).format("YYYY-MM-DD");
 
       if (!dailyStats[date]) {
         dailyStats[date] = { total: 0, success: 0, failed: 0 };
@@ -328,13 +323,12 @@ export async function getLoginTrend(
  */
 export async function cleanOldLoginLogs() {
   try {
-    const ninetyDaysAgo = new Date();
-    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const ninetyDaysAgo = dayjs().subtract(90, "day").toISOString();
 
     const { error, count } = await supabase
       .from("login_logs")
       .delete()
-      .lt("login_at", ninetyDaysAgo.toISOString());
+      .lt("login_at", ninetyDaysAgo);
 
     if (error) {
       console.error("清理登录日志失败:", error);
@@ -363,14 +357,13 @@ export async function getRecentFailedAttempts(
   try {
     const { limit = 100, hours = 24 } = options;
 
-    const sinceTime = new Date();
-    sinceTime.setHours(sinceTime.getHours() - Number(hours));
+    const sinceTime = dayjs().subtract(Number(hours), "hour").toISOString();
 
     const { data, error, count } = await supabase
       .from("login_logs")
       .select("*", { count: "exact" })
       .eq("success", false)
-      .gte("login_at", sinceTime.toISOString())
+      .gte("login_at", sinceTime)
       .order("login_at", { ascending: false })
       .limit(limit);
 

@@ -95,6 +95,18 @@
             </div>
         </div>
 
+        <!-- 全局排行榜 -->
+        <TopLinksRanking
+            title="全站热门链接排行榜"
+            :show-creator="true"
+            :links="rankingLinks"
+            :loading="rankingLoading"
+            :initial-period="rankingPeriod"
+            header-class="bg-gradient-to-r from-orange-50 to-yellow-50"
+            period-clicks-class="text-orange-600"
+            @period-change="handlePeriodChange"
+        />
+
         <!-- Recent Links Preview -->
         <div
             class="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden"
@@ -216,7 +228,12 @@ import {
     IconEyeInvisible,
     IconHistory,
 } from "@arco-design/web-vue/es/icon";
-import { getGlobalStats, getAllLinks } from "@/services/admin.js";
+import {
+    getGlobalStats,
+    getAllLinks,
+    getGlobalTopLinks,
+} from "@/services/admin.js";
+import TopLinksRanking from "@/components/TopLinksRanking.vue";
 
 const router = useRouter();
 const origin = window.location.origin;
@@ -233,6 +250,11 @@ const stats = ref({
 });
 const recentLinks = ref([]);
 
+// 排行榜状态
+const rankingPeriod = ref("daily");
+const rankingLinks = ref([]);
+const rankingLoading = ref(false);
+
 // Methods
 const loadData = async () => {
     isLoading.value = true;
@@ -241,6 +263,7 @@ const loadData = async () => {
         const [statsData, linksData] = await Promise.all([
             getGlobalStats(),
             getAllLinks({ limit: 10, orderBy: "created_at", ascending: false }),
+            loadRankingData(),
         ]);
 
         stats.value = {
@@ -260,6 +283,24 @@ const loadData = async () => {
     } finally {
         isLoading.value = false;
     }
+};
+
+const loadRankingData = async () => {
+    rankingLoading.value = true;
+    try {
+        const result = await getGlobalTopLinks(rankingPeriod.value, 20);
+        rankingLinks.value = result.links || [];
+    } catch (error) {
+        console.error("加载全局排行榜失败:", error);
+        rankingLinks.value = [];
+    } finally {
+        rankingLoading.value = false;
+    }
+};
+
+const handlePeriodChange = (period) => {
+    rankingPeriod.value = period;
+    loadRankingData();
 };
 
 const goToAllLinks = () => {

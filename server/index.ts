@@ -9,6 +9,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
+import dayjs from "dayjs";
 import * as linkController from "./controllers/link.js";
 import apiRoutes from "./routes/api.js";
 import dashboardRoutes from "./routes/dashboard.js";
@@ -163,7 +164,7 @@ app.get("/health", async (_request, reply) => {
     msg: dbHealth.healthy ? "Service is running" : "Service is degraded",
     data: {
       status,
-      timestamp: new Date().toISOString(),
+      timestamp: dayjs().toISOString(),
       version: process.env.npm_package_version || "1.0.0",
       environment: ENV.NODE_ENV,
       checks: {

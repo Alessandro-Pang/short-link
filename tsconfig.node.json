@@ -15,5 +15,7 @@
     "service/**/*.ts",
     "api/**/*.ts",
     "service/**/*.d.ts",
+    "types/**/*.ts",
+    "types/**/*.d.ts",
   ],
 }

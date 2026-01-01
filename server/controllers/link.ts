@@ -413,3 +413,34 @@ export async function batchUpdateLinkStatus(request, reply) {
     return serverError(reply, "批量更新状态失败");
   }
 }
+
+/**
+ * 获取排行榜
+ */
+export async function getTopLinks(request, reply) {
+  try {
+    const period = request.query.period || "daily";
+    const limit = parseInt(request.query.limit || 20);
+
+    // 验证 period 参数
+    if (!["daily", "weekly", "monthly"].includes(period)) {
+      return badRequest(reply, "无效的周期参数，仅支持 daily, weekly, monthly");
+    }
+
+    // 验证 limit 参数
+    if (Number.isNaN(limit) || limit < 1 || limit > 100) {
+      return badRequest(reply, "limit 必须是 1-100 之间的数字");
+    }
+
+    const result = await dashboardService.getTopLinks(
+      request.user.id,
+      period,
+      limit,
+    );
+
+    return success(reply, result);
+  } catch (error) {
+    request.log.error(error);
+    return serverError(reply, "获取排行榜失败");
+  }
+}

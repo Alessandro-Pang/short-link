@@ -7,6 +7,7 @@
  * @FilePath: /short-link/service/link.js
  */
 import supabase from "./db.js";
+import dayjs from "dayjs";
 import {
   generateSecureHash,
   MAX_HASH_RETRIES,
@@ -256,7 +257,7 @@ export async function getUrl(short: string, visitorInfo: VisitorInfo = {}) {
     }
 
     // 检查是否过期
-    if (data.expiration_date && new Date(data.expiration_date) < new Date()) {
+    if (data.expiration_date && dayjs(data.expiration_date).isBefore(dayjs())) {
       return { data: null, error: { message: "链接已过期" } };
     }
 
@@ -385,13 +386,13 @@ export async function addUrl(
         .single();
 
       if (expOption && !expOption.is_permanent) {
-        const now = new Date();
+        let expirationTime = dayjs();
         if (expOption.hours) {
-          now.setHours(now.getHours() + expOption.hours);
+          expirationTime = expirationTime.add(expOption.hours, "hour");
         } else if (expOption.days) {
-          now.setDate(now.getDate() + expOption.days);
+          expirationTime = expirationTime.add(expOption.days, "day");
         }
-        expirationDate = now.toISOString();
+        expirationDate = expirationTime.toISOString();
       }
     } else if (options.expiration_date) {
       expirationDate = options.expiration_date;

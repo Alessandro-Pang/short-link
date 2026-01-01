@@ -4,6 +4,7 @@
  */
 import { ref, reactive, computed, watch } from "vue";
 import type { Ref } from "vue";
+import dayjs from "dayjs";
 
 // 定义 API 服务接口
 interface ApiService {
@@ -82,21 +83,13 @@ export function useLinkForm(
   // 计算是否已过期
   const isExpired = computed(() => {
     if (!formData.expiration_date) return false;
-    return new Date(formData.expiration_date) < new Date();
+    return dayjs(formData.expiration_date).isBefore(dayjs());
   });
 
   // 格式化日期
   const formatDate = (dateString: string | null): string => {
     if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("zh-CN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
+    return dayjs(dateString).format("YYYY-MM-DD HH:mm:ss");
   };
 
   // 加载过期时间选项

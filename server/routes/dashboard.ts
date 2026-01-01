@@ -99,6 +99,13 @@ export default async function dashboardRoutes(fastify) {
   // 短链接统计
   fastify.get("/stats", dashboardRateLimitConfig, linkController.getUserStats);
 
+  // 排行榜
+  fastify.get(
+    "/top-links",
+    dashboardRateLimitConfig,
+    linkController.getTopLinks,
+  );
+
   // 短链接管理 - 读操作
   fastify.get("/links", dashboardRateLimitConfig, linkController.getUserLinks);
   fastify.get(

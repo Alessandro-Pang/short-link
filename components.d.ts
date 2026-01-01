@@ -25,6 +25,7 @@ declare module 'vue' {
     ADoption: typeof import('@arco-design/web-vue')['Doption']
     ADrawer: typeof import('@arco-design/web-vue')['Drawer']
     ADropdown: typeof import('@arco-design/web-vue')['Dropdown']
+    AEmpty: typeof import('@arco-design/web-vue')['Empty']
     AForm: typeof import('@arco-design/web-vue')['Form']
     AFormItem: typeof import('@arco-design/web-vue')['FormItem']
     AInput: typeof import('@arco-design/web-vue')['Input']
@@ -67,6 +68,7 @@ declare module 'vue' {
     ShortLinkCard: typeof import('./src/components/ShortLinkCard.vue')['default']
     SocialAuthButtons: typeof import('./src/components/base/SocialAuthButtons.vue')['default']
     SwitchRow: typeof import('./src/components/base/SwitchRow.vue')['default']
+    TopLinksRanking: typeof import('./src/components/TopLinksRanking.vue')['default']
     UrlInput: typeof import('./src/components/base/UrlInput.vue')['default']
   }
 }

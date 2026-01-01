@@ -7,6 +7,7 @@
  * @FilePath: /short-link/service/dashboard.js
  */
 import supabase from "./db.js";
+import dayjs, { Dayjs } from "dayjs";
 import type {
   LinkQueryOptions,
   QueryOptions,
@@ -50,14 +51,13 @@ export async function getUserStats(userId: string) {
     );
 
     // 查询 2：获取最近一周新建的链接数（使用数据库过滤）
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const oneWeekAgo = dayjs().subtract(7, "day").toISOString();
 
     const { count: weeklyNewLinks, error: weeklyError } = await supabase
       .from("links")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
-      .gte("created_at", oneWeekAgo.toISOString());
+      .gte("created_at", oneWeekAgo);
 
     if (weeklyError) {
       console.error("查询周新增链接失败:", weeklyError);
@@ -438,15 +438,14 @@ export async function getLinkAccessStats(
     }
 
     const { days = 30 } = options;
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - Number(days));
+    const startDate = dayjs().subtract(Number(days), "day").toISOString();
 
     // 获取访问日志
     const { data, error } = await supabase
       .from("link_access_logs")
       .select("accessed_at, device_type, country")
       .eq("link_id", linkId)
-      .gte("accessed_at", startDate.toISOString())
+      .gte("accessed_at", startDate)
       .order("accessed_at", { ascending: true });
 
     if (error) {
@@ -460,7 +459,7 @@ export async function getLinkAccessStats(
     const countryStats = {};
 
     for (const log of data || []) {
-      const date = new Date(log.accessed_at).toISOString().split("T")[0];
+      const date = dayjs(log.accessed_at).format("YYYY-MM-DD");
 
       // 按日期统计
       dailyStats[date] = (dailyStats[date] || 0) + 1;
@@ -523,11 +522,10 @@ export async function getGlobalStats() {
       links?.reduce((sum, link) => sum + (link.click_count || 0), 0) || 0;
 
     // 计算最近一周新建的链接
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const oneWeekAgo = dayjs().subtract(7, "day");
     const weeklyNewLinks =
-      links?.filter((link) => new Date(link.created_at) >= oneWeekAgo).length ||
-      0;
+      links?.filter((link) => dayjs(link.created_at).isAfter(oneWeekAgo))
+        .length || 0;
 
     const avgClicksPerLink =
       totalLinks > 0 ? (totalClicks / totalLinks).toFixed(2) : "0";
@@ -746,14 +744,13 @@ export async function getLinkAccessStatsAdmin(
 ) {
   try {
     const { days = 30 } = options;
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - Number(days));
+    const startDate = dayjs().subtract(Number(days), "day").toISOString();
 
     const { data, error } = await supabase
       .from("link_access_logs")
       .select("accessed_at, device_type, country")
       .eq("link_id", linkId)
-      .gte("accessed_at", startDate.toISOString())
+      .gte("accessed_at", startDate)
       .order("accessed_at", { ascending: true });
 
     if (error) {
@@ -766,7 +763,7 @@ export async function getLinkAccessStatsAdmin(
     const countryStats = {};
 
     for (const log of data || []) {
-      const date = new Date(log.accessed_at).toISOString().split("T")[0];
+      const date = dayjs(log.accessed_at).format("YYYY-MM-DD");
       dailyStats[date] = (dailyStats[date] || 0) + 1;
 
       const device = log.device_type || "unknown";
@@ -845,6 +842,114 @@ export async function batchToggleLinksAdmin(linkIds, isActive) {
     };
   } catch (error) {
     console.error("批量更新链接状态异常:", error);
+    throw error;
+  }
+}
+
+/**
+ * 获取用户排行榜
+ * @param {string} userId - 用户 ID
+ * @param {string} period - 时间周期 ('daily' | 'weekly' | 'monthly')
+ * @param {number} limit - 返回条数
+ * @returns {Promise<Object>} 排行榜数据
+ */
+export async function getTopLinks(
+  userId: string,
+  period: string,
+  limit: number = 20,
+) {
+  try {
+    if (userId) {
+      console.error("查询排行榜失败:", "没有查询到用户 ID");
+      throw new Error("没有查询到用户 ID");
+    }
+
+    // 计算时间范围
+    let startDate: Dayjs;
+
+    switch (period) {
+      case "daily":
+        // 过去24小时
+        startDate = dayjs().subtract(1, "day");
+        break;
+      case "weekly":
+        // 过去7天
+        startDate = dayjs().subtract(7, "day");
+        break;
+      case "monthly":
+        // 过去30天
+        startDate = dayjs().subtract(30, "day");
+        break;
+      default:
+        throw new Error("无效的时间周期");
+    }
+
+    // 使用数据库 RPC 函数，在数据库层面完成联表查询和聚合
+    const { data, error } = await supabase.rpc("get_top_links_by_period", {
+      p_user_id: userId,
+      p_start_date: startDate.format("YYYY-MM-DD HH:mm:ss"),
+      p_limit: limit,
+    });
+
+    if (error) {
+      console.error("查询排行榜失败:", error);
+      throw error;
+    }
+
+    return {
+      links: data || [],
+    };
+  } catch (error) {
+    console.error("获取排行榜异常:", error);
+    throw error;
+  }
+}
+
+/**
+ * 获取全局排行榜（使用数据库 RPC 优化）
+ * @param {string} period - 时间周期 ('daily' | 'weekly' | 'monthly')
+ * @param {number} limit - 返回条数
+ * @returns {Promise<Object>} 排行榜数据
+ */
+export async function getGlobalTopLinks(period: string, limit: number = 20) {
+  try {
+    // 计算时间范围
+    let startDate: Dayjs;
+
+    switch (period) {
+      case "daily":
+        // 过去24小时
+        startDate = dayjs().subtract(1, "day");
+        break;
+      case "weekly":
+        // 过去7天
+        startDate = dayjs().subtract(7, "day");
+        break;
+      case "monthly":
+        // 过去30天
+        startDate = dayjs().subtract(30, "day");
+        break;
+      default:
+        throw new Error("无效的时间周期");
+    }
+
+    // 使用数据库 RPC 函数，p_user_id 传 null 表示查询全局排行榜
+    const { data, error } = await supabase.rpc("get_top_links_by_period", {
+      p_user_id: null,
+      p_start_date: startDate.toISOString(),
+      p_limit: limit,
+    });
+
+    if (error) {
+      console.error("查询全局排行榜失败:", error);
+      throw error;
+    }
+
+    return {
+      links: data || [],
+    };
+  } catch (error) {
+    console.error("获取全局排行榜异常:", error);
     throw error;
   }
 }

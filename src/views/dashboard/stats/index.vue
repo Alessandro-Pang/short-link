@@ -66,6 +66,17 @@
             </div>
         </div>
 
+        <!-- 排行榜 -->
+        <TopLinksRanking
+            title="热门链接排行榜"
+            :links="rankingLinks"
+            :loading="rankingLoading"
+            :initial-period="rankingPeriod"
+            header-class="bg-gradient-to-r from-blue-50 to-purple-50"
+            period-clicks-class="text-blue-600"
+            @period-change="handlePeriodChange"
+        />
+
         <!-- Recent Links Preview -->
         <div
             class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
@@ -143,7 +154,7 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import {
     IconLink,
@@ -153,12 +164,19 @@ import {
     IconArrowRise,
 } from "@arco-design/web-vue/es/icon";
 import { useLinksStore } from "@/stores";
+import { getTopLinks } from "@/services/dashboard";
+import TopLinksRanking from "@/components/TopLinksRanking.vue";
 
 const router = useRouter();
 const origin = window.location.origin;
 
 // Store
 const linksStore = useLinksStore();
+
+// 排行榜状态
+const rankingPeriod = ref("daily");
+const rankingLinks = ref([]);
+const rankingLoading = ref(false);
 
 // Methods
 const loadData = async () => {
@@ -170,7 +188,26 @@ const loadData = async () => {
             orderBy: "created_at",
             ascending: false,
         }),
+        loadRankingData(),
     ]);
+};
+
+const loadRankingData = async () => {
+    rankingLoading.value = true;
+    try {
+        const result = await getTopLinks(rankingPeriod.value, 20);
+        rankingLinks.value = result.links || [];
+    } catch (error) {
+        console.error("加载排行榜失败:", error);
+        rankingLinks.value = [];
+    } finally {
+        rankingLoading.value = false;
+    }
+};
+
+const handlePeriodChange = (period) => {
+    rankingPeriod.value = period;
+    loadRankingData();
 };
 
 const goToLinks = () => {

@@ -30,6 +30,13 @@
     /* Type declarations */
     "types": ["node", "vite/client"],
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "types/**/*.ts",
+    "types/**/*.d.ts",
+  ],
   "references": [{ "path": "./tsconfig.node.json" }],
 }

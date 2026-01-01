@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "./supabase";
+import dayjs from "dayjs";
 
 /**
  * 使用 GitHub 登录
@@ -107,8 +108,7 @@ async function checkUserBanned(userId) {
 
     // 检查是否有 banned_until 字段且未过期
     if (user.banned_until) {
-      const bannedUntil = new Date(user.banned_until);
-      if (bannedUntil > new Date()) {
+      if (dayjs(user.banned_until).isAfter(dayjs())) {
         return true;
       }
     }
@@ -313,7 +313,7 @@ export function onAuthStateChange(callback) {
             if (
               userData.banned ||
               (userData.banned_until &&
-                new Date(userData.banned_until) > new Date())
+                dayjs(userData.banned_until).isAfter(dayjs()))
             ) {
               // 记录失败日志
               await recordLoginAttempt(
@@ -378,7 +378,7 @@ export function onAuthStateChange(callback) {
           "Login already logged for:",
           user.email,
           "at",
-          new Date(parseInt(alreadyLogged)).toLocaleString(),
+          dayjs(parseInt(alreadyLogged)).format("YYYY-MM-DD HH:mm:ss"),
         );
       }
     }

@@ -1,6 +1,7 @@
 import * as authService from "../../service/auth.js";
 import * as loginLogService from "../../service/login-log.js";
 import { getClientIp } from "../middlewares/utils.js";
+import dayjs from "dayjs";
 
 /**
  * 验证 Token
@@ -163,7 +164,7 @@ export async function getCurrentUser(request, reply) {
       msg: error.message || "获取用户数据失败",
       data: {
         status: "error",
-        timestamp: new Date().toISOString(),
+        timestamp: dayjs().toISOString(),
       },
     });
   }

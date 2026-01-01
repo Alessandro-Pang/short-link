@@ -38,6 +38,9 @@ export default async function adminRoutes(fastify) {
   // 系统统计
   fastify.get("/stats", adminRateLimitConfig, adminController.getAdminStats);
 
+  // 排行榜
+  fastify.get("/top-links", adminRateLimitConfig, adminController.getTopLinks);
+
   // 短链接管理
   fastify.get("/links", adminRateLimitConfig, adminController.getAllLinks);
   fastify.get(

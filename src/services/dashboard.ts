@@ -3,6 +3,7 @@
  * 所有请求都通过后端 API
  */
 
+import dayjs from "dayjs";
 import {
   getDashboardStats,
   getDashboardLinks,
@@ -14,6 +15,7 @@ import {
   batchDeleteLinks,
   batchToggleLinks,
 } from "./api.js";
+import { fetchApi } from "./request.js";
 
 /**
  * 获取用户的链接统计数据
@@ -174,6 +176,24 @@ export async function getLinkLogs(linkId, options = {}) {
 }
 
 /**
+ * 获取排行榜数据
+ * @param {string} period - 时间周期 ('daily' | 'weekly' | 'monthly')
+ * @param {number} limit - 返回条数，默认 20
+ * @returns {Promise} 排行榜数据
+ */
+export async function getTopLinks(period = "daily", limit = 20) {
+  try {
+    const response = await fetchApi(
+      `/api/dashboard/top-links?period=${period}&limit=${limit}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("获取排行榜数据失败:", error);
+    return { links: [] };
+  }
+}
+
+/**
  * 格式化链接状态
  * @param {Object} link - 链接对象
  * @returns {Object} 状态信息
@@ -183,7 +203,7 @@ export function formatLinkStatus(link) {
     return { status: "disabled", label: "已禁用", color: "red" };
   }
 
-  if (link.expiration_date && new Date(link.expiration_date) < new Date()) {
+  if (link.expiration_date && dayjs(link.expiration_date).isBefore(dayjs())) {
     return { status: "expired", label: "已过期", color: "orange" };
   }
 
@@ -228,7 +248,7 @@ export function getConfigSummary(link) {
   }
 
   if (link.expiration_date) {
-    const isExpired = new Date(link.expiration_date) < new Date();
+    const isExpired = dayjs(link.expiration_date).isBefore(dayjs());
     summary.push({
       type: "expiration",
       label: isExpired ? "已过期" : "有时效",

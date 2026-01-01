@@ -326,3 +326,21 @@ export async function getAdminStats() {
   const response = await fetchApi("/api/admin/stats");
   return response.data;
 }
+
+/**
+ * 获取全局排行榜数据（管理员专用）
+ * @param {string} period - 时间周期 ('daily' | 'weekly' | 'monthly')
+ * @param {number} limit - 返回条数，默认 20
+ * @returns {Promise} - 返回排行榜数据
+ */
+export async function getGlobalTopLinks(period = "daily", limit = 20) {
+  try {
+    const response = await fetchApi(
+      `/api/admin/top-links?period=${period}&limit=${limit}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("获取全局排行榜数据失败:", error);
+    return { links: [] };
+  }
+}
