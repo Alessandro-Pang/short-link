@@ -53,6 +53,10 @@ const pagination = ref({
     pageSize: 10,
 });
 
+// 排序
+const sortField = ref("created_at");
+const sortOrder = ref("descend"); // 'ascend' | 'descend'
+
 // 计算属性：是否有选中的行
 const hasSelected = computed(() => selectedRowKeys.value.length > 0);
 const selectedCount = computed(() => selectedRowKeys.value.length);
@@ -64,8 +68,8 @@ const loadData = async () => {
         const result = await getAllLinks({
             limit: pagination.value.pageSize,
             offset: (pagination.value.current - 1) * pagination.value.pageSize,
-            orderBy: "created_at",
-            ascending: false,
+            orderBy: sortField.value,
+            ascending: sortOrder.value === "ascend",
             linkId: filterLinkId.value || null,
             keyword: searchKeyword.value || null,
             userId: filterUserId.value || null,
@@ -142,6 +146,19 @@ const clearFilter = () => {
 
 const handlePageChange = (page) => {
     pagination.value.current = page;
+    loadData();
+};
+
+const handleSortChange = (dataIndex, direction) => {
+    if (!direction) {
+        // 取消排序，恢复默认
+        sortField.value = "created_at";
+        sortOrder.value = "descend";
+    } else {
+        sortField.value = dataIndex;
+        sortOrder.value = direction;
+    }
+    pagination.value.current = 1; // 重置分页
     loadData();
 };
 
@@ -460,6 +477,7 @@ defineExpose({
                     v-model:selected-keys="selectedRowKeys"
                     row-key="id"
                     @page-change="handlePageChange"
+                    @sorter-change="handleSortChange"
                     :scroll="{ maxHeight: 'calc(100vh - 250px)' }"
                 >
                     <template #columns>
@@ -468,6 +486,9 @@ defineExpose({
                             title="创建者"
                             data-index="user_id"
                             :width="100"
+                            :sortable="{
+                                sortDirections: ['ascend', 'descend'],
+                            }"
                         >
                             <template #cell="{ record }">
                                 <a-tooltip
@@ -596,6 +617,9 @@ defineExpose({
                             title="数据统计"
                             data-index="click_count"
                             :width="120"
+                            :sortable="{
+                                sortDirections: ['ascend', 'descend'],
+                            }"
                         >
                             <template #cell="{ record }">
                                 <div class="flex flex-col">
@@ -633,6 +657,9 @@ defineExpose({
                             title="创建时间"
                             data-index="created_at"
                             :width="160"
+                            :sortable="{
+                                sortDirections: ['ascend', 'descend'],
+                            }"
                         >
                             <template #cell="{ record }">
                                 <span class="text-gray-500">{{

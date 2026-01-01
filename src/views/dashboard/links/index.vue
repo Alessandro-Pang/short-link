@@ -38,6 +38,8 @@ const total = computed(() => linksStore.total);
 const pagination = computed(() => linksStore.pagination);
 const searchKeyword = computed(() => linksStore.searchKeyword);
 const filterLinkId = computed(() => linksStore.filterLinkId);
+const sortField = computed(() => linksStore.sortField);
+const sortOrder = computed(() => linksStore.sortOrder);
 const selectedRowKeys = computed({
     get: () => linksStore.selectedLinkIds,
     set: (val) => linksStore.setSelectedLinkIds(val),
@@ -102,6 +104,16 @@ const clearFilter = () => {
 
 const handlePageChange = (page) => {
     linksStore.setPagination(page);
+    loadData();
+};
+
+const handleSortChange = (dataIndex, direction) => {
+    if (!direction) {
+        // 取消排序，恢复默认
+        linksStore.setSort("created_at", "descend");
+    } else {
+        linksStore.setSort(dataIndex, direction);
+    }
     loadData();
 };
 
@@ -373,6 +385,7 @@ defineExpose({
                     v-model:selected-keys="selectedRowKeys"
                     row-key="id"
                     @page-change="handlePageChange"
+                    @sorter-change="handleSortChange"
                     :scroll="{ maxHeight: 'calc(100vh - 250px)' }"
                 >
                     <template #columns>
@@ -475,6 +488,9 @@ defineExpose({
                             title="数据统计"
                             data-index="click_count"
                             :width="120"
+                            :sortable="{
+                                sortDirections: ['ascend', 'descend'],
+                            }"
                         >
                             <template #cell="{ record }">
                                 <div class="flex flex-col">
@@ -512,6 +528,9 @@ defineExpose({
                             title="创建时间"
                             data-index="created_at"
                             :width="160"
+                            :sortable="{
+                                sortDirections: ['ascend', 'descend'],
+                            }"
                         >
                             <template #cell="{ record }">
                                 <span class="text-gray-500">{{

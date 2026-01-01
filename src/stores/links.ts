@@ -20,6 +20,15 @@ import {
   getConfigSummary,
 } from "@/services/dashboard.js";
 
+interface fetchLinkOptions {
+  limit: number;
+  offset: number;
+  orderBy: string;
+  ascending?: boolean;
+  linkId: string;
+  keyword: string;
+}
+
 export const useLinksStore = defineStore("links", () => {
   // ==================== State ====================
 
@@ -54,6 +63,10 @@ export const useLinksStore = defineStore("links", () => {
   const searchKeyword = ref("");
   const filterLinkId = ref(null);
 
+  // 排序参数
+  const sortField = ref("created_at");
+  const sortOrder = ref("descend"); // 'ascend' | 'descend'
+
   // 选中的链接 ID（用于批量操作）
   const selectedLinkIds = ref([]);
 
@@ -77,7 +90,7 @@ export const useLinksStore = defineStore("links", () => {
     total_clicks: stats.value.total_clicks || 0,
     weekly_new_links: stats.value.weekly_new_links || 0,
     avg_clicks_per_link: parseFloat(
-      stats.value.avg_clicks_per_link || 0
+      `${stats.value.avg_clicks_per_link || 0}`,
     ).toFixed(1),
   }));
 
@@ -90,7 +103,9 @@ export const useLinksStore = defineStore("links", () => {
    * 加载链接列表
    * @param {Object} options - 查询选项
    */
-  async function fetchLinks(options = {}) {
+  async function fetchLinks(
+    options: fetchLinkOptions = {} as fetchLinkOptions,
+  ) {
     isLoading.value = true;
     try {
       const result = await getUserLinks({
@@ -98,8 +113,8 @@ export const useLinksStore = defineStore("links", () => {
         offset:
           options.offset ||
           (pagination.value.current - 1) * pagination.value.pageSize,
-        orderBy: options.orderBy || "created_at",
-        ascending: options.ascending ?? false,
+        orderBy: options.orderBy || sortField.value,
+        ascending: options.ascending ?? sortOrder.value === "ascend",
         linkId: options.linkId || filterLinkId.value,
         keyword: options.keyword || searchKeyword.value,
       });
@@ -199,7 +214,7 @@ export const useLinksStore = defineStore("links", () => {
 
       // 从选中列表中移除
       selectedLinkIds.value = selectedLinkIds.value.filter(
-        (id) => id !== linkId
+        (id) => id !== linkId,
       );
 
       return true;
@@ -368,6 +383,17 @@ export const useLinksStore = defineStore("links", () => {
   }
 
   /**
+   * 设置排序
+   * @param {string} field - 排序字段
+   * @param {string} order - 排序顺序 ('ascend' | 'descend')
+   */
+  function setSort(field, order) {
+    sortField.value = field;
+    sortOrder.value = order;
+    pagination.value.current = 1; // 重置分页
+  }
+
+  /**
    * 选择链接
    * @param {Array<number>} ids - 链接 ID 数组
    */
@@ -422,6 +448,8 @@ export const useLinksStore = defineStore("links", () => {
     pagination.value = { current: 1, pageSize: 10 };
     searchKeyword.value = "";
     filterLinkId.value = null;
+    sortField.value = "created_at";
+    sortOrder.value = "descend";
     selectedLinkIds.value = [];
     isBatchOperating.value = false;
     togglingIds.value = new Set();
@@ -447,6 +475,8 @@ export const useLinksStore = defineStore("links", () => {
     pagination,
     searchKeyword,
     filterLinkId,
+    sortField,
+    sortOrder,
     selectedLinkIds,
     isBatchOperating,
     togglingIds,
@@ -472,6 +502,7 @@ export const useLinksStore = defineStore("links", () => {
     setSearchKeyword,
     setFilterLinkId,
     clearFilters,
+    setSort,
     setSelectedLinkIds,
     clearSelection,
     clearCurrentLink,
