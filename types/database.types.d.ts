@@ -348,6 +348,19 @@ export type Database = {
         Returns: boolean
       }
       clean_old_login_logs: { Args: never; Returns: undefined }
+      get_top_links_by_period: {
+        Args: { p_limit?: number; p_start_date?: string; p_user_id?: string }
+        Returns: {
+          click_count: number
+          created_at: string
+          id: number
+          is_active: boolean
+          link: string
+          period_clicks: number
+          short: string
+          user_id: string
+        }[]
+      }
       get_valid_link: {
         Args: {
           short_code: string

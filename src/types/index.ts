@@ -21,23 +21,10 @@ export interface AuthUser extends User {
   refresh_token?: string;
 }
 
-// 短链接相关类型
-export interface Link {
-  id: string;
-  user_id: string;
-  original_url: string;
-  short_code: string;
-  title?: string;
-  description?: string;
-  tags?: string[];
-  click_count: number;
-  is_active: boolean;
-  expires_at?: string;
-  created_at: string;
-  updated_at: string;
-  password?: string;
-  custom_params?: Record<string, any>;
-}
+// 短链接相关类型（使用 database.types.d.ts 中的类型）
+import type { Link as DbLink } from "../../types/db";
+
+export type Link = DbLink;
 
 export interface CreateLinkPayload {
   original_url: string;
@@ -80,17 +67,10 @@ export interface ClickLog {
   city?: string;
 }
 
-// 登录日志类型
-export interface LoginLog {
-  id: string;
-  user_id: string;
-  email: string;
-  ip_address?: string;
-  user_agent?: string;
-  login_at: string;
-  status: "success" | "failed";
-  error_message?: string;
-}
+// 登录日志类型（使用 database.types.d.ts 中的类型）
+import type { LoginLog as DbLoginLog } from "../../types/db";
+
+export type LoginLog = DbLoginLog;
 
 // 分页相关类型
 export interface PaginationParams {
@@ -107,38 +87,3 @@ export interface PaginatedResponse<T> {
   limit: number;
   total_pages: number;
 }
-
-// Supabase 相关类型
-export interface Database {
-  public: {
-    Tables: {
-      users: {
-        Row: User;
-        Insert: Omit<User, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<User, "id">>;
-      };
-      links: {
-        Row: Link;
-        Insert: Omit<Link, "id" | "created_at" | "updated_at" | "click_count">;
-        Update: Partial<Omit<Link, "id">>;
-      };
-      click_logs: {
-        Row: ClickLog;
-        Insert: Omit<ClickLog, "id" | "clicked_at">;
-        Update: Partial<Omit<ClickLog, "id">>;
-      };
-      login_logs: {
-        Row: LoginLog;
-        Insert: Omit<LoginLog, "id" | "login_at">;
-        Update: Partial<Omit<LoginLog, "id">>;
-      };
-    };
-  };
-}
-
-// Fastify 相关类型扩展（仅在后端使用时有效）
-// declare module 'fastify' {
-//   interface FastifyRequest {
-//     user?: User
-//   }
-// }

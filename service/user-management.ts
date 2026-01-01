@@ -10,6 +10,7 @@ import supabase from "./db.js";
 import cache, { CACHE_KEYS, buildCacheKey } from "../server/utils/cache.js";
 import { USER_CONFIG } from "../server/config/index.js";
 import type { UserListOptions, UserUpdateData } from "../server/types/index.js";
+import type { UserProfile } from "../types/db.js";
 
 /**
  * 清除用户相关缓存

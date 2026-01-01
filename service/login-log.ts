@@ -9,13 +9,16 @@
 import supabase from "./db.js";
 import dayjs from "dayjs";
 import type { LoginLogQueryOptions } from "../server/types/index.js";
+import type { LoginLog, LoginLogInsert } from "../types/db.js";
 
 /**
  * 记录登录日志
  * @param {Object} logData - 登录日志数据
  * @returns {Promise<Object>} 记录结果
  */
-export async function logLogin(logData) {
+export async function logLogin(
+  logData: Partial<LoginLogInsert>,
+): Promise<LoginLog | null> {
   try {
     const {
       user_id,
@@ -64,7 +67,10 @@ export async function logLogin(logData) {
 export async function getUserLoginLogs(
   userId: string,
   options: Partial<LoginLogQueryOptions> = {},
-) {
+): Promise<{
+  logs: LoginLog[];
+  total: number;
+}> {
   try {
     const { limit = 50, offset = 0 } = options;
 
@@ -97,7 +103,10 @@ export async function getUserLoginLogs(
  */
 export async function getAllLoginLogs(
   options: Partial<LoginLogQueryOptions> = {},
-) {
+): Promise<{
+  logs: LoginLog[];
+  total: number;
+}> {
   try {
     const {
       limit = 50,
@@ -425,6 +434,8 @@ export async function getRecentFailedAttempts(
  * @param {Object} logData - 登录日志数据
  * @returns {Promise<Object>} 记录结果
  */
-export async function recordLoginAttempt(logData) {
+export async function recordLoginAttempt(
+  logData: Partial<LoginLogInsert>,
+): Promise<LoginLog | null> {
   return logLogin(logData);
 }

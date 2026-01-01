@@ -19,6 +19,12 @@ import type {
   LinkCreateOptions,
   AccessRestrictions,
 } from "../server/types/index.js";
+import type {
+  Link,
+  LinkInsert,
+  ExpirationOption,
+  LinkAccessLogInsert,
+} from "../types/db.js";
 
 /**
  * 缓存 TTL 配置（秒）
@@ -236,7 +242,13 @@ export function buildRedirectUrl(targetUrl, queryString, passQueryParams) {
  * @param {Object} visitorInfo - 访问者信息（可选）
  * @returns {Promise} 链接信息
  */
-export async function getUrl(short: string, visitorInfo: VisitorInfo = {}) {
+export async function getUrl(
+  short: string,
+  visitorInfo: VisitorInfo = {},
+): Promise<{
+  data: Link | null;
+  error: { message?: string; code?: string } | null;
+}> {
   try {
     const { data, error } = await supabase
       .from("links")
@@ -332,7 +344,10 @@ export async function addUrl(
   link: string,
   userId: string | null = null,
   options: Partial<LinkCreateOptions> = {},
-) {
+): Promise<{
+  data: Link | null;
+  error: { code?: string; message?: string; existingLink?: Link } | null;
+}> {
   try {
     if (userId) {
       // 已登录用户：检查该用户是否已创建过相同链接
@@ -480,7 +495,16 @@ export async function addUrl(
  * @param {Object} accessInfo - 访问信息
  * @returns {Promise}
  */
-export async function logAccess(linkId, accessInfo) {
+export async function logAccess(
+  linkId: number,
+  accessInfo: {
+    ip_address?: string;
+    user_agent?: string;
+    referrer?: string;
+    country?: string;
+    city?: string;
+  },
+): Promise<void> {
   try {
     const deviceType = parseDeviceType(accessInfo.user_agent);
 
@@ -507,7 +531,10 @@ export async function logAccess(linkId, accessInfo) {
  * 获取过期时间选项列表（带缓存）
  * @returns {Promise} 过期时间选项
  */
-export async function getExpirationOptions() {
+export async function getExpirationOptions(): Promise<{
+  data: ExpirationOption[];
+  error: unknown;
+}> {
   try {
     // 尝试从缓存获取
     const cacheKey = CACHE_KEYS.EXPIRATION_OPTIONS;
@@ -554,7 +581,11 @@ export function clearExpirationOptionsCache() {
  * @param {Object} updates - 更新数据
  * @returns {Promise} 更新结果
  */
-export async function updateLinkConfig(linkId, userId, updates) {
+export async function updateLinkConfig(
+  linkId: number,
+  userId: string,
+  updates: Record<string, unknown>,
+): Promise<{ data: Link | null; error: { message?: string } | null }> {
   try {
     // 首先验证链接是否属于该用户
     const { data: link } = await supabase

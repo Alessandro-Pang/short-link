@@ -13,13 +13,19 @@ import type {
   QueryOptions,
   LinkAccessStatsOptions,
 } from "../server/types/index.js";
+import type { Link, LinkAccessLog, UserLinkStats } from "../types/db.js";
 
 /**
  * 获取用户统计数据（使用数据库聚合查询优化）
  * @param {string} userId - 用户 ID
  * @returns {Promise<Object>} 统计数据
  */
-export async function getUserStats(userId: string) {
+export async function getUserStats(userId: string): Promise<{
+  total_links: number;
+  total_clicks: number;
+  weekly_new_links: number;
+  avg_clicks_per_link: number;
+}> {
   try {
     // 使用数据库聚合查询，避免拉取所有数据到内存
     // 查询 1：获取总链接数和总点击数
@@ -87,7 +93,10 @@ export async function getUserStats(userId: string) {
 export async function getUserLinks(
   userId: string,
   options: Partial<QueryOptions> = {},
-) {
+): Promise<{
+  links: Link[];
+  total: number;
+}> {
   try {
     const {
       limit = 10,
@@ -132,7 +141,10 @@ export async function getUserLinks(
  * @param {string} userId - 用户 ID
  * @returns {Promise<Object|null>} 链接详情
  */
-export async function getLinkDetail(linkId, userId) {
+export async function getLinkDetail(
+  linkId: number,
+  userId: string,
+): Promise<Link | null> {
   try {
     const { data, error } = await supabase
       .from("links")
@@ -167,7 +179,10 @@ export async function getLinkAccessLogs(
   linkId: number,
   userId: string,
   options: Partial<QueryOptions> = {},
-) {
+): Promise<{
+  logs: LinkAccessLog[];
+  total: number;
+}> {
   try {
     const { limit = 50, offset = 0 } = options;
 
@@ -213,7 +228,11 @@ export async function getLinkAccessLogs(
  * @param {Object} updates - 更新数据
  * @returns {Promise<Object>} 更新后的链接
  */
-export async function updateLink(linkId, userId, updates) {
+export async function updateLink(
+  linkId: number,
+  userId: string,
+  updates: Record<string, unknown>,
+): Promise<Link> {
   try {
     // 先验证链接所有权
     const { data: link } = await supabase
@@ -276,7 +295,10 @@ export async function updateLink(linkId, userId, updates) {
  * @param {string} userId - 用户 ID
  * @returns {Promise<Object>} 删除结果
  */
-export async function deleteLink(linkId, userId) {
+export async function deleteLink(
+  linkId: number,
+  userId: string,
+): Promise<{ success?: boolean; error?: { message: string } }> {
   try {
     // 先验证链接所有权
     const { data: link } = await supabase
@@ -315,7 +337,13 @@ export async function deleteLink(linkId, userId) {
  * @param {string} userId - 用户 ID
  * @returns {Promise<Object>} 删除结果
  */
-export async function batchDeleteLinks(linkIds, userId) {
+export async function batchDeleteLinks(
+  linkIds: number[],
+  userId: string,
+): Promise<{
+  success: number;
+  failed: number;
+}> {
   try {
     // 先查询属于该用户的链接
     const { data: links, error: queryError } = await supabase
@@ -367,7 +395,14 @@ export async function batchDeleteLinks(linkIds, userId) {
  * @param {boolean} isActive - 是否启用
  * @returns {Promise<Object>} 操作结果
  */
-export async function batchToggleLinks(linkIds, userId, isActive) {
+export async function batchToggleLinks(
+  linkIds: number[],
+  userId: string,
+  isActive: boolean,
+): Promise<{
+  success: number;
+  failed: number;
+}> {
   try {
     // 先查询属于该用户的链接
     const { data: links, error: queryError } = await supabase
@@ -553,7 +588,12 @@ export async function getGlobalStats() {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 链接列表和总数
  */
-export async function getAllLinks(options: Partial<QueryOptions> = {}) {
+export async function getAllLinks(
+  options: Partial<QueryOptions> = {},
+): Promise<{
+  links: Link[];
+  total: number;
+}> {
   try {
     const {
       limit = 10,
@@ -606,7 +646,7 @@ export async function getAllLinks(options: Partial<QueryOptions> = {}) {
  * @param {number} linkId - 链接 ID
  * @returns {Promise<Object|null>} 链接详情
  */
-export async function getLinkDetailAdmin(linkId) {
+export async function getLinkDetailAdmin(linkId: number): Promise<Link | null> {
   try {
     const { data, error } = await supabase
       .from("links")
@@ -638,7 +678,10 @@ export async function getLinkDetailAdmin(linkId) {
 export async function getLinkAccessLogsAdmin(
   linkId: number,
   options: Partial<QueryOptions> = {},
-) {
+): Promise<{
+  logs: LinkAccessLog[];
+  total: number;
+}> {
   try {
     const { limit = 50, offset = 0 } = options;
 
@@ -670,7 +713,10 @@ export async function getLinkAccessLogsAdmin(
  * @param {Object} updates - 更新数据
  * @returns {Promise<Object>} 更新后的链接
  */
-export async function updateLinkAdmin(linkId, updates) {
+export async function updateLinkAdmin(
+  linkId: number,
+  updates: Record<string, unknown>,
+): Promise<Link> {
   try {
     const allowedFields = [
       "title",
@@ -716,7 +762,9 @@ export async function updateLinkAdmin(linkId, updates) {
  * @param {number} linkId - 链接 ID
  * @returns {Promise<Object>} 删除结果
  */
-export async function deleteLinkAdmin(linkId) {
+export async function deleteLinkAdmin(
+  linkId: number,
+): Promise<{ success: boolean }> {
   try {
     const { error } = await supabase.from("links").delete().eq("id", linkId);
 
@@ -799,7 +847,10 @@ export async function getLinkAccessStatsAdmin(
  * @param {Array<number>} linkIds - 链接 ID 数组
  * @returns {Promise<Object>} 删除结果
  */
-export async function batchDeleteLinksAdmin(linkIds) {
+export async function batchDeleteLinksAdmin(linkIds: number[]): Promise<{
+  success: number;
+  failed: number;
+}> {
   try {
     const { error } = await supabase.from("links").delete().in("id", linkIds);
 
@@ -824,7 +875,13 @@ export async function batchDeleteLinksAdmin(linkIds) {
  * @param {boolean} isActive - 是否启用
  * @returns {Promise<Object>} 操作结果
  */
-export async function batchToggleLinksAdmin(linkIds, isActive) {
+export async function batchToggleLinksAdmin(
+  linkIds: number[],
+  isActive: boolean,
+): Promise<{
+  success: number;
+  failed: number;
+}> {
   try {
     const { error } = await supabase
       .from("links")
