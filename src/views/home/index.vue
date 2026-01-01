@@ -129,7 +129,7 @@
 
                         <!-- Main Card -->
                         <a-card
-                            class="rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+                            class="rounded-2xl! border border-gray-100 shadow-sm overflow-hidden"
                             :body-style="{ padding: '0' }"
                         >
                             <div class="p-6 sm:p-8">
@@ -149,7 +149,10 @@
                                             @search="generateShortLink"
                                             @press-enter="generateShortLink"
                                             allow-clear
-                                            class="h-12"
+                                            class="h-14 sort-link-input"
+                                            :buttonProps="{
+                                                class: 'mr-2!',
+                                            }"
                                         >
                                             <template #prefix>
                                                 <icon-link
