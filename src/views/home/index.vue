@@ -31,6 +31,8 @@
                         <icon-github class="text-xl" />
                     </a>
 
+                    <a-divider direction="vertical" />
+
                     <template v-if="userStore.isAuthenticated">
                         <a-dropdown @select="handleDropdownSelect">
                             <div
@@ -133,11 +135,7 @@
                             :body-style="{ padding: '0' }"
                         >
                             <div class="p-6 sm:p-8">
-                                <a-space
-                                    direction="vertical"
-                                    size="large"
-                                    class="w-full"
-                                >
+                                <a-space direction="vertical" class="w-full">
                                     <div class="relative">
                                         <a-input-search
                                             v-model="urlInput"
@@ -203,132 +201,167 @@
                                     <transition name="fade">
                                         <div
                                             v-if="currentShortUrl"
-                                            class="bg-blue-50 p-6 rounded-xl border border-blue-100 mt-4"
+                                            class="bg-linear-to-br mt-2 from-blue-50 via-purple-50 to-pink-50 p-4 rounded-2xl border-2 border-blue-200 shadow-lg"
                                         >
+                                            <!-- 成功标题 -->
                                             <div
-                                                class="flex flex-col md:flex-row items-center justify-between gap-4"
+                                                class="flex items-center gap-3 mb-2"
                                             >
                                                 <div
-                                                    class="flex items-center gap-3 overflow-hidden w-full md:w-auto"
+                                                    style="
+                                                        width: 22px;
+                                                        height: 22px;
+                                                    "
+                                                    class="bg-linear-to-br from-green-400 to-green-600 px-[3px] py-[2px] rounded-full text-white shadow-md animate-pulse"
                                                 >
-                                                    <div
-                                                        class="bg-green-500 p-1.5 rounded-full text-white shrink-0"
-                                                    >
-                                                        <icon-check />
-                                                    </div>
+                                                    <icon-check
+                                                        style="
+                                                            width: 16px;
+                                                            height: 16px;
+                                                        "
+                                                    />
+                                                </div>
+                                                <h3
+                                                    class="text-base font-bold text-gray-800"
+                                                >
+                                                    短链接地址
+                                                </h3>
+                                            </div>
+
+                                            <!-- 短链接展示区 -->
+                                            <div class="flex flex-col gap-3">
+                                                <!-- 链接地址 -->
+                                                <div>
                                                     <a
                                                         :href="currentShortUrl"
                                                         target="_blank"
-                                                        class="text-lg font-medium text-blue-600 truncate hover:underline block"
+                                                        class="text-base font-bold text-blue-600! hover:text-blue-700! hover:underline! break-all transition-colors"
                                                     >
                                                         {{ currentShortUrl }}
                                                     </a>
                                                 </div>
-                                                <a-space class="shrink-0">
+
+                                                <!-- 操作按钮 -->
+                                                <div
+                                                    class="flex flex-wrap gap-2 pt-2"
+                                                >
                                                     <a-button
-                                                        type="secondary"
-                                                        size="small"
+                                                        type="primary"
                                                         @click="copyLink"
+                                                        class="flex-1 min-w-[140px] rounded-lg!"
                                                     >
-                                                        <template #icon
-                                                            ><icon-copy
-                                                        /></template>
-                                                        复制
+                                                        <template #icon>
+                                                            <icon-copy
+                                                                class="text-base"
+                                                            />
+                                                        </template>
+                                                        复制链接
                                                     </a-button>
                                                     <a-button
-                                                        type="secondary"
-                                                        size="small"
+                                                        type="outline"
                                                         @click="showQRCodeModal"
+                                                        class="flex-1 min-w-[140px] rounded-lg!"
                                                     >
-                                                        <template #icon
-                                                            ><icon-qrcode
-                                                        /></template>
-                                                        二维码
+                                                        <template #icon>
+                                                            <icon-qrcode
+                                                                class="text-base"
+                                                            />
+                                                        </template>
+                                                        查看二维码
                                                     </a-button>
-                                                </a-space>
+                                                </div>
                                             </div>
+
                                             <!-- 显示配置摘要（仅登录用户可见） -->
                                             <div
                                                 v-if="
                                                     userStore.isAuthenticated &&
                                                     hasAdvancedConfig
                                                 "
-                                                class="mt-4 pt-4 border-t border-blue-100"
+                                                class="mt-4 bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-white/80"
                                             >
                                                 <div
-                                                    class="text-sm text-gray-600"
+                                                    class="flex items-start gap-2"
                                                 >
-                                                    <span class="font-medium"
-                                                        >已应用配置：</span
-                                                    >
-                                                    <div
-                                                        class="mt-2 flex flex-wrap gap-2"
-                                                    >
-                                                        <a-tag
-                                                            v-if="
-                                                                linkConfig.redirect_type !==
-                                                                302
-                                                            "
-                                                            color="arcoblue"
-                                                            size="small"
+                                                    <icon-settings
+                                                        class="text-gray-500 mt-0.5 shrink-0"
+                                                    />
+                                                    <div class="flex-1">
+                                                        <span
+                                                            class="text-sm font-semibold text-gray-700 block mb-2"
                                                         >
-                                                            {{
-                                                                redirectTypeLabel
-                                                            }}
-                                                        </a-tag>
-                                                        <a-tag
-                                                            v-if="
-                                                                linkConfig.expiration_option_id
-                                                            "
-                                                            color="orange"
-                                                            size="small"
+                                                            已应用高级配置
+                                                        </span>
+                                                        <div
+                                                            class="flex flex-wrap gap-2"
                                                         >
-                                                            <icon-clock-circle
-                                                                class="mr-1"
-                                                            />有效期限制
-                                                        </a-tag>
-                                                        <a-tag
-                                                            v-if="
-                                                                linkConfig.max_clicks
-                                                            "
-                                                            color="green"
-                                                            size="small"
-                                                        >
-                                                            <icon-thunderbolt
-                                                                class="mr-1"
-                                                            />{{
-                                                                linkConfig.max_clicks
-                                                            }}次点击限制
-                                                        </a-tag>
-                                                        <a-tag
-                                                            v-if="
-                                                                linkConfig.pass_query_params
-                                                            "
-                                                            color="purple"
-                                                            size="small"
-                                                        >
-                                                            参数透传
-                                                        </a-tag>
-                                                        <a-tag
-                                                            v-if="
-                                                                linkConfig.forward_headers
-                                                            "
-                                                            color="cyan"
-                                                            size="small"
-                                                        >
-                                                            Header转发
-                                                        </a-tag>
-                                                        <a-tag
-                                                            v-if="
-                                                                hasAccessRestrictions
-                                                            "
-                                                            color="red"
-                                                            size="small"
-                                                        >
-                                                            <icon-safe
-                                                                class="mr-1"
-                                                            />访问限制
-                                                        </a-tag>
+                                                            <a-tag
+                                                                v-if="
+                                                                    linkConfig.redirect_type !==
+                                                                    302
+                                                                "
+                                                                color="arcoblue"
+                                                                size="medium"
+                                                            >
+                                                                {{
+                                                                    redirectTypeLabel
+                                                                }}
+                                                            </a-tag>
+                                                            <a-tag
+                                                                v-if="
+                                                                    linkConfig.expiration_option_id ||
+                                                                    linkConfig.expiration_date
+                                                                "
+                                                                color="orange"
+                                                                size="medium"
+                                                            >
+                                                                <icon-clock-circle
+                                                                    class="mr-1"
+                                                                />有效期限制
+                                                            </a-tag>
+                                                            <a-tag
+                                                                v-if="
+                                                                    linkConfig.max_clicks
+                                                                "
+                                                                color="green"
+                                                                size="medium"
+                                                            >
+                                                                <icon-thunderbolt
+                                                                    class="mr-1"
+                                                                />{{
+                                                                    linkConfig.max_clicks
+                                                                }}次点击限制
+                                                            </a-tag>
+                                                            <a-tag
+                                                                v-if="
+                                                                    linkConfig.pass_query_params
+                                                                "
+                                                                color="purple"
+                                                                size="medium"
+                                                            >
+                                                                参数透传
+                                                            </a-tag>
+                                                            <a-tag
+                                                                v-if="
+                                                                    linkConfig.forward_headers
+                                                                "
+                                                                color="cyan"
+                                                                size="medium"
+                                                            >
+                                                                Header转发
+                                                            </a-tag>
+                                                            <a-tag
+                                                                v-if="
+                                                                    hasAccessRestrictions
+                                                                "
+                                                                color="red"
+                                                                size="medium"
+                                                            >
+                                                                <icon-safe
+                                                                    class="mr-1"
+                                                                />访问限制
+                                                            </a-tag>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -752,8 +785,14 @@ const generateShortLink = async () => {
             }
         }
 
-        const data = await addUrl(inputUrl, options);
-        currentShortUrl.value = window.location.origin + data.url;
+        const { data } = await addUrl(inputUrl, options);
+        if (data && data.short) {
+            currentShortUrl.value = `${window.location.origin}/u/${data.short}`;
+        } else if (data && data.url) {
+            currentShortUrl.value = window.location.origin + data.url;
+        } else {
+            throw new Error("生成短链接失败，返回数据格式错误");
+        }
         Message.success("短链接生成成功");
     } catch (error) {
         // 处理重复链接的特殊错误
@@ -807,17 +846,35 @@ const showQRCodeModal = async () => {
 </script>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition:
-        opacity 0.3s ease,
-        transform 0.3s ease;
+/* 淡入淡出动画 */
+.fade-enter-active {
+    animation: slideInDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-    transform: translateY(-10px);
+.fade-leave-active {
+    animation: slideOutUp 0.3s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideOutUp {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
 }
 
 /* 抽屉样式 */
