@@ -2,7 +2,7 @@
 
 一个功能完善的 URL 缩短服务，基于 Vue 3、Fastify、Vercel 和 Supabase 构建。
 
-> [!DANGER] 注意：
+> 注意：
 >
 > 当前 V2.0 版本由于更新内容较多，导致测试覆盖不全，以及部分功能没有完全实现
 
@@ -10,7 +10,7 @@
 
 短链接服务允许用户快速缩短 URL，便于分享和管理。支持匿名创建和用户登录后的链接管理，提供丰富的链接配置选项和详细的访问统计。
 
-> [!WARNING] 注意：
+> 注意：
 >
 > 当前 V2.0 版本，与 V1.0 版本有较大的更新，下面的教程目前不能完全覆盖部署过程，v2.0 部署教程正在筹备中，请耐心等待。
 
@@ -250,37 +250,17 @@ SELECT * FROM user_profiles WHERE is_admin = true;
 
 ### 用户端
 
-<div style="display: flex; justify-content: center;">
-    <div style="flex:1">
-        <img src="./readme/client-01.png" alt="预览">
-    </div>
-    <div style="flex:1">
-        <img src="./readme/client-02.png" alt="预览">
-    </div>
-    <div style="flex:1">
-        <img src="./readme/client-03.png" alt="预览">
-    </div>
-    <div style="flex:1">
-        <img src="./readme/client-04.png" alt="预览">
-    </div>
-</div>
+| | | |
+|:---:|:---:|:---:|
+| ![用户端-首页](./readme/client-01.png) | ![用户端-链接管理](./readme/client-02.png) | ![用户端-链接详情](./readme/client-03.png) |
+| ![用户端-数据统计](./readme/client-04.png) | | |
 
 ### 管理员
 
-<div style="display: flex; justify-content: center;">
-    <div style="flex:1">
-        <img src="./readme/server-01.png" alt="预览">
-    </div>
-    <div style="flex:1">
-        <img src="./readme/server-02.png" alt="预览">
-    </div>
-    <div style="flex:1">
-        <img src="./readme/server-03.png" alt="预览">
-    </div>
-    <div style="flex:1">
-        <img src="./readme/server-04.png" alt="预览">
-    </div>
-</div>
+| | | |
+|:---:|:---:|:---:|
+| ![管理员-全局统计](./readme/server-01.png) | ![管理员-链接管理](./readme/server-02.png) | ![管理员-用户管理](./readme/server-03.png) |
+| ![管理员-登录日志](./readme/server-04.png) | | |
 
 
 ## 🤝 贡献
