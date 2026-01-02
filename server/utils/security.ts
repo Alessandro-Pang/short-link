@@ -2,15 +2,11 @@
  * @Author: zi.yang
  * @Date: 2025-12-29 00:00:00
  * @LastEditors: zi.yang
- * @LastEditTime: 2025-12-29 00:00:00
+ * @LastEditTime: 2026-01-02 00:00:00
  * @Description: 安全工具函数模块
  * @FilePath: /short-link/api/utils/security
  */
 import { randomBytes, createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
-const __dirname = new URL(import.meta.url).pathname;
 
 /**
  * HTML 实体转义映射表
@@ -122,16 +118,6 @@ export function hasSqlInjectionPattern(input) {
 }
 
 /**
- * 读取并缓存错误页面模板
- */
-let errorPageTemplate: string | null = null;
-
-/**
- * 读取并缓存密码验证页面模板
- */
-let passwordPageTemplate: string | null = null;
-
-/**
  * MD5 加密密码
  * @param {string} password - 原始密码
  * @returns {string} MD5 哈希值
@@ -154,69 +140,4 @@ export function verifyPassword(password: string, hash: string): boolean {
     return false;
   }
   return hashPassword(password) === hash;
-}
-
-/**
- * 获取错误页面模板
- * @returns {string} HTML 模板内容
- */
-function getErrorPageTemplate(): string {
-  if (!errorPageTemplate) {
-    const templatePath = join(__dirname, "../../templates/error.html");
-    errorPageTemplate = readFileSync(templatePath, "utf-8");
-  }
-  return errorPageTemplate;
-}
-
-/**
- * 获取密码验证页面模板
- * @returns {string} HTML 模板内容
- */
-function getPasswordPageTemplate(): string {
-  if (!passwordPageTemplate) {
-    const templatePath = join(__dirname, "../../templates/password.html");
-    passwordPageTemplate = readFileSync(templatePath, "utf-8");
-  }
-  return passwordPageTemplate;
-}
-
-/**
- * 生成错误页面 HTML（已转义）
- * @param {string} title - 页面标题
- * @param {string} message - 错误消息
- * @param {string} homeUrl - 首页链接
- * @returns {string} 安全的 HTML 字符串
- */
-export function generateErrorPageHtml(
-  title = "链接无效",
-  message = "短链接不存在",
-  homeUrl = "/",
-) {
-  const safeTitle = escapeHtml(title);
-  const safeMessage = escapeHtml(message);
-  const safeHomeUrl = escapeHtml(homeUrl);
-
-  const template = getErrorPageTemplate();
-
-  return template
-    .replace(/\{\{title\}\}/g, safeTitle)
-    .replace(/\{\{message\}\}/g, safeMessage)
-    .replace(/\{\{homeUrl\}\}/g, safeHomeUrl);
-}
-
-/**
- * 生成密码验证页面 HTML（已转义）
- * @param {string} shortCode - 短链接代码
- * @param {string} errorMessage - 错误消息（可选）
- * @returns {string} 安全的 HTML 字符串
- */
-export function generatePasswordPageHtml(shortCode: string, errorMessage = "") {
-  const safeShortCode = escapeHtml(shortCode);
-  const safeErrorMessage = escapeHtml(errorMessage);
-
-  const template = getPasswordPageTemplate();
-
-  return template
-    .replace(/\{\{shortCode\}\}/g, safeShortCode)
-    .replace(/\{\{errorMessage\}\}/g, safeErrorMessage);
 }

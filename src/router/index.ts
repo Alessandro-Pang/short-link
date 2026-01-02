@@ -58,6 +58,18 @@ const routes = [
     meta: { requiresAuth: false },
   },
   {
+    path: "/error",
+    name: "error",
+    component: () => import("@/views/error/index.vue"),
+    meta: { requiresAuth: false },
+  },
+  {
+    path: "/password-verify/:hash",
+    name: "password-verify",
+    component: () => import("@/views/password/index.vue"),
+    meta: { requiresAuth: false },
+  },
+  {
     path: "/dashboard",
     name: "dashboard",
     component: DashboardPage,

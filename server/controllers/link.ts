@@ -1,11 +1,8 @@
 import * as linkService from "../services/link";
 import * as dashboardService from "../services/dashboard";
 import { getClientIp } from "../middlewares/utils";
-import {
-  generateErrorPageHtml,
-  generatePasswordPageHtml,
-  verifyPassword,
-} from "../utils/security";
+import { verifyPassword } from "../utils/security";
+import { URLSearchParams } from "node:url";
 import {
   validateCreateLinkParams,
   validateUpdateLinkParams,
@@ -95,7 +92,17 @@ export async function createShortLink(request, reply) {
  * 短链接重定向
  */
 export async function redirectShortLink(request, reply) {
+  const urlSearchParams = new URLSearchParams();
+  urlSearchParams.append("short", request.params?.hash);
+  urlSearchParams.append("title", "链接无效");
+  urlSearchParams.append("message", "短链接不存在");
+
   if (!request.params?.hash) {
+    // 浏览器访问重定向到错误页
+    const acceptHeader = request.headers.accept || "";
+    if (acceptHeader.includes("text/html")) {
+      return reply.redirect(`/error?title=${urlSearchParams.toString()}`);
+    }
     return reply.status(404).send({
       code: 404,
       msg: "短链接不存在",
@@ -117,9 +124,9 @@ export async function redirectShortLink(request, reply) {
 
       const acceptHeader = request.headers.accept || "";
       if (acceptHeader.includes("text/html")) {
-        // 使用安全的 HTML 生成函数防止 XSS
-        const safeHtml = generateErrorPageHtml("链接无效", errorMsg, "/");
-        return reply.status(404).type("text/html").send(safeHtml);
+        urlSearchParams.set("message", errorMsg);
+        // 浏览器访问重定向到 Vue 错误页
+        return reply.redirect(`/error?${urlSearchParams.toString()}`);
       }
 
       return notFound(reply, errorMsg);
@@ -131,9 +138,8 @@ export async function redirectShortLink(request, reply) {
     if (linkData.password_hash) {
       const acceptHeader = request.headers.accept || "";
       if (acceptHeader.includes("text/html")) {
-        // 显示密码验证页面
-        const passwordHtml = generatePasswordPageHtml(request.params.hash);
-        return reply.status(200).type("text/html").send(passwordHtml);
+        // 浏览器访问重定向到 Vue 密码验证页
+        return reply.redirect(`/password-verify/${request.params.hash}`);
       }
       // API 请求返回需要密码的提示
       return reply.status(403).send({
@@ -164,6 +170,13 @@ export async function redirectShortLink(request, reply) {
     return reply.status(redirectType).redirect(targetUrl);
   } catch (error) {
     request.log.error("重定向失败:", error);
+
+    const acceptHeader = request.headers.accept || "";
+    if (acceptHeader.includes("text/html")) {
+      urlSearchParams.set("message", error.message);
+      return reply.redirect(`/error?${urlSearchParams.toString()}`);
+    }
+
     return notFound(reply, error.message || "短链接不存在");
   }
 }
