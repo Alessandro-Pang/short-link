@@ -46,7 +46,7 @@ export async function createShortLink(request, reply) {
     const hasAdvancedOptions =
       options.title ||
       options.expiration_option_id ||
-      options.redirect_type !== 302 ||
+      options.redirect_type ||
       options.max_clicks ||
       options.pass_query_params ||
       options.forward_headers ||
