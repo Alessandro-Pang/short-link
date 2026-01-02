@@ -3,13 +3,13 @@
   "outputDirectory": "dist",
   "functions": {
     "api/index.ts": {
-      "includeFiles": "server/**/*.ts,service/**/*.ts,config/**/*.ts"
+      "includeFiles": "server/**"
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.ts" },
-    { "source": "/u/(.*)", "destination": "/api/index.ts" },
-    { "source": "/health", "destination": "/api/index.ts" },
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/u/(.*)", "destination": "/api" },
+    { "source": "/health", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
