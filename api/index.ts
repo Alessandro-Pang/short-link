@@ -8,4 +8,4 @@
  */
 
 // 导出 server 模块的 handler
-export { default } from "../server/index";
+export { default } from "../server/index.js";
