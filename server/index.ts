@@ -73,7 +73,10 @@ app.register(cors as any, {
       return;
     }
 
-    if (CORS_CONFIG.ALLOWED_ORIGINS.includes(origin)) {
+    if (
+      CORS_CONFIG.ALLOWED_ORIGINS.length === 0 ||
+      CORS_CONFIG.ALLOWED_ORIGINS.includes(origin)
+    ) {
       cb(null, true);
     } else {
       // 记录被拒绝的跨域请求

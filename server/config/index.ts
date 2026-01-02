@@ -17,16 +17,17 @@ export const ENV = {
   PORT: Number.parseInt(process.env.PORT ?? "3000", 10),
 } as const;
 
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(",") || [];
+
 /**
  * CORS 配置
  */
 export const CORS_CONFIG = {
   // 允许的域名列表
   ALLOWED_ORIGINS: ENV.IS_PRODUCTION
-    ? ["https://short.pangcy.cn", "https://www.short.pangcy.cn"]
+    ? ALLOWED_ORIGINS
     : [
-        "https://short.pangcy.cn",
-        "https://www.short.pangcy.cn",
+        ...ALLOWED_ORIGINS,
         "http://localhost:5173",
         "http://localhost:3000",
         "http://127.0.0.1:5173",
