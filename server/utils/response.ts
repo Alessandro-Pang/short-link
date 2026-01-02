@@ -13,7 +13,7 @@ import type {
   ErrorResponse,
   ServiceResult,
   HandleServiceResultOptions,
-} from "../types/index";
+} from "../types/index.js";
 
 /**
  * 成功响应

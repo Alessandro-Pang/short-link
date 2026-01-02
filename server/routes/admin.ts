@@ -7,9 +7,9 @@
  * @FilePath: /short-link/api/routes/admin
  */
 
-import * as adminController from "../controllers/admin";
-import { authenticateAdmin } from "../middlewares/auth";
-import { RATE_LIMIT_CONFIG } from "../config/index";
+import * as adminController from "../controllers/admin.js";
+import { authenticateAdmin } from "../middlewares/auth.js";
+import { RATE_LIMIT_CONFIG } from "../config/index.js";
 
 /**
  * Admin 路由组 - 需要管理员权限

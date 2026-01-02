@@ -6,8 +6,8 @@
  * @Description: 认证服务 - Supabase Auth 验证（使用配置常量）
  * @FilePath: /short-link/service/auth
  */
-import supabase from "../database/client";
-import { USER_CONFIG } from "../config/index";
+import supabase from "../database/client.js";
+import { USER_CONFIG } from "../config/index.js";
 
 /**
  * 验证 Supabase JWT Token

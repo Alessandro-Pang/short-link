@@ -7,12 +7,12 @@
  * @FilePath: /short-link/api/middlewares/errorHandler
  */
 
-import { ENV } from "../config/index";
+import { ENV } from "../config/index.js";
 import type {
   FastifyRequest,
   FastifyReply,
   ErrorResponse,
-} from "../types/index";
+} from "../types/index.js";
 
 /**
  * 判断是否为开发环境

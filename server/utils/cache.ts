@@ -7,7 +7,7 @@
  * @FilePath: /short-link/api/utils/cache
  */
 
-import type { CacheOptions } from "../types/index";
+import type { CacheOptions } from "../types/index.js";
 
 /**
  * 缓存项结构

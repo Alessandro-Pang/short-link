@@ -6,11 +6,10 @@
  * @Description: 用户管理服务（管理员专用）
  * @FilePath: /short-link/service/user-management
  */
-import supabase from "../database/client";
-import cache, { CACHE_KEYS, buildCacheKey } from "../utils/cache";
-import { USER_CONFIG } from "../config/index";
-import type { UserListOptions, UserUpdateData } from "../types/index";
-import type { UserProfile } from "../../types/database.schema.types";
+import supabase from "../database/client.js";
+import cache, { CACHE_KEYS, buildCacheKey } from "../utils/cache.js";
+import { USER_CONFIG } from "../config/index.js";
+import type { UserListOptions, UserUpdateData } from "../types/index.js";
 
 /**
  * 清除用户相关缓存

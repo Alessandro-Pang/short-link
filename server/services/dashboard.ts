@@ -6,19 +6,19 @@
  * @Description: Dashboard 数据服务 - 优化版（使用数据库聚合查询）
  * @FilePath: /short-link/service/dashboard
  */
-import supabase from "../database/client";
+import supabase from "../database/client.js";
 import dayjs, { Dayjs } from "dayjs";
-import { hashPassword } from "../utils/security";
+import { hashPassword } from "../utils/security.js";
 import type {
   LinkQueryOptions,
   QueryOptions,
   LinkAccessStatsOptions,
-} from "../types/index";
+} from "../types/index.js";
 import type {
   Link,
   LinkAccessLog,
   UserLinkStats,
-} from "../../types/database.schema.types";
+} from "../../types/database.schema.types.js";
 
 /**
  * 获取用户统计数据（使用数据库聚合查询优化）

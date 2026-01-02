@@ -7,9 +7,9 @@
  * @FilePath: /short-link/api/controllers/admin
  */
 
-import * as dashboardService from "../services/dashboard";
-import * as userManagementService from "../services/user";
-import * as loginLogService from "../services/log";
+import * as dashboardService from "../services/dashboard.js";
+import * as userManagementService from "../services/user.js";
+import * as loginLogService from "../services/log.js";
 import {
   validateUpdateLinkParams,
   validateBatchIds,
@@ -17,14 +17,14 @@ import {
   validatePagination,
   validateEmail,
   validatePassword,
-} from "../utils/validation";
+} from "../utils/validation.js";
 import {
   success,
   badRequest,
   notFound,
   serverError,
   validationError,
-} from "../utils/response";
+} from "../utils/response.js";
 
 /**
  * 获取系统统计信息

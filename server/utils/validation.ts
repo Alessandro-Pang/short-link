@@ -7,7 +7,7 @@
  * @FilePath: /short-link/api/utils/validation
  */
 
-import type { UrlValidationOptions } from "../types/index";
+import type { UrlValidationOptions } from "../types/index.js";
 
 /**
  * 验证配置常量

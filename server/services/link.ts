@@ -6,26 +6,26 @@
  * @Description: 短链接服务 - 集成 Supabase，支持高级配置和缓存
  * @FilePath: /short-link/service/link
  */
-import supabase from "../database/client";
+import supabase from "../database/client.js";
 import dayjs from "dayjs";
 import {
   generateSecureHash,
   MAX_HASH_RETRIES,
   hashPassword,
-} from "../utils/security";
-import cache, { CACHE_KEYS } from "../utils/cache";
-import { CACHE_CONFIG } from "../config/index";
+} from "../utils/security.js";
+import cache, { CACHE_KEYS } from "../utils/cache.js";
+import { CACHE_CONFIG } from "../config/index.js";
 import type {
   VisitorInfo,
   LinkCreateOptions,
   AccessRestrictions,
-} from "../types/index";
+} from "../types/index.js";
 import type {
   Link,
   LinkInsert,
   ExpirationOption,
   LinkAccessLogInsert,
-} from "../../types/database.schema.types";
+} from "../../types/database.schema.types.js";
 
 /**
  * 缓存 TTL 配置（秒）

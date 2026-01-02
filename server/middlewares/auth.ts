@@ -7,16 +7,16 @@
  * @FilePath: /short-link/api/middlewares/auth
  */
 
-import * as authService from "../services/auth";
-import cache, { CACHE_KEYS, buildCacheKey } from "../utils/cache";
-import { CACHE_CONFIG } from "../config/index";
-import { AuthenticationError, AuthorizationError } from "./errorHandler";
+import * as authService from "../services/auth.js";
+import cache, { CACHE_KEYS, buildCacheKey } from "../utils/cache.js";
+import { CACHE_CONFIG } from "../config/index.js";
+import { AuthenticationError, AuthorizationError } from "./errorHandler.js";
 import type {
   FastifyRequest,
   FastifyReply,
   AuthenticatedRequest,
   AuthMiddlewareOptions,
-} from "../types/index";
+} from "../types/index.js";
 
 /**
  * 从请求头中提取 Bearer Token

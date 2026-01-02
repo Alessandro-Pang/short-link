@@ -1,6 +1,6 @@
-import * as authService from "../services/auth";
-import * as loginLogService from "../services/log";
-import { getClientIp } from "../middlewares/utils";
+import * as authService from "../services/auth.js";
+import * as loginLogService from "../services/log.js";
+import { getClientIp } from "../middlewares/utils.js";
 import dayjs from "dayjs";
 
 /**

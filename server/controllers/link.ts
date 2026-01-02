@@ -1,7 +1,7 @@
-import * as linkService from "../services/link";
-import * as dashboardService from "../services/dashboard";
-import { getClientIp } from "../middlewares/utils";
-import { verifyPassword } from "../utils/security";
+import * as linkService from "../services/link.js";
+import * as dashboardService from "../services/dashboard.js";
+import { getClientIp } from "../middlewares/utils.js";
+import { verifyPassword } from "../utils/security.js";
 import { URLSearchParams } from "node:url";
 import {
   validateCreateLinkParams,
@@ -10,7 +10,7 @@ import {
   validateBoolean,
   validatePagination,
   sanitizeUrl,
-} from "../utils/validation";
+} from "../utils/validation.js";
 import {
   success,
   badRequest,
@@ -18,7 +18,7 @@ import {
   conflict,
   serverError,
   validationError,
-} from "../utils/response";
+} from "../utils/response.js";
 
 /**
  * 获取过期时间选项
