@@ -7,82 +7,159 @@
  * @FilePath: /short-link/src/views/password/index.vue
 -->
 <template>
-    <div class="password-page">
-        <div class="bg-blur-top"></div>
-        <div class="bg-blur-bottom"></div>
+    <div
+        class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4"
+    >
+        <!-- 背景装饰 -->
+        <div class="fixed inset-0 overflow-hidden pointer-events-none">
+            <div
+                class="absolute -top-40 -left-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"
+            ></div>
+            <div
+                class="absolute -bottom-40 -right-40 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"
+            ></div>
+        </div>
 
-        <div class="card">
-            <div class="icon-container">
-                <div class="icon-bg"></div>
-                <div class="icon-circle">
-                    <span class="icon-main">🔐</span>
+        <!-- 密码验证卡片 -->
+        <a-card
+            class="w-full max-w-md relative z-10 shadow-lg"
+            :bordered="true"
+            :body-style="{ padding: '48px 32px' }"
+        >
+            <!-- 图标区域 -->
+            <div class="flex justify-center mb-6">
+                <div class="relative">
+                    <div
+                        class="absolute inset-0 bg-blue-100 rounded-full scale-150 opacity-60 blur-xl"
+                    ></div>
+                    <a-avatar
+                        :size="80"
+                        class="bg-gradient-to-br from-blue-50 to-white relative z-10"
+                    >
+                        <icon-lock class="text-4xl text-blue-600" />
+                    </a-avatar>
                 </div>
             </div>
 
-            <h1>访问受密码保护</h1>
-            <p class="description">
-                此短链接需要密码才能访问，请输入正确的密码继续
-            </p>
+            <!-- 标题和说明 -->
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                    访问受密码保护
+                </h1>
+                <p class="text-sm text-gray-500 leading-relaxed">
+                    此短链接需要密码才能访问，请输入正确的密码继续
+                </p>
+            </div>
 
-            <form class="form-container" @submit.prevent="handleSubmit">
-                <div class="form-group">
-                    <label for="password">密码</label>
-                    <div class="input-wrapper">
-                        <input
-                            v-model="password"
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="请输入访问密码"
-                            autocomplete="off"
-                            required
-                            autofocus
-                            @input="clearError"
-                        />
-                    </div>
-                    <div v-if="errorMessage" class="error-message">
-                        {{ errorMessage }}
-                    </div>
-                </div>
-
-                <button
-                    type="submit"
-                    class="btn btn-primary"
-                    :disabled="loading"
+            <!-- 密码表单 -->
+            <a-form
+                ref="formRef"
+                :model="formData"
+                layout="vertical"
+                @submit="handleSubmit"
+            >
+                <a-form-item
+                    field="password"
+                    label="访问密码"
+                    :rules="[{ required: true, message: '请输入密码' }]"
+                    :validate-status="errorMessage ? 'error' : undefined"
+                    :help="errorMessage"
                 >
-                    <span v-if="!loading">验证并访问</span>
-                    <span v-else class="loading-wrapper">
-                        <span class="loading"></span>
-                        验证中...
-                    </span>
-                </button>
-            </form>
+                    <a-input-password
+                        v-model="formData.password"
+                        placeholder="请输入访问密码"
+                        allow-clear
+                        size="large"
+                        autofocus
+                        @input="clearError"
+                        @press-enter="handleSubmit"
+                        class="rounded-lg!"
+                    >
+                        <template #prefix>
+                            <icon-lock class="text-gray-400" />
+                        </template>
+                    </a-input-password>
+                </a-form-item>
+
+                <a-button
+                    type="primary"
+                    html-type="submit"
+                    long
+                    size="large"
+                    :loading="loading"
+                    class="rounded-lg! h-12! text-base! font-medium!"
+                >
+                    <template #icon>
+                        <icon-check-circle v-if="!loading" />
+                    </template>
+                    {{ loading ? "验证中..." : "验证并访问" }}
+                </a-button>
+            </a-form>
+
+            <!-- 帮助信息 -->
+            <a-divider class="!my-6" />
+
+            <div class="text-center">
+                <a-typography-text type="secondary" class="text-xs">
+                    <icon-info-circle class="mr-1" />
+                    请联系链接创建者获取访问密码
+                </a-typography-text>
+            </div>
+        </a-card>
+
+        <!-- 底部返回链接 -->
+        <div class="mt-6 relative z-10">
+            <a-link @click="goHome" class="text-gray-400 hover:text-gray-600">
+                <icon-left class="mr-1" />
+                返回首页
+            </a-link>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { ref, reactive, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { Message } from "@arco-design/web-vue";
+import {
+    IconLock,
+    IconCheckCircle,
+    IconInfoCircle,
+    IconLeft,
+} from "@arco-design/web-vue/es/icon";
 
 const route = useRoute();
+const router = useRouter();
 
-const password = ref("");
+const formRef = ref();
+const formData = reactive({
+    password: "",
+});
 const errorMessage = ref("");
 const loading = ref(false);
 const shortCode = ref("");
 
 onMounted(() => {
     // 从路由参数获取短链接代码
-    shortCode.value = route.params.hash.toString();
+    shortCode.value = route.params.hash as string;
+
+    if (!shortCode.value) {
+        Message.error("短链接代码无效");
+        router.push("/");
+    }
 });
 
 const clearError = () => {
     errorMessage.value = "";
 };
 
-const handleSubmit = async () => {
-    const pwd = password.value.trim();
+const handleSubmit = async (data?: any) => {
+    // 如果是表单验证失败
+    if (data?.errors) {
+        return;
+    }
+
+    const pwd = formData.password.trim();
 
     if (!pwd) {
         errorMessage.value = "请输入密码";
@@ -103,247 +180,67 @@ const handleSubmit = async () => {
                 body: JSON.stringify({ password: pwd }),
             },
         ).then((res) => res.json());
-
         if (response.code === 200) {
-            // 密码正确,跳转到目标链接
-            window.location.href = response.data.url;
+            // 密码正确，显示成功提示
+            Message.success("密码验证成功，正在跳转...");
+            // 延迟跳转，让用户看到成功提示
+            setTimeout(() => {
+                window.location.href = response.data.url;
+            }, 500);
         } else {
             errorMessage.value = response.msg || "密码错误，请重试";
-            password.value = "";
+            formData.password = "";
         }
     } catch (error: any) {
-        if (error.response?.msg) {
+        console.error("密码验证失败:", error);
+
+        if (error.response?.status === 401) {
+            errorMessage.value = "密码错误，请重试";
+        } else if (error.response?.status === 404) {
+            errorMessage.value = "短链接不存在";
+            Message.error("短链接不存在");
+            setTimeout(() => {
+                router.push("/");
+            }, 1500);
+        } else if (error.response?.msg) {
             errorMessage.value = error.response.msg;
         } else {
             errorMessage.value = "验证失败，请稍后重试";
+            Message.error("验证失败，请稍后重试");
         }
-        password.value = "";
+
+        formData.password = "";
     } finally {
         loading.value = false;
     }
 };
+
+const goHome = () => {
+    router.push("/");
+};
 </script>
 
 <style scoped>
-.password-page {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    position: relative;
-    overflow: hidden;
-    background-color: var(--color-bg-1);
-    background-image: radial-gradient(
-        var(--color-border-1) 1.5px,
-        transparent 1.5px
-    );
-    background-size: 24px 24px;
-}
-
-.bg-blur-top {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 600px;
-    height: 600px;
-    background: rgba(59, 130, 246, 0.05);
-    border-radius: 50%;
-    filter: blur(120px);
-    transform: translate(-33%, -33%);
-    pointer-events: none;
-}
-
-.bg-blur-bottom {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 600px;
-    height: 600px;
-    background: rgba(139, 92, 246, 0.05);
-    border-radius: 50%;
-    filter: blur(120px);
-    transform: translate(33%, 33%);
-    pointer-events: none;
-}
-
-.card {
-    max-width: 420px;
-    width: 100%;
-    background: var(--color-bg-2);
-    border-radius: 16px;
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
-    padding: 2.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    border: 1px solid var(--color-border-2);
-    position: relative;
-    z-index: 10;
-    backdrop-filter: blur(16px);
-}
-
-.icon-container {
-    margin-bottom: 1.5rem;
-    position: relative;
-}
-
-.icon-bg {
-    position: absolute;
-    inset: 0;
-    background: rgb(var(--primary-1));
-    border-radius: 50%;
-    transform: scale(1.6);
-    opacity: 0.6;
-    transition: transform 0.5s ease-out;
-}
-
-.icon-container:hover .icon-bg {
-    transform: scale(1.7);
-}
-
-.icon-circle {
-    position: relative;
-    width: 5rem;
-    height: 5rem;
-    border-radius: 50%;
-    background: linear-gradient(
-        to bottom right,
-        rgb(var(--primary-1)),
-        var(--color-bg-2)
-    );
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 4px solid var(--color-bg-2);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    z-index: 10;
-}
-
-.icon-main {
-    font-size: 2.5rem;
-    line-height: 1;
-}
-
-h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-text-1);
-    margin-bottom: 0.5rem;
-    letter-spacing: -0.025em;
-}
-
-.description {
-    color: var(--color-text-3);
-    margin-bottom: 2rem;
-    line-height: 1.5;
-    font-size: 0.875rem;
-}
-
-.form-container {
-    width: 100%;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-    text-align: left;
-}
-
-label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--color-text-1);
-    margin-bottom: 0.5rem;
-}
-
-.input-wrapper {
-    position: relative;
-}
-
-input[type="password"] {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--color-border-2);
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.2s;
-    outline: none;
-    background: var(--color-bg-2);
-    color: var(--color-text-1);
-}
-
-input[type="password"]:focus {
-    border-color: rgb(var(--primary-6));
-    box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
-}
-
-.error-message {
-    color: rgb(var(--danger-6));
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-}
-
-.btn {
-    width: 100%;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    outline: none;
-    cursor: pointer;
-    font-size: 1rem;
-    border: none;
-    margin-top: 0.5rem;
-}
-
-.btn-primary {
-    background: rgb(var(--primary-6));
-    color: white;
-    box-shadow: 0 4px 12px rgba(22, 93, 255, 0.25);
-}
-
-.btn-primary:hover:not(:disabled) {
-    background: rgb(var(--primary-5));
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(22, 93, 255, 0.35);
-}
-
-.btn-primary:active:not(:disabled) {
-    transform: translateY(0);
-}
-
-.btn-primary:disabled {
-    background: var(--color-fill-3);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.loading-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.loading {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
+@keyframes blob {
+    0% {
+        transform: translate(0px, 0px) scale(1);
     }
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+        transform: translate(0px, 0px) scale(1);
+    }
+}
+
+.animate-blob {
+    animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+    animation-delay: 2s;
 }
 </style>
