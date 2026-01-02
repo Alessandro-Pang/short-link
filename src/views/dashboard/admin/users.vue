@@ -270,10 +270,12 @@ defineExpose({
             class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700 overflow-hidden pb-4"
         >
             <div
-                class="px-6 py-4 border-b border-orange-100 flex justify-between items-center bg-orange-50"
+                class="px-6 py-4 border-b border-orange-100 dark:border-orange-900/30 flex justify-between items-center bg-orange-50 dark:bg-gray-800"
             >
                 <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                    <h3
+                        class="text-lg font-semibold text-gray-800 dark:text-gray-200"
+                    >
                         用户管理
                     </h3>
                     <a-tag color="orange">{{ total }} 个用户</a-tag>
@@ -326,7 +328,7 @@ defineExpose({
                                                 class="flex items-center gap-2"
                                             >
                                                 <span
-                                                    class="font-medium text-gray-800"
+                                                    class="font-medium text-gray-800 dark:text-gray-400"
                                                 >
                                                     {{
                                                         record.user_metadata

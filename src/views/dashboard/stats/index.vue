@@ -6,12 +6,18 @@
                 class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-500 dark:text-gray-400 text-sm">总链接数</span>
-                    <div class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                    <span class="text-gray-500 dark:text-gray-400 text-sm"
+                        >总链接数</span
+                    >
+                    <div
+                        class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400"
+                    >
                         <icon-link />
                     </div>
                 </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div
+                    class="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                >
                     {{ linksStore.formattedStats.total_links }}
                 </div>
                 <div class="mt-2 text-xs text-green-600 flex items-center">
@@ -24,45 +30,69 @@
                 class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-500 dark:text-gray-400 text-sm">总点击数</span>
-                    <div class="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400">
+                    <span class="text-gray-500 dark:text-gray-400 text-sm"
+                        >总点击数</span
+                    >
+                    <div
+                        class="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400"
+                    >
                         <icon-thunderbolt />
                     </div>
                 </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div
+                    class="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                >
                     {{ linksStore.formattedStats.total_clicks }}
                 </div>
-                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">累计所有链接点击</div>
+                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                    累计所有链接点击
+                </div>
             </div>
 
             <div
                 class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-500 dark:text-gray-400 text-sm">本周新增</span>
-                    <div class="p-2 bg-green-50 dark:bg-green-900/30 rounded-lg text-green-600 dark:text-green-400">
+                    <span class="text-gray-500 dark:text-gray-400 text-sm"
+                        >本周新增</span
+                    >
+                    <div
+                        class="p-2 bg-green-50 dark:bg-green-900/30 rounded-lg text-green-600 dark:text-green-400"
+                    >
                         <icon-plus-circle />
                     </div>
                 </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div
+                    class="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                >
                     {{ linksStore.formattedStats.weekly_new_links }}
                 </div>
-                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">最近7天创建</div>
+                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                    最近7天创建
+                </div>
             </div>
 
             <div
                 class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-500 dark:text-gray-400 text-sm">平均点击</span>
-                    <div class="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
+                    <span class="text-gray-500 dark:text-gray-400 text-sm"
+                        >平均点击</span
+                    >
+                    <div
+                        class="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400"
+                    >
                         <icon-bar-chart />
                     </div>
                 </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div
+                    class="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                >
                     {{ linksStore.formattedStats.avg_clicks_per_link }}
                 </div>
-                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">每条链接平均点击</div>
+                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                    每条链接平均点击
+                </div>
             </div>
         </div>
 
@@ -72,7 +102,7 @@
             :links="rankingLinks"
             :loading="rankingLoading"
             :initial-period="rankingPeriod"
-            header-class="bg-gradient-to-r from-blue-50 to-purple-50"
+            header-class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30"
             period-clicks-class="text-blue-600"
             @period-change="handlePeriodChange"
         />
@@ -84,7 +114,9 @@
             <div
                 class="px-6 py-4 border-b border-gray-100 flex justify-between items-center"
             >
-                <h3 class="font-semibold text-gray-800 dark:text-gray-200">最近创建</h3>
+                <h3 class="font-semibold text-gray-800 dark:text-gray-200">
+                    最近创建
+                </h3>
                 <a-link @click="goToLinks" class="text-sm">查看全部</a-link>
             </div>
             <a-spin :loading="linksStore.isLoading" class="w-full">
@@ -100,6 +132,7 @@
                             data-index="link"
                             ellipsis
                             tooltip
+                            width="300"
                         >
                             <template #cell="{ record }">
                                 <div class="flex items-center gap-2">
@@ -108,13 +141,18 @@
                                     >
                                         <icon-link />
                                     </div>
-                                    <span class="truncate text-gray-600 dark:text-gray-300">{{
-                                        record.link
-                                    }}</span>
+                                    <span
+                                        class="truncate text-gray-600 dark:text-gray-300"
+                                        >{{ record.link }}</span
+                                    >
                                 </div>
                             </template>
                         </a-table-column>
-                        <a-table-column title="短链接" data-index="short">
+                        <a-table-column
+                            title="短链接"
+                            width="260"
+                            data-index="short"
+                        >
                             <template #cell="{ record }">
                                 <a-link
                                     :href="`${origin}/u/${record.short}`"
@@ -127,18 +165,21 @@
                         <a-table-column
                             title="点击数"
                             data-index="click_count"
-                            align="right"
+                            align="center"
+                            width="100"
                         >
                             <template #cell="{ record }">
-                                <span class="font-mono text-gray-700 dark:text-gray-300">{{
-                                    record.click_count
-                                }}</span>
+                                <span
+                                    class="font-mono text-gray-700 dark:text-gray-300"
+                                    >{{ record.click_count }}</span
+                                >
                             </template>
                         </a-table-column>
                         <a-table-column
                             title="创建时间"
                             data-index="created_at"
-                            align="right"
+                            align="center"
+                            width="200"
                         >
                             <template #cell="{ record }">
                                 <span class="text-gray-400 text-sm">{{

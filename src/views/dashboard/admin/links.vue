@@ -399,13 +399,13 @@ defineExpose({
             class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700 overflow-hidden pb-3"
         >
             <div
-                class="px-6 py-4 border-b border-orange-100 flex justify-between items-center bg-orange-50"
+                class="px-6 py-4 border-b border-orange-100 dark:border-orange-900/30 flex justify-between items-center bg-orange-50 dark:bg-gray-800"
             >
                 <div class="flex items-center gap-4">
                     <a-input-search
                         v-model="searchInput"
                         placeholder="搜索所有链接..."
-                        class="w-64 bg-white! dark:bg-gray-800!"
+                        class="w-64 bg-white! dark:bg-gray-700!"
                         @search="handleSearch"
                         @clear="handleClear"
                         @press-enter="handleSearch"
@@ -449,7 +449,7 @@ defineExpose({
             <!-- 批量操作栏 -->
             <div
                 v-if="hasSelected"
-                class="px-6 py-3 bg-orange-50 border-b border-orange-100 flex items-center justify-between"
+                class="px-6 py-3 bg-orange-50 dark:bg-orange-900/20 border-b border-orange-100 dark:border-orange-900/30 flex items-center justify-between"
             >
                 <div class="flex items-center gap-2 text-gray-600">
                     <span class="text-orange-600 font-medium"
@@ -701,7 +701,7 @@ defineExpose({
                             <template #cell="{ record }">
                                 <div class="flex flex-col">
                                     <span
-                                        class="text-lg font-bold text-gray-800"
+                                        class="text-lg font-bold text-gray-800 dark:text-gray-500"
                                         >{{ record.click_count }}</span
                                     >
                                     <span class="text-xs text-gray-400"
@@ -882,7 +882,7 @@ defineExpose({
             :width="340"
             modal-class="rounded-xl!"
         >
-            <div class="flex flex-col items-center p-6">
+            <div class="flex flex-col items-center">
                 <div
                     class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6"
                 >
@@ -896,10 +896,12 @@ defineExpose({
                         class="flex items-center justify-between bg-gray-50 px-4 py-3 rounded-lg border border-gray-100"
                     >
                         <span
+                            style="width: calc(100% - 40px)"
                             class="text-gray-700 text-sm truncate mr-4 font-medium"
                             >{{ currentQrUrl }}</span
                         >
                         <a-link
+                            class="w-[38px]! px-0!"
                             @click="copyLink(currentQrUrl.split('/u/').pop())"
                             >复制</a-link
                         >
@@ -908,7 +910,7 @@ defineExpose({
                 <a-button
                     type="primary"
                     long
-                    class="mt-6 rounded-lg!"
+                    class="mt-4! rounded-lg!"
                     @click="qrcodeModalVisible = false"
                 >
                     完成

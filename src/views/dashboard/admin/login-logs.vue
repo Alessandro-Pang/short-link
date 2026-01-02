@@ -144,8 +144,14 @@ defineExpose({
             >
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">总登录次数</p>
-                        <p class="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                        <p
+                            class="text-gray-500 dark:text-gray-400 text-sm mb-1"
+                        >
+                            总登录次数
+                        </p>
+                        <p
+                            class="text-2xl font-bold text-gray-800 dark:text-gray-200"
+                        >
                             {{ stats.total }}
                         </p>
                     </div>
@@ -162,7 +168,11 @@ defineExpose({
             >
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">成功登录</p>
+                        <p
+                            class="text-gray-500 dark:text-gray-400 text-sm mb-1"
+                        >
+                            成功登录
+                        </p>
                         <p class="text-2xl font-bold text-green-600">
                             {{ stats.successful }}
                         </p>
@@ -183,7 +193,11 @@ defineExpose({
             >
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">失败登录</p>
+                        <p
+                            class="text-gray-500 dark:text-gray-400 text-sm mb-1"
+                        >
+                            失败登录
+                        </p>
                         <p class="text-2xl font-bold text-red-600">
                             {{ stats.failed }}
                         </p>
@@ -201,7 +215,11 @@ defineExpose({
             >
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">24小时内登录</p>
+                        <p
+                            class="text-gray-500 dark:text-gray-400 text-sm mb-1"
+                        >
+                            24小时内登录
+                        </p>
                         <p class="text-2xl font-bold text-purple-600">
                             {{ stats.last24h }}
                         </p>
@@ -220,10 +238,12 @@ defineExpose({
             class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700 overflow-hidden pb-4"
         >
             <div
-                class="px-6 py-4 border-b border-orange-100 flex justify-between items-center bg-orange-50"
+                class="px-6 py-4 border-b border-orange-100 dark:border-orange-900/30 flex justify-between items-center bg-orange-50 dark:bg-gray-800"
             >
                 <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                    <h3
+                        class="text-lg font-semibold text-gray-800 dark:text-gray-200"
+                    >
                         登录日志
                     </h3>
                     <a-tag color="orange">{{ total }} 条记录</a-tag>
@@ -253,7 +273,7 @@ defineExpose({
             <!-- 筛选条件 -->
             <div
                 v-if="showFilters"
-                class="px-6 py-4 bg-gray-50 border-b border-gray-100"
+                class="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700"
             >
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <a-input
@@ -336,9 +356,10 @@ defineExpose({
                         >
                             <template #cell="{ record }">
                                 <div class="flex flex-col gap-1">
-                                    <span class="text-gray-800 dark:text-gray-200 font-medium">{{
-                                        record.email
-                                    }}</span>
+                                    <span
+                                        class="text-gray-800 dark:text-gray-200 font-medium"
+                                        >{{ record.email }}</span
+                                    >
                                     <a-typography-text
                                         copyable
                                         :copy-text="record.user_id"
@@ -428,7 +449,7 @@ defineExpose({
                         <a-table-column
                             title="登录时间"
                             data-index="login_at"
-                            :width="180"
+                            :width="190"
                         >
                             <template #cell="{ record }">
                                 <span

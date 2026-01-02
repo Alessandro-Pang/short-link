@@ -101,7 +101,7 @@
                             <!-- 总点击 -->
                             <div class="text-right">
                                 <div
-                                    class="text-lg font-semibold text-gray-700"
+                                    class="text-lg font-semibold text-gray-700 dark:text-gray-500"
                                 >
                                     {{ link.click_count }}
                                 </div>

@@ -48,6 +48,8 @@
 
 body[arco-theme="dark"] {
     /* Arco Design 的 RGB 格式灰度变量 - 使用 Tailwind 的灰度色值 */
+    --primary-6: #6b7280; /* gray-500 */
+
     --gray-1: 17, 24, 39; /* gray-900: #111827 */
     --gray-2: 31, 41, 55; /* gray-800: #1f2937 */
     --gray-3: 55, 65, 81; /* gray-700: #374151 */
@@ -104,6 +106,12 @@ body[arco-theme="dark"] {
 
     /* 菜单背景 */
     --color-menu-light-bg: #1f2937; /* gray-800 */
+
+    /* Table 表格样式 */
+    --color-neutral-1: #111827; /* gray-900 - 表格背景 */
+    --color-neutral-2: #1f2937; /* gray-800 - 表头背景 */
+    --color-neutral-3: #374151; /* gray-700 - hover 背景 */
+    --color-neutral-4: #4b5563; /* gray-600 - 边框 */
 }
 
 html,

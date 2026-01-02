@@ -6,12 +6,17 @@
                 class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">全站链接数</span>
+                    <span
+                        class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm"
+                        >全站链接数</span
+                    >
                     <div class="p-2 bg-orange-50 rounded-lg text-orange-600">
                         <icon-link />
                     </div>
                 </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div
+                    class="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                >
                     {{ stats.total_links }}
                 </div>
                 <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
@@ -23,75 +28,110 @@
                 class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">全站点击数</span>
+                    <span
+                        class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm"
+                        >全站点击数</span
+                    >
                     <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
                         <icon-thunderbolt />
                     </div>
                 </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div
+                    class="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                >
                     {{ stats.total_clicks }}
                 </div>
-                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">累计所有链接点击</div>
+                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                    累计所有链接点击
+                </div>
             </div>
 
             <div
                 class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">本周新增链接</span>
+                    <span
+                        class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm"
+                        >本周新增链接</span
+                    >
                     <div class="p-2 bg-green-50 rounded-lg text-green-600">
                         <icon-plus-circle />
                     </div>
                 </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div
+                    class="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                >
                     {{ stats.weekly_new_links }}
                 </div>
-                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">最近7天创建</div>
+                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                    最近7天创建
+                </div>
             </div>
 
             <div
                 class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">注册用户数</span>
+                    <span
+                        class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm"
+                        >注册用户数</span
+                    >
                     <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
                         <icon-user-group />
                     </div>
                 </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div
+                    class="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                >
                     {{ stats.total_users }}
                 </div>
-                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">已创建链接的用户</div>
+                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                    已创建链接的用户
+                </div>
             </div>
 
             <div
                 class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">匿名链接数</span>
+                    <span
+                        class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm"
+                        >匿名链接数</span
+                    >
                     <div class="p-2 bg-gray-100 rounded-lg text-gray-600">
                         <icon-eye-invisible />
                     </div>
                 </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div
+                    class="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                >
                     {{ stats.anonymous_links }}
                 </div>
-                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">未登录用户创建</div>
+                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                    未登录用户创建
+                </div>
             </div>
 
             <div
                 class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">平均点击</span>
+                    <span
+                        class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm"
+                        >平均点击</span
+                    >
                     <div class="p-2 bg-cyan-50 rounded-lg text-cyan-600">
                         <icon-bar-chart />
                     </div>
                 </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div
+                    class="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                >
                     {{ stats.avg_clicks_per_link }}
                 </div>
-                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">每条链接平均点击</div>
+                <div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                    每条链接平均点击
+                </div>
             </div>
         </div>
 
@@ -102,7 +142,7 @@
             :links="rankingLinks"
             :loading="rankingLoading"
             :initial-period="rankingPeriod"
-            header-class="bg-gradient-to-r from-orange-50 to-yellow-50"
+            header-class="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/30 dark:to-yellow-900/30"
             period-clicks-class="text-orange-600"
             @period-change="handlePeriodChange"
         />
@@ -130,7 +170,11 @@
                     :hoverable="true"
                 >
                     <template #columns>
-                        <a-table-column title="创建者" data-index="user_id">
+                        <a-table-column
+                            title="创建者"
+                            width="80"
+                            data-index="user_id"
+                        >
                             <template #cell="{ record }">
                                 <a-tag
                                     v-if="record.user_id"
@@ -149,6 +193,7 @@
                             data-index="link"
                             ellipsis
                             tooltip
+                            width="260"
                         >
                             <template #cell="{ record }">
                                 <div class="flex items-center gap-2">
@@ -163,7 +208,11 @@
                                 </div>
                             </template>
                         </a-table-column>
-                        <a-table-column title="短链接" data-index="short">
+                        <a-table-column
+                            title="短链接"
+                            width="260"
+                            data-index="short"
+                        >
                             <template #cell="{ record }">
                                 <a-link
                                     :href="`${origin}/u/${record.short}`"
@@ -176,18 +225,21 @@
                         <a-table-column
                             title="点击数"
                             data-index="click_count"
-                            align="right"
+                            align="center"
+                            width="80"
                         >
                             <template #cell="{ record }">
-                                <span class="font-mono text-gray-700">{{
-                                    record.click_count
-                                }}</span>
+                                <span
+                                    class="font-mono text-gray-700 dark:text-gray-500"
+                                    >{{ record.click_count }}</span
+                                >
                             </template>
                         </a-table-column>
                         <a-table-column
                             title="状态"
                             data-index="is_active"
                             align="center"
+                            width="80"
                         >
                             <template #cell="{ record }">
                                 <a-tag
@@ -201,12 +253,14 @@
                         <a-table-column
                             title="创建时间"
                             data-index="created_at"
-                            align="right"
+                            align="center"
+                            width="150"
                         >
                             <template #cell="{ record }">
-                                <span class="text-gray-400 dark:text-gray-500 text-sm">{{
-                                    formatDate(record.created_at)
-                                }}</span>
+                                <span
+                                    class="text-gray-400 dark:text-gray-500 text-sm"
+                                    >{{ formatDate(record.created_at) }}</span
+                                >
                             </template>
                         </a-table-column>
                     </template>
