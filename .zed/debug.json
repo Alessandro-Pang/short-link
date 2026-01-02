@@ -1,0 +1,21 @@
+[
+  {
+    "adapter": "JavaScript",
+    "label": "Short Link Server",
+    "type": "node",
+    "request": "launch",
+    "program": "${ZED_WORKTREE_ROOT}/server/index.ts",
+    "cwd": "${ZED_WORKTREE_ROOT}",
+    "runtimeExecutable": "npx",
+    "runtimeArgs": [
+      "tsx",
+      "--env-file=.env",
+      "--env-file=.env.development.local",
+    ],
+    "env": {
+      "NODE_ENV": "development",
+    },
+    "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+    "console": "integratedTerminal",
+  },
+]

@@ -1,235 +1,391 @@
 <template>
-  <div class="login-wrapper">
-    <div class="login-card">
-      <h1 class="login-title">登录</h1>
-      <p class="login-subtitle">登录以管理您的短链接</p>
-
-      <form class="login-form" @submit.prevent="handleLogin">
-        <div class="form-group">
-          <label for="username">用户名</label>
-          <input
-            type="text"
-            id="username"
-            v-model="username"
-            placeholder="请输入用户名"
-            required
-          />
+    <AuthLayout
+        branding-title="Short Link Service"
+        branding-description="专业的短链接生成与管理平台，提供详细的数据分析和稳定的访问服务。"
+    >
+        <div class="text-center lg:text-left">
+            <h2 class="text-3xl font-bold text-gray-900 tracking-tight">
+                欢迎回来
+            </h2>
+            <p class="mt-2 text-gray-500">请输入您的账号信息以登录控制台</p>
         </div>
 
-        <div class="form-group">
-          <label for="password">密码</label>
-          <input
-            type="password"
-            id="password"
-            v-model="password"
-            placeholder="请输入密码"
-            required
-          />
+        <a-form
+            :model="form"
+            layout="vertical"
+            @submit="handleEmailLogin"
+            class="mt-8"
+        >
+            <a-form-item
+                field="email"
+                label="邮箱"
+                :rules="[
+                    { required: true, message: '请输入邮箱' },
+                    { type: 'email', message: '请输入有效的邮箱地址' },
+                ]"
+            >
+                <a-input
+                    v-model="form.email"
+                    placeholder="name@example.com"
+                    allow-clear
+                    size="large"
+                    class="rounded-lg!"
+                >
+                    <template #prefix>
+                        <icon-email class="text-gray-400" />
+                    </template>
+                </a-input>
+            </a-form-item>
+
+            <a-form-item
+                field="password"
+                label="密码"
+                :rules="[{ required: true, message: '请输入密码' }]"
+            >
+                <a-input-password
+                    v-model="form.password"
+                    placeholder="请输入密码"
+                    allow-clear
+                    size="large"
+                    class="rounded-lg!"
+                >
+                    <template #prefix>
+                        <icon-lock class="text-gray-400" />
+                    </template>
+                </a-input-password>
+            </a-form-item>
+
+            <div class="flex items-center justify-between mb-6">
+                <a-checkbox>记住我</a-checkbox>
+                <a-link
+                    @click="handleForgotPassword"
+                    class="text-sm font-medium"
+                    >忘记密码?</a-link
+                >
+            </div>
+
+            <a-button
+                type="primary"
+                html-type="submit"
+                long
+                size="large"
+                :loading="userStore.isLoading"
+                class="rounded-lg! h-12! text-base! font-medium!"
+            >
+                登录
+            </a-button>
+        </a-form>
+
+        <div class="relative my-8">
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-gray-200"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+                <span class="px-4 bg-white text-gray-500">
+                    第三方账号登录
+                </span>
+            </div>
         </div>
 
-        <div class="form-actions">
-          <button type="submit" class="login-button" :disabled="isLoading">
-            <LoadingSpinner v-if="isLoading" :active="true" />
-            <span v-else>登录</span>
-          </button>
-        </div>
-      </form>
+        <SocialAuthButtons
+            :loading="userStore.isLoading"
+            @github-login="handleGithubLogin"
+            @google-login="handleGoogleLogin"
+        />
 
-      <div class="login-footer">
-        <p>还没有账号？ <a href="#" @click.prevent="goToRegister">注册</a></p>
-        <p><a href="#" @click.prevent="goToHome">返回首页</a></p>
-      </div>
-    </div>
-  </div>
+        <div class="text-center mt-8">
+            <p class="text-gray-600">
+                还没有账号？
+                <a-link @click="goToRegister" class="font-bold! cursor-pointer"
+                    >立即注册</a-link
+                >
+            </p>
+            <div class="mt-4">
+                <a-link
+                    @click="goToHome"
+                    class="text-gray-400! hover:text-gray-600! text-sm"
+                >
+                    <icon-left /> 返回首页
+                </a-link>
+            </div>
+        </div>
+    </AuthLayout>
 </template>
 
-<script setup>
-import { ref } from 'vue';
+<script setup lang="ts">
+import { reactive, onMounted, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
+import { Message } from "@arco-design/web-vue";
+import { IconEmail, IconLock, IconLeft } from "@arco-design/web-vue/es/icon";
+import { useUserStore } from "@/stores";
+import AuthLayout from "@/components/AuthLayout.vue";
+import SocialAuthButtons from "@/components/base/SocialAuthButtons.vue";
 
-import { useRouter } from 'vue-router';
-
-import LoadingSpinner from '@/components/base/LoadingSpinner.vue';
-import { showError, showMessage } from '@/utils/message.js';
-
-// 响应式状态
-const username = ref('');
-const password = ref('');
-const isLoading = ref(false);
-
-// 路由
 const router = useRouter();
+const userStore = useUserStore();
 
-// 处理登录
-async function handleLogin() {
-  if (!username.value || !password.value) {
-    showError('请输入用户名和密码');
-    return;
-  }
+const form = reactive({
+    email: "",
+    password: "",
+});
 
-  isLoading.value = true;
-
-  try {
-    // 这里将来会实现实际的登录逻辑
-    // const response = await login(username.value, password.value);
-
-    // 模拟登录延迟
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    showMessage('登录功能即将上线', 'info');
-    isLoading.value = false;
-
-    // 登录成功后重定向到统计面板
-    // router.push('/dashboard');
-  } catch (error) {
-    isLoading.value = false;
-    showError(error.message || '登录失败，请稍后再试');
-  }
+// 处理认证错误事件（用于第三方登录被禁用提示）
+function handleAuthError(event: any) {
+    const { error } = event.detail;
+    if (error?.code === "USER_BANNED") {
+        Message.error({
+            content: error.message || "您的账号已被管理员禁用，请联系管理员",
+            duration: 5000,
+        });
+    }
 }
 
-// 跳转到注册页面
+// 检查 URL 中的 OAuth 错误参数
+function checkOAuthError() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get("error");
+    const errorCode = urlParams.get("error_code");
+    const errorDescription = urlParams.get("error_description");
+
+    if (error) {
+        let errorMessage = "登录失败";
+
+        if (
+            errorCode === "user_banned" ||
+            errorDescription?.includes("banned")
+        ) {
+            errorMessage = "您的账号已被管理员禁用，请联系管理员";
+
+            // 记录失败日志（尝试从其他 URL 参数获取邮箱）
+            const email =
+                urlParams.get("email") || sessionStorage.getItem("oauth_email");
+            if (email) {
+                import("@/services/auth").then(({ recordLoginAttempt }) => {
+                    recordLoginAttempt(email, false, "用户已被禁用", "oauth");
+                });
+            }
+        } else if (error === "access_denied") {
+            errorMessage = "您拒绝了授权请求";
+        } else {
+            errorMessage = errorDescription || `登录失败: ${error}`;
+        }
+
+        Message.error({
+            content: errorMessage,
+            duration: 5000,
+        });
+
+        // 清理 URL 中的错误参数
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+}
+
+// 组件挂载时添加事件监听和检查 URL 错误
+onMounted(() => {
+    window.addEventListener("auth-error", handleAuthError);
+    checkOAuthError();
+});
+
+// 组件卸载时移除事件监听
+onUnmounted(() => {
+    window.removeEventListener("auth-error", handleAuthError);
+});
+
+// 处理 GitHub 登录
+async function handleGithubLogin() {
+    if (userStore.isLoading) return;
+    try {
+        await userStore.loginWithGithub();
+    } catch (error: any) {
+        Message.error(error.message || "GitHub 登录失败，请稍后再试");
+    }
+}
+
+// 处理 Google 登录
+async function handleGoogleLogin() {
+    if (userStore.isLoading) return;
+    try {
+        await userStore.loginWithGoogle();
+    } catch (error: any) {
+        Message.error(error.message || "Google 登录失败，请稍后再试");
+    }
+}
+
+// 处理邮箱登录
+async function handleEmailLogin({ errors }: any) {
+    if (errors) return;
+
+    try {
+        await userStore.loginWithEmail(form.email, form.password);
+        Message.success("登录成功！");
+        setTimeout(() => {
+            router.push("/dashboard");
+        }, 500);
+    } catch (error: any) {
+        console.error("登录错误:", error);
+
+        // 处理不同的错误情况
+        if (error.code === "USER_BANNED") {
+            // 用户被禁用的特殊提示
+            Message.error({
+                content: "您的账号已被管理员禁用，如有疑问请联系管理员",
+                duration: 5000,
+            });
+        } else if (error.message.includes("Invalid login credentials")) {
+            Message.error("邮箱或密码错误");
+        } else if (error.message.includes("Email not confirmed")) {
+            Message.error("请先验证您的邮箱");
+        } else if (error.message.includes("禁用")) {
+            // 兜底处理所有包含"禁用"的错误消息
+            Message.error({
+                content: error.message,
+                duration: 5000,
+            });
+        } else {
+            Message.error(error.message || "登录失败，请稍后再试");
+        }
+    }
+}
+
+function handleForgotPassword() {
+    router.push("/forgot-password");
+}
+
 function goToRegister() {
-  showMessage('注册功能即将上线', 'info');
-  // 将来会实现注册页面跳转
-  // router.push('/register');
+    router.push("/register");
 }
 
-// 跳转到首页
 function goToHome() {
-  // 将来会实现首页跳转
-  // router.push('/');
-  window.location.href = '/';
+    router.push("/");
 }
 </script>
 
 <style scoped>
-.login-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-  padding: 20px;
+.text-3xl {
+    font-size: 30px;
 }
 
-.login-card {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  width: 100%;
-  max-width: 450px;
-  padding: 40px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+.font-bold {
+    font-weight: 700;
 }
 
-.login-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 6px;
-  background: linear-gradient(90deg, #4776e6, #8e54e9);
+.text-gray-900 {
+    color: #1d2129;
 }
 
-.login-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #2d3436;
-  margin-bottom: 8px;
+.tracking-tight {
+    letter-spacing: -0.025em;
 }
 
-.login-subtitle {
-  color: #636e72;
-  margin-bottom: 30px;
-  font-size: 14px;
+.mt-2 {
+    margin-top: 8px;
 }
 
-.login-form {
-  text-align: left;
+.mt-4 {
+    margin-top: 16px;
 }
 
-.form-group {
-  margin-bottom: 20px;
+.mt-8 {
+    margin-top: 32px;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #2d3436;
-  font-weight: 600;
+.mb-6 {
+    margin-bottom: 24px;
 }
 
-.form-group input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  background-color: #f9f9f9;
+.my-8 {
+    margin-top: 32px;
+    margin-bottom: 32px;
 }
 
-.form-group input:focus {
-  outline: none;
-  border-color: #6c5ce7;
-  box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.15);
-  background-color: #fff;
+.text-gray-500 {
+    color: #86909c;
 }
 
-.form-actions {
-  margin-top: 30px;
+.text-gray-600 {
+    color: #4e5969;
 }
 
-.login-button {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(90deg, #4776e6, #8e54e9);
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.text-gray-400 {
+    color: #86909c;
 }
 
-.login-button:not(:disabled):hover {
-  background: linear-gradient(90deg, #3d68d8, #7c48d5);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(108, 92, 231, 0.3);
+.text-sm {
+    font-size: 14px;
 }
 
-.login-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.text-base {
+    font-size: 16px;
 }
 
-.login-footer {
-  margin-top: 30px;
-  font-size: 14px;
-  color: #636e72;
+.font-medium {
+    font-weight: 500;
 }
 
-.login-footer a {
-  color: #6c5ce7;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.2s ease;
+.text-center {
+    text-align: center;
 }
 
-.login-footer a:hover {
-  text-decoration: underline;
-  color: #4834d4;
+.flex {
+    display: flex;
 }
 
-.login-footer p {
-  margin: 8px 0;
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.relative {
+    position: relative;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.inset-0 {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.border-t {
+    border-top-width: 1px;
+}
+
+.border-gray-200 {
+    border-color: #e5e6eb;
+}
+
+.px-4 {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.bg-white {
+    background-color: white;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+@media (min-width: 1024px) {
+    .lg\:text-left {
+        text-align: left;
+    }
 }
 </style>

@@ -1,5 +1,186 @@
-/* 全局样式 */
+@import "tailwindcss";
+
+/* Tailwind v4 暗色模式配置 */
+@variant dark (&:where(.dark, .dark *));
+
+/* =========================
+   Enterprise UI Baseline
+   - predictable sizing
+   - better typography rendering
+   - consistent page scaffolding
+   ========================= */
+
+:root {
+    /* Typography */
+    --app-font-sans:
+        ui-sans-serif, system-ui, -apple-system, "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
+        "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+    --app-font-mono:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+
+    /* Colors (neutral / enterprise) - Light mode - 使用 Tailwind 色值 */
+    --app-bg: #f9fafb; /* gray-50 */
+    --app-surface: #ffffff; /* white */
+    --app-text: #111827; /* gray-900 */
+    --app-muted: #6b7280; /* gray-500 */
+    --app-border: #e5e7eb; /* gray-200 */
+
+    /* Layout */
+    --app-radius: 12px;
+}
+
+/* Dark mode color variables */
+.dark {
+    /* 使用 Tailwind 灰度色 */
+    --app-bg: #111827; /* gray-900 */
+    --app-surface: #1f2937; /* gray-800 */
+    --app-text: #f9fafb; /* gray-50 */
+    --app-muted: #9ca3af; /* gray-400 */
+    --app-border: #374151; /* gray-700 */
+}
+
+/* =========================
+   Arco Design Dark Theme Customization
+   统一使用 Tailwind 的灰度配色
+   ========================= */
+
+body[arco-theme="dark"] {
+    /* Arco Design 的 RGB 格式灰度变量 - 使用 Tailwind 的灰度色值 */
+    --primary-6: #6b7280; /* gray-500 */
+
+    --gray-1: 17, 24, 39; /* gray-900: #111827 */
+    --gray-2: 31, 41, 55; /* gray-800: #1f2937 */
+    --gray-3: 55, 65, 81; /* gray-700: #374151 */
+    --gray-4: 75, 85, 99; /* gray-600: #4b5563 */
+    --gray-5: 107, 114, 128; /* gray-500: #6b7280 */
+    --gray-6: 156, 163, 175; /* gray-400: #9ca3af */
+    --gray-7: 209, 213, 219; /* gray-300: #d1d5db */
+    --gray-8: 229, 231, 235; /* gray-200: #e5e7eb */
+    --gray-9: 243, 244, 246; /* gray-100: #f3f4f6 */
+    --gray-10: 249, 250, 251; /* gray-50: #f9fafb */
+
+    /* 基础灰度色 - 对应 Tailwind gray-900/800/700 等 */
+    --color-bg-1: #111827; /* gray-900 - 最深背景 */
+    --color-bg-2: #1f2937; /* gray-800 - 容器背景 */
+    --color-bg-3: #374151; /* gray-700 - 悬停背景 */
+    --color-bg-4: #4b5563; /* gray-600 - 活跃背景 */
+    --color-bg-5: #6b7280; /* gray-500 - 禁用背景 */
+
+    /* 文本颜色 - 对应 Tailwind gray 系列 */
+    --color-text-1: #f9fafb; /* gray-50 - 主要文本 */
+    --color-text-2: #e5e7eb; /* gray-200 - 次要文本 */
+    --color-text-3: #9ca3af; /* gray-400 - 辅助文本 */
+    --color-text-4: #6b7280; /* gray-500 - 占位文本 */
+
+    /* 边框颜色 */
+    --color-border-1: #374151; /* gray-700 - 深边框 */
+    --color-border-2: #4b5563; /* gray-600 - 常规边框 */
+    --color-border-3: #6b7280; /* gray-500 - 浅边框 */
+    --color-border-4: #9ca3af; /* gray-400 - 最浅边框 */
+
+    /* 填充颜色 */
+    --color-fill-1: #374151; /* gray-700 */
+    --color-fill-2: #4b5563; /* gray-600 */
+    --color-fill-3: #6b7280; /* gray-500 */
+    --color-fill-4: #9ca3af; /* gray-400 */
+
+    /* 主色调保持 Arco 的蓝色，但稍微调亮 */
+    --color-primary-light-1: #3b82f6; /* Tailwind blue-500 */
+    --color-primary-light-2: #60a5fa; /* Tailwind blue-400 */
+    --color-primary-light-3: #93c5fd; /* Tailwind blue-300 */
+    --color-primary-light-4: #dbeafe; /* Tailwind blue-100 */
+
+    /* 成功色 - Tailwind green */
+    --color-success-light-1: #10b981; /* green-500 */
+    --color-success-light-2: #34d399; /* green-400 */
+
+    /* 警告色 - Tailwind yellow */
+    --color-warning-light-1: #f59e0b; /* yellow-500 */
+    --color-warning-light-2: #fbbf24; /* yellow-400 */
+
+    /* 危险色 - Tailwind red */
+    --color-danger-light-1: #ef4444; /* red-500 */
+    --color-danger-light-2: #f87171; /* red-400 */
+
+    /* 菜单背景 */
+    --color-menu-light-bg: #1f2937; /* gray-800 */
+
+    /* Table 表格样式 */
+    --color-neutral-1: #111827; /* gray-900 - 表格背景 */
+    --color-neutral-2: #1f2937; /* gray-800 - 表头背景 */
+    --color-neutral-3: #374151; /* gray-700 - hover 背景 */
+    --color-neutral-4: #4b5563; /* gray-600 - 边框 */
+}
+
+html,
+body {
+    height: 100%;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: var(--app-font-sans);
+    color: var(--app-text);
+    background: var(--app-bg);
+    line-height: 1.5;
+
+    /* Better font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Make media/content behave predictably */
+img,
+svg,
+video,
+canvas {
+    display: block;
+    max-width: 100%;
+}
+
+/* Form elements inherit typography */
+button,
+input,
+textarea,
+select {
+    font: inherit;
+    color: inherit;
+}
+
+/* Root app container */
 #app {
-  width: 100%;
-  height: 100vh;
+    width: 100%;
+    min-height: 100vh;
+    background: var(--app-bg);
+}
+
+/* Links */
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+/* Selection (subtle, enterprise-friendly) */
+::selection {
+    background: rgba(59, 130, 246, 0.22);
+}
+
+/* Accessible focus ring baseline */
+:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.55);
+    outline-offset: 2px;
+    border-radius: 6px;
 }
