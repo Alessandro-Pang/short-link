@@ -240,14 +240,14 @@ export async function updateLink(
 ): Promise<Link> {
   try {
     // 先验证链接所有权
-    const { data: link } = await supabase
+    const { data: link, error: checkError } = await supabase
       .from("links")
       .select("id")
       .eq("id", linkId)
       .eq("user_id", userId)
       .single();
 
-    if (!link) {
+    if (checkError || !link) {
       throw new Error("链接不存在或无权访问");
     }
 
@@ -292,7 +292,7 @@ export async function updateLink(
       .eq("id", linkId)
       .eq("user_id", userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("更新链接失败:", error);
@@ -318,14 +318,14 @@ export async function deleteLink(
 ): Promise<{ success?: boolean; error?: { message: string } }> {
   try {
     // 先验证链接所有权
-    const { data: link } = await supabase
+    const { data: link, error: checkError } = await supabase
       .from("links")
       .select("id")
       .eq("id", linkId)
       .eq("user_id", userId)
       .single();
 
-    if (!link) {
+    if (checkError || !link) {
       return { error: { message: "链接不存在或无权访问" } };
     }
 
@@ -746,12 +746,25 @@ export async function updateLinkAdmin(
       "forward_headers",
       "forward_header_list",
       "access_restrictions",
+      "password",
     ];
 
     const filteredUpdates = {};
     for (const [key, value] of Object.entries(updates)) {
       if (allowedFields.includes(key) && value !== undefined) {
-        filteredUpdates[key] = value;
+        // 特殊处理密码字段
+        if (key === "password") {
+          if (value === null || value === "") {
+            // 如果密码为 null 或空字符串，删除密码保护
+            filteredUpdates["password_hash"] = null;
+          } else if (typeof value === "string") {
+            // 使用 MD5 加密密码
+            const hashed = hashPassword(value);
+            filteredUpdates["password_hash"] = hashed;
+          }
+        } else {
+          filteredUpdates[key] = value;
+        }
       }
     }
 
@@ -760,7 +773,7 @@ export async function updateLinkAdmin(
       .update(filteredUpdates)
       .eq("id", linkId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("更新链接失败:", error);
