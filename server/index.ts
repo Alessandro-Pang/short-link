@@ -19,6 +19,8 @@ import { CORS_CONFIG, RATE_LIMIT_CONFIG, ENV } from "./config/index.js";
 import { registerErrorHandlers } from "./middlewares/errorHandler.js";
 import swagger from "@fastify/swagger";
 import swaggerUI from "@fastify/swagger-ui";
+import { customAlphabet } from "nanoid";
+const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
 
 const app = Fastify({
   logger: {
@@ -35,8 +37,7 @@ const app = Fastify({
       : undefined,
   },
   // 请求 ID 生成
-  genReqId: () =>
-    `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+  genReqId: () => `req::${Date.now()}:${nanoid()}`,
   // 信任代理（用于正确获取客户端 IP）
   trustProxy: true,
 });
@@ -73,7 +74,6 @@ app.register(cors as any, {
       return;
     }
 
-    console.log("CORS_CONFIG.ALLOWED_ORIGINS", CORS_CONFIG.ALLOWED_ORIGINS);
     if (
       CORS_CONFIG.ALLOWED_ORIGINS.length === 0 ||
       CORS_CONFIG.ALLOWED_ORIGINS.includes(origin)

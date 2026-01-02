@@ -111,13 +111,6 @@ export type Database = {
             foreignKeyName: "link_access_logs_link_id_fkey"
             columns: ["link_id"]
             isOneToOne: false
-            referencedRelation: "link_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "link_access_logs_link_id_fkey"
-            columns: ["link_id"]
-            isOneToOne: false
             referencedRelation: "links"
             referencedColumns: ["id"]
           },
@@ -183,39 +176,6 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      links_duplicate: {
-        Row: {
-          access_count: number | null
-          created_at: string
-          expires_at: string | null
-          id: number
-          is_public: boolean | null
-          link: string
-          short: string
-          user_id: number | null
-        }
-        Insert: {
-          access_count?: number | null
-          created_at?: string
-          expires_at?: string | null
-          id?: number
-          is_public?: boolean | null
-          link: string
-          short: string
-          user_id?: number | null
-        }
-        Update: {
-          access_count?: number | null
-          created_at?: string
-          expires_at?: string | null
-          id?: number
-          is_public?: boolean | null
-          link?: string
-          short?: string
-          user_id?: number | null
         }
         Relationships: []
       }
@@ -317,30 +277,7 @@ export type Database = {
       }
     }
     Views: {
-      link_stats: {
-        Row: {
-          active_days: number | null
-          click_count: number | null
-          created_at: string | null
-          id: number | null
-          link: string | null
-          short: string | null
-          total_accesses: number | null
-          unique_visitors: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      user_link_stats: {
-        Row: {
-          avg_clicks_per_link: number | null
-          total_clicks: number | null
-          total_links: number | null
-          user_id: string | null
-          weekly_new_links: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       check_ip_in_cidr: {

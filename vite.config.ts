@@ -50,11 +50,11 @@ export default defineConfig(({ mode }): UserConfig => {
     server: {
       proxy: {
         "/api": {
-          target: "http://localhost:3000",
+          target: `http://localhost:${env.DEV_SERVER_PORT || 3000}`,
           changeOrigin: true,
         },
         "/u": {
-          target: "http://localhost:3000",
+          target: `http://localhost:${env.DEV_SERVER_PORT || 3000}`,
           changeOrigin: true,
         },
       },

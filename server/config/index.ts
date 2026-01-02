@@ -14,7 +14,7 @@ export const ENV = {
   NODE_ENV: process.env.NODE_ENV || "development",
   IS_PRODUCTION: process.env.NODE_ENV !== "development",
   IS_DEVELOPMENT: process.env.NODE_ENV === "development",
-  PORT: Number.parseInt(process.env.PORT ?? "3000", 10),
+  PORT: Number.parseInt(process.env.DEV_SERVER_PORT ?? "3000", 10),
 } as const;
 
 const ALLOWED_ORIGINS =
@@ -27,15 +27,7 @@ const ALLOWED_ORIGINS =
  */
 export const CORS_CONFIG = {
   // 允许的域名列表
-  ALLOWED_ORIGINS: ENV.IS_PRODUCTION
-    ? ALLOWED_ORIGINS
-    : [
-        ...ALLOWED_ORIGINS,
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-      ],
+  ALLOWED_ORIGINS: ENV.IS_PRODUCTION ? ALLOWED_ORIGINS : [],
   // 允许的请求方法
   METHODS: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const,
   // 允许的请求头
