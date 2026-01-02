@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4 暗色模式配置 */
+@variant dark (&:where(.dark, .dark *));
+
 /* =========================
    Enterprise UI Baseline
    - predictable sizing
@@ -17,7 +20,7 @@
         ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
         "Liberation Mono", "Courier New", monospace;
 
-    /* Colors (neutral / enterprise) */
+    /* Colors (neutral / enterprise) - Light mode */
     --app-bg: #f7f8fa;
     --app-surface: #ffffff;
     --app-text: #1f2329;
@@ -26,6 +29,15 @@
 
     /* Layout */
     --app-radius: 12px;
+}
+
+/* Dark mode color variables */
+.dark {
+    --app-bg: #17171a;
+    --app-surface: #232324;
+    --app-text: #e5e6eb;
+    --app-muted: #86909c;
+    --app-border: #2e2e30;
 }
 
 html,

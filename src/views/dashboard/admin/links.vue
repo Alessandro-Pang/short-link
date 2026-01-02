@@ -567,7 +567,17 @@ defineExpose({
                                 </a-tooltip>
                             </template>
                         </a-table-column>
-
+                        <a-table-column
+                            title="名称"
+                            data-index="title"
+                            :width="120"
+                        >
+                            <template #cell="{ record }">
+                                <div>
+                                    {{ record.title || "-" }}
+                                </div>
+                            </template>
+                        </a-table-column>
                         <a-table-column title="链接信息" data-index="link">
                             <template #cell="{ record }">
                                 <div class="py-2">

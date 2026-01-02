@@ -4,6 +4,7 @@ import App from "./App.vue";
 import router from "./router";
 import "@arco-design/web-vue/dist/arco.css";
 import "./assets/main.css";
+import { useUiStore } from "@/stores/ui";
 
 // 创建 Pinia 实例
 const pinia = createPinia();
@@ -17,3 +18,7 @@ app.use(router);
 
 // 挂载应用
 app.mount("#app");
+
+// 初始化主题
+const uiStore = useUiStore();
+uiStore.initTheme();

@@ -1,21 +1,21 @@
 <template>
-    <div class="min-h-screen bg-gray-50 flex flex-col">
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
         <!-- Header / Nav -->
         <header
-            class="w-full bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/75 border-b border-gray-100 sticky top-0 z-50"
+            class="w-full bg-white/95 dark:bg-gray-800/95 backdrop-blur supports-[backdrop-filter]:bg-white/75 dark:supports-[backdrop-filter]:bg-gray-800/75 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-50"
         >
             <div
                 class="mx-auto w-full max-w-7xl px-4 sm:px-6 py-3 flex justify-between items-center"
             >
                 <div class="flex items-center gap-3 min-w-0">
                     <div
-                        class="text-xl font-semibold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 cursor-pointer truncate"
+                        class="text-xl font-semibold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 cursor-pointer truncate"
                         @click="$router.push('/')"
                     >
                         Short Link
                     </div>
                     <span
-                        class="hidden sm:inline-flex items-center rounded-full border border-gray-200 bg-white px-2 py-0.5 text-xs text-gray-500"
+                        class="hidden sm:inline-flex items-center rounded-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-500 dark:text-gray-400"
                     >
                         企业级短链服务
                     </span>
@@ -25,11 +25,13 @@
                     <a
                         href="https://github.com/Alessandro-Pang/short-link"
                         target="_blank"
-                        class="text-gray-600 hover:text-gray-900 transition-colors flex items-center"
+                        class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex items-center"
                         aria-label="GitHub"
                     >
                         <icon-github class="text-xl" />
                     </a>
+
+                    <ThemeToggle />
 
                     <a-divider direction="vertical" />
 
@@ -98,32 +100,32 @@
                         <!-- Hero Section -->
                         <div class="text-left mb-8 sm:mb-10">
                             <h1
-                                class="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight leading-tight"
+                                class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 tracking-tight leading-tight"
                             >
                                 让链接更短，
                                 <span
-                                    class="bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600"
+                                    class="bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400"
                                 >
                                     让分享更简单
                                 </span>
                             </h1>
                             <p
-                                class="mt-4 text-gray-600 text-base md:text-lg max-w-2xl"
+                                class="mt-4 text-gray-600 dark:text-gray-400 text-base md:text-lg max-w-2xl"
                             >
                                 高效、稳定、安全的短链接生成与管理平台，支持统计分析、有效期与批量管理，适配团队与企业场景。
                             </p>
 
                             <div class="mt-6 flex flex-wrap gap-2">
                                 <span
-                                    class="inline-flex items-center rounded-full bg-gray-900 text-white text-xs px-3 py-1"
+                                    class="inline-flex items-center rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-3 py-1"
                                     >稳定可用</span
                                 >
                                 <span
-                                    class="inline-flex items-center rounded-full bg-white border border-gray-200 text-gray-700 text-xs px-3 py-1"
+                                    class="inline-flex items-center rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs px-3 py-1"
                                     >可追踪统计</span
                                 >
                                 <span
-                                    class="inline-flex items-center rounded-full bg-white border border-gray-200 text-gray-700 text-xs px-3 py-1"
+                                    class="inline-flex items-center rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs px-3 py-1"
                                     >安全可控</span
                                 >
                             </div>
@@ -131,7 +133,7 @@
 
                         <!-- Main Card -->
                         <a-card
-                            class="rounded-2xl! border border-gray-100 shadow-sm overflow-hidden"
+                            class="rounded-2xl! border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden dark:bg-gray-800"
                             :body-style="{ padding: '0' }"
                         >
                             <div class="p-6 sm:p-8">
@@ -281,21 +283,23 @@
                     <!-- Right: Enterprise value props -->
                     <aside class="lg:col-span-5">
                         <div
-                            class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 sm:p-8"
+                            class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-sm p-6 sm:p-8"
                         >
                             <div class="flex items-start justify-between gap-3">
                                 <div>
-                                    <div class="text-sm text-gray-500">
+                                    <div
+                                        class="text-sm text-gray-500 dark:text-gray-400"
+                                    >
                                         企业级能力
                                     </div>
                                     <div
-                                        class="mt-1 text-xl font-semibold text-gray-900 tracking-tight"
+                                        class="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100 tracking-tight"
                                     >
                                         更稳定、更可控的短链平台
                                     </div>
                                 </div>
                                 <div
-                                    class="hidden sm:flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600"
+                                    class="hidden sm:flex items-center rounded-full border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-1 text-xs text-gray-600 dark:text-gray-400"
                                 >
                                     SLA Ready
                                 </div>
@@ -304,18 +308,18 @@
                             <div class="mt-6 space-y-4">
                                 <div class="flex gap-3">
                                     <div
-                                        class="mt-0.5 w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"
+                                        class="mt-0.5 w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0"
                                     >
                                         <icon-dashboard />
                                     </div>
                                     <div>
                                         <div
-                                            class="font-semibold text-gray-900"
+                                            class="font-semibold text-gray-900 dark:text-gray-100"
                                         >
                                             统一管理与审计
                                         </div>
                                         <div
-                                            class="mt-1 text-sm text-gray-600 leading-relaxed"
+                                            class="mt-1 text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
                                         >
                                             在控制台集中管理短链、备注、分组与状态，便于团队协作与审计追踪。
                                         </div>
@@ -324,18 +328,18 @@
 
                                 <div class="flex gap-3">
                                     <div
-                                        class="mt-0.5 w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"
+                                        class="mt-0.5 w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0"
                                     >
                                         <icon-bar-chart />
                                     </div>
                                     <div>
                                         <div
-                                            class="font-semibold text-gray-900"
+                                            class="font-semibold text-gray-900 dark:text-gray-100"
                                         >
                                             数据统计与洞察
                                         </div>
                                         <div
-                                            class="mt-1 text-sm text-gray-600 leading-relaxed"
+                                            class="mt-1 text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
                                         >
                                             监控点击量与趋势，帮助你评估投放效果，快速定位高价值渠道与内容。
                                         </div>
@@ -344,18 +348,18 @@
 
                                 <div class="flex gap-3">
                                     <div
-                                        class="mt-0.5 w-9 h-9 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0"
+                                        class="mt-0.5 w-9 h-9 rounded-lg bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0"
                                     >
                                         <icon-clock-circle />
                                     </div>
                                     <div>
                                         <div
-                                            class="font-semibold text-gray-900"
+                                            class="font-semibold text-gray-900 dark:text-gray-100"
                                         >
                                             安全策略与有效期
                                         </div>
                                         <div
-                                            class="mt-1 text-sm text-gray-600 leading-relaxed"
+                                            class="mt-1 text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
                                         >
                                             支持短链有效期管理与风险控制，降低长期暴露带来的安全隐患。
                                         </div>
@@ -392,7 +396,9 @@
                                 </a-button>
                             </div>
 
-                            <div class="mt-4 text-xs text-gray-400">
+                            <div
+                                class="mt-4 text-xs text-gray-400 dark:text-gray-500"
+                            >
                                 提示：登录后可查看历史记录、统计分析并管理你的短链接资产。
                             </div>
                         </div>
@@ -402,47 +408,59 @@
                 <!-- Login Reminder / Features -->
                 <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+                        class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 hover:-translate-y-1"
                     >
                         <div
-                            class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-2xl mb-4"
+                            class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 text-2xl mb-4"
                         >
                             <icon-dashboard />
                         </div>
-                        <h3 class="font-bold text-gray-800 text-lg mb-2">
+                        <h3
+                            class="font-bold text-gray-800 dark:text-gray-200 text-lg mb-2"
+                        >
                             链接管理
                         </h3>
-                        <p class="text-gray-500 text-sm leading-relaxed">
+                        <p
+                            class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed"
+                        >
                             登录后可查看和管理所有生成的短链接历史，随时修改或删除。
                         </p>
                     </div>
                     <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+                        class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 hover:-translate-y-1"
                     >
                         <div
-                            class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 text-2xl mb-4"
+                            class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center text-purple-600 dark:text-purple-400 text-2xl mb-4"
                         >
                             <icon-bar-chart />
                         </div>
-                        <h3 class="font-bold text-gray-800 text-lg mb-2">
+                        <h3
+                            class="font-bold text-gray-800 dark:text-gray-200 text-lg mb-2"
+                        >
                             访问统计
                         </h3>
-                        <p class="text-gray-500 text-sm leading-relaxed">
+                        <p
+                            class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed"
+                        >
                             实时监控链接访问数据，包括点击量、来源、设备等详细分析。
                         </p>
                     </div>
                     <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+                        class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 hover:-translate-y-1"
                     >
                         <div
-                            class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 text-2xl mb-4"
+                            class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center text-orange-600 dark:text-orange-400 text-2xl mb-4"
                         >
                             <icon-clock-circle />
                         </div>
-                        <h3 class="font-bold text-gray-800 text-lg mb-2">
+                        <h3
+                            class="font-bold text-gray-800 dark:text-gray-200 text-lg mb-2"
+                        >
                             有效期设置
                         </h3>
-                        <p class="text-gray-500 text-sm leading-relaxed">
+                        <p
+                            class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed"
+                        >
                             自定义短链接失效时间，灵活控制访问权限，过期自动失效。
                         </p>
                     </div>
@@ -451,9 +469,11 @@
         </main>
 
         <!-- Footer -->
-        <footer class="mt-10 border-t border-gray-100 bg-white">
+        <footer
+            class="mt-10 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800"
+        >
             <div
-                class="mx-auto w-full max-w-7xl px-4 sm:px-6 py-8 text-sm text-gray-500"
+                class="mx-auto w-full max-w-7xl px-4 sm:px-6 py-8 text-sm text-gray-500 dark:text-gray-400"
             >
                 <div
                     class="flex flex-col sm:flex-row items-center justify-between gap-3"
@@ -521,6 +541,7 @@ import QRCode from "qrcode";
 import { addUrl } from "@/services/api";
 import { validateUrl } from "@/utils/validator";
 import UnifiedLinkConfigDrawer from "@/components/UnifiedLinkConfigDrawer.vue";
+import ThemeToggle from "@/components/ThemeToggle.vue";
 import { useUserStore } from "@/stores";
 
 const router = useRouter();

@@ -1,28 +1,28 @@
 <template>
-    <a-layout class="h-screen bg-gray-50">
+    <a-layout class="h-screen bg-gray-50 dark:bg-gray-900">
         <a-layout-sider
             breakpoint="lg"
             collapsible
             :collapsed="uiStore.sidebarCollapsed"
             @collapse="uiStore.setSidebarCollapsed"
-            class="bg-white! border-r border-gray-100"
+            class="bg-white! dark:bg-gray-800! border-r border-gray-100 dark:border-gray-700"
         >
             <div
-                class="h-16 flex items-center justify-center border-b border-gray-50"
+                class="h-16 flex items-center justify-center border-b border-gray-50 dark:border-gray-700"
             >
                 <div
-                    class="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 cursor-pointer flex items-center gap-2 transition-all duration-300 hover:opacity-80"
+                    class="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 cursor-pointer flex items-center gap-2 transition-all duration-300 hover:opacity-80"
                     @click="goToHome"
                 >
                     <div
-                        class="w-8 h-8 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-md shrink-0"
+                        class="w-8 h-8 bg-linear-to-br from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500 rounded-lg flex items-center justify-center text-white shadow-md shrink-0"
                     >
                         <icon-link v-if="uiStore.sidebarCollapsed" />
                         <icon-dashboard v-else />
                     </div>
                     <span
                         v-if="!uiStore.sidebarCollapsed"
-                        class="tracking-tight text-gray-800! font-bold"
+                        class="tracking-tight text-gray-800! dark:text-gray-200! font-bold"
                         >Short Link</span
                     >
                 </div>
@@ -37,10 +37,12 @@
 
         <a-layout class="flex flex-col h-screen overflow-hidden">
             <a-layout-header
-                class="h-16 bg-white border-b border-gray-100 px-6 flex justify-between items-center z-10 shrink-0"
+                class="h-16 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 px-6 flex justify-between items-center z-10 shrink-0"
             >
                 <div class="flex items-center gap-4">
-                    <h2 class="text-lg font-semibold text-gray-800">
+                    <h2
+                        class="text-lg font-semibold text-gray-800 dark:text-gray-200"
+                    >
                         {{ currentTitle }}
                     </h2>
                     <a-tag v-if="isAdminRoute" color="orange" size="small">
@@ -49,21 +51,24 @@
                     </a-tag>
                 </div>
                 <div class="flex items-center gap-4">
+                    <ThemeToggle />
                     <a-tooltip content="刷新数据">
                         <a-button
                             shape="circle"
                             type="text"
                             size="small"
                             @click="handleRefresh"
-                            class="text-gray-500 hover:bg-gray-100"
+                            class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                             <template #icon><icon-refresh /></template>
                         </a-button>
                     </a-tooltip>
-                    <div class="h-6 w-px bg-gray-200 mx-1"></div>
+                    <div
+                        class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"
+                    ></div>
                     <a-dropdown @select="handleUserDropdown">
                         <div
-                            class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-gray-100"
+                            class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-600"
                         >
                             <a-avatar
                                 :size="32"
@@ -80,15 +85,15 @@
                             </a-avatar>
                             <div class="hidden sm:flex flex-col items-start">
                                 <span
-                                    class="text-sm font-medium text-gray-700 leading-none"
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-300 leading-none"
                                     >{{ userStore.userDisplayName }}</span
                                 >
                                 <span
                                     class="text-xs leading-none mt-1"
                                     :class="
                                         userStore.isAdmin
-                                            ? 'text-orange-500'
-                                            : 'text-gray-400'
+                                            ? 'text-orange-500 dark:text-orange-400'
+                                            : 'text-gray-400 dark:text-gray-500'
                                     "
                                     >{{
                                         userStore.isAdmin
@@ -97,7 +102,9 @@
                                     }}</span
                                 >
                             </div>
-                            <icon-down class="text-gray-400 text-xs ml-1" />
+                            <icon-down
+                                class="text-gray-400 dark:text-gray-500 text-xs ml-1"
+                            />
                         </div>
                         <template #content>
                             <a-doption value="profile">
@@ -117,7 +124,9 @@
                 </div>
             </a-layout-header>
 
-            <a-layout-content class="flex-1 overflow-y-auto bg-gray-50 p-6">
+            <a-layout-content
+                class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6"
+            >
                 <div class="max-w-7xl mx-auto">
                     <router-view
                         ref="childViewRef"
@@ -146,6 +155,7 @@ import {
 import { useUserStore, useUiStore } from "@/stores";
 import { getRouteTitle } from "@/router";
 import SidebarMenu from "./components/SidebarMenu.vue";
+import ThemeToggle from "@/components/ThemeToggle.vue";
 
 const router = useRouter();
 const route = useRoute();

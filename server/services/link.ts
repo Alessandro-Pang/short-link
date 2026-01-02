@@ -546,7 +546,7 @@ export async function getExpirationOptions(): Promise<{
     const cached = cache.get(cacheKey);
 
     if (cached !== undefined) {
-      return { data: cached, error: null };
+      return { data: cached as ExpirationOption[], error: null };
     }
 
     // 缓存未命中，从数据库查询

@@ -534,7 +534,7 @@ export async function getAccessLogs(request, reply) {
     }
 
     // 构建查询
-    let query = (await import("../../service/db")).default
+    let query = (await import("../database/client")).default
       .from("link_access_logs")
       .select("*", { count: "exact" })
       .order("accessed_at", { ascending: false })
