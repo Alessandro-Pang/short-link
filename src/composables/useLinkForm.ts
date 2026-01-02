@@ -5,10 +5,10 @@
 import { ref, reactive, computed } from "vue";
 import type { Ref } from "vue";
 import dayjs from "dayjs";
+import { getExpirationOptions } from "@/services/api";
 
 // 定义 API 服务接口
 interface ApiService {
-  getExpirationOptions: () => Promise<any>;
   getLinkDetail: (id: number | string) => Promise<any>;
   updateLink: (id: number | string, data: any) => Promise<any>;
   deleteLink: (id: number | string) => Promise<any>;
@@ -97,7 +97,7 @@ export function useLinkForm(
   // 加载过期时间选项
   const loadExpirationOptions = async () => {
     try {
-      const result = await apiService.getExpirationOptions();
+      const result = await getExpirationOptions();
       expirationOptions.value = result?.data?.data || [];
     } catch (error) {
       console.error("获取过期时间选项失败:", error);
