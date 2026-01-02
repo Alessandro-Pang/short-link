@@ -18,7 +18,9 @@ export const ENV = {
 } as const;
 
 const ALLOWED_ORIGINS =
-  process.env.ALLOWED_ORIGINS?.split(",").filter(Boolean) || [];
+  process.env.ALLOWED_ORIGINS?.split(",")
+    ?.map((origin) => origin.trim())
+    .filter(Boolean) || [];
 
 /**
  * CORS 配置
