@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, nextTick } from "vue";
 
 const props = defineProps<{
     modelValue: any;
@@ -76,7 +76,7 @@ const emit = defineEmits<{
     (e: "update:modelValue", value: any): void;
 }>();
 
-const isInitialized = ref(false);
+const isUpdating = ref(false);
 
 // 有效期模式
 const expirationMode = ref<"preset" | "custom" | "none">("none");
@@ -100,20 +100,22 @@ const initLocalValues = (val: any) => {
     }
 };
 
-// 监听 modelValue 变化，初始化本地值（仅初始化时）
+// 监听 modelValue 变化，初始化本地值
 watch(
     () => props.modelValue,
     (newVal) => {
-        if (!isInitialized.value) {
-            initLocalValues(newVal);
-            isInitialized.value = true;
-        }
+        if (isUpdating.value) return;
+
+        isUpdating.value = true;
+        initLocalValues(newVal);
     },
     { immediate: true, deep: true },
 );
 
 // 监听有效期模式变化
 watch(expirationMode, (newMode) => {
+    if (isUpdating.value) return;
+
     if (newMode === "preset") {
         localExpirationDate.value = null;
     } else if (newMode === "custom") {
@@ -127,16 +129,20 @@ watch(expirationMode, (newMode) => {
 
 // 监听本地值变化
 watch(localExpirationOptionId, () => {
-    updateParent();
+    if (!isUpdating.value) {
+        updateParent();
+    }
 });
 
 watch(localExpirationDate, () => {
-    updateParent();
+    if (!isUpdating.value) {
+        updateParent();
+    }
 });
 
 // 更新父组件
 const updateParent = () => {
-    if (!isInitialized.value) return;
+    if (isUpdating.value) return;
 
     const updated = {
         ...props.modelValue,

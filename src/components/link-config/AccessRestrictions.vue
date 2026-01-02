@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch, ref } from "vue";
+import { reactive, watch, ref, nextTick } from "vue";
 import {
     IconMobile,
     IconDesktop,
@@ -134,7 +134,7 @@ const emit = defineEmits<{
     (e: "update:modelValue", value: any): void;
 }>();
 
-const isInitialized = ref(false);
+const isUpdating = ref(false);
 
 const localRestrictions = reactive({
     allowed_devices: [],
@@ -168,14 +168,27 @@ const initLocalRestrictions = (val: any) => {
     }
 };
 
-// 监听 modelValue 变化（仅初始化时）
+// 监听 modelValue 变化
 watch(
     () => props.modelValue,
     (newVal) => {
-        if (!isInitialized.value) {
-            initLocalRestrictions(newVal);
-            isInitialized.value = true;
+        console.log(
+            "[AccessRestrictions] props.modelValue changed:",
+            JSON.stringify(newVal),
+        );
+        console.log("[AccessRestrictions] isUpdating:", isUpdating.value);
+
+        if (isUpdating.value) {
+            console.log("[AccessRestrictions] skip update (isUpdating=true)");
+            return;
         }
+
+        isUpdating.value = true;
+        initLocalRestrictions(newVal);
+        // 使用 nextTick 确保在下一个事件循环中重置标志
+        nextTick(() => {
+            isUpdating.value = false;
+        });
     },
     { immediate: true, deep: true },
 );
@@ -184,7 +197,7 @@ watch(
 watch(
     localRestrictions,
     (newVal) => {
-        if (isInitialized.value) {
+        if (!isUpdating.value) {
             emit("update:modelValue", { ...newVal });
         }
     },

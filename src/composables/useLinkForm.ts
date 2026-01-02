@@ -216,16 +216,15 @@ export function useLinkForm(
 
     // 构建访问限制
     const restrictions: any = {};
-    let hasRestrictions = false;
 
     for (const [key, value] of Object.entries(accessRestrictions)) {
-      if (Array.isArray(value) && value.length > 0) {
+      if (Array.isArray(value)) {
         restrictions[key] = value;
-        hasRestrictions = true;
       }
     }
 
-    data.access_restrictions = hasRestrictions ? restrictions : null;
+    // 只要有任何访问限制配置（即使是空数组），也发送完整对象
+    data.access_restrictions = restrictions;
 
     return data;
   };

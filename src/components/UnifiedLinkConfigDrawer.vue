@@ -338,7 +338,14 @@
                     </a-form-item>
 
                     <!-- 访问限制配置 -->
-                    <AccessRestrictions v-model="accessRestrictions" />
+                    <AccessRestrictions
+                        :modelValue="accessRestrictions"
+                        @update:modelValue="
+                            (val) => {
+                                Object.assign(accessRestrictions, val);
+                            }
+                        "
+                    />
                 </FormSection>
             </a-form>
         </a-spin>
@@ -380,7 +387,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, watchEffect } from "vue";
+import { ref, computed, watch } from "vue";
 import { Message } from "@arco-design/web-vue";
 import {
     IconLink,
