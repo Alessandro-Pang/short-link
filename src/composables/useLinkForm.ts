@@ -2,7 +2,7 @@
  * 链接表单的可复用逻辑
  * 用于 LinkEditDrawer 和 AdminLinkEditDrawer
  */
-import { ref, reactive, computed, watch } from "vue";
+import { ref, reactive, computed } from "vue";
 import type { Ref } from "vue";
 import dayjs from "dayjs";
 
@@ -267,18 +267,6 @@ export function useLinkForm(
       isDeleting.value = false;
     }
   };
-
-  // 监听过期模式变化
-  watch(expirationMode, (mode) => {
-    if (mode === "none") {
-      formData.expiration_option_id = null;
-      formData.expiration_date = null;
-    } else if (mode === "preset") {
-      formData.expiration_date = null;
-    } else if (mode === "custom") {
-      formData.expiration_option_id = null;
-    }
-  });
 
   return {
     // State

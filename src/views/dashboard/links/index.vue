@@ -12,6 +12,7 @@ import {
     IconCheck,
     IconClose,
     IconLock,
+    IconUnlock,
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
 import { useLinksStore } from "@/stores";
@@ -476,7 +477,7 @@ defineExpose({
                                         class="flex flex-wrap gap-1 mt-2"
                                     >
                                         <a-tag
-                                            v-if="record.password"
+                                            v-if="record.password_hash"
                                             size="small"
                                             color="orange"
                                         >
@@ -622,7 +623,7 @@ defineExpose({
                                     </a-tooltip>
 
                                     <!-- 密码管理按钮 -->
-                                    <a-dropdown v-if="record.password">
+                                    <a-dropdown v-if="record.password_hash">
                                         <a-tooltip content="密码管理">
                                             <a-button
                                                 size="small"
@@ -667,10 +668,16 @@ defineExpose({
                                             class="hover:bg-gray-100"
                                             @click="openPasswordModal(record)"
                                         >
-                                            <template #icon
-                                                ><icon-lock
+                                            <template #icon>
+                                                <icon-lock
+                                                    v-if="record.password_hash"
                                                     class="text-gray-400"
-                                            /></template>
+                                                />
+                                                <icon-unlock
+                                                    v-else
+                                                    class="text-gray-400"
+                                                />
+                                            </template>
                                         </a-button>
                                     </a-tooltip>
 

@@ -251,10 +251,23 @@
                     <!-- 有效期 -->
                     <a-form-item label="有效期">
                         <ExpirationSelector
-                            v-model="expiration"
+                            :expiration-mode="expirationMode"
+                            :expiration-option-id="
+                                formData.expiration_option_id
+                            "
+                            :expiration-date="formData.expiration_date"
                             :expiration-options="expirationOptions"
                             :is-new="isNew"
                             :is-expired="isExpired"
+                            @update:expiration-mode="
+                                (val) => (expirationMode = val)
+                            "
+                            @update:expiration-option-id="
+                                (val) => (formData.expiration_option_id = val)
+                            "
+                            @update:expiration-date="
+                                (val) => (formData.expiration_date = val)
+                            "
                         />
                     </a-form-item>
 
@@ -319,7 +332,7 @@
                     >
                         <div class="flex items-center gap-2">
                             <a-tag
-                                v-if="linkData?.password"
+                                v-if="linkData?.password_hash"
                                 color="orange"
                                 size="medium"
                             >
@@ -471,18 +484,6 @@ const {
     apiService.value,
     isNew,
 );
-
-const expiration = ref({});
-watch(expiration, (value) => {
-    console.log(JSON.stringify(value));
-    Object.keys(value).forEach((key) => {
-        if (key === "expirationMode") {
-            expirationMode.value = value[key];
-        } else {
-            formData[key] = value[key];
-        }
-    });
-});
 
 // 表单引用
 const formRef = ref(null);

@@ -172,14 +172,7 @@ const initLocalRestrictions = (val: any) => {
 watch(
     () => props.modelValue,
     (newVal) => {
-        console.log(
-            "[AccessRestrictions] props.modelValue changed:",
-            JSON.stringify(newVal),
-        );
-        console.log("[AccessRestrictions] isUpdating:", isUpdating.value);
-
         if (isUpdating.value) {
-            console.log("[AccessRestrictions] skip update (isUpdating=true)");
             return;
         }
 
