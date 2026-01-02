@@ -396,7 +396,7 @@ defineExpose({
 <template>
     <div class="space-y-6">
         <div
-            class="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden pb-3"
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700 overflow-hidden pb-3"
         >
             <div
                 class="px-6 py-4 border-b border-orange-100 flex justify-between items-center bg-orange-50"
@@ -405,7 +405,7 @@ defineExpose({
                     <a-input-search
                         v-model="searchInput"
                         placeholder="搜索所有链接..."
-                        class="w-64 bg-white!"
+                        class="w-64 bg-white! dark:bg-gray-800!"
                         @search="handleSearch"
                         @clear="handleClear"
                         @press-enter="handleSearch"
@@ -578,7 +578,11 @@ defineExpose({
                                 </div>
                             </template>
                         </a-table-column>
-                        <a-table-column title="链接信息" data-index="link">
+                        <a-table-column
+                            title="链接信息"
+                            width="380"
+                            data-index="link"
+                        >
                             <template #cell="{ record }">
                                 <div class="py-2">
                                     <div class="flex items-center gap-2 mb-1">
@@ -744,6 +748,7 @@ defineExpose({
                             title="操作"
                             :width="180"
                             align="center"
+                            fixed="right"
                         >
                             <template #cell="{ record }">
                                 <a-space>
@@ -879,7 +884,7 @@ defineExpose({
         >
             <div class="flex flex-col items-center p-6">
                 <div
-                    class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6"
+                    class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6"
                 >
                     <canvas ref="qrcodeCanvas" class="block"></canvas>
                 </div>

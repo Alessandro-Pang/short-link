@@ -3,16 +3,16 @@
         <!-- 左侧：个人信息编辑 -->
         <div class="profile-left">
             <div
-                class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+                class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
             >
                 <div
                     class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between"
                 >
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-800">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
                             个人信息
                         </h3>
-                        <p class="text-sm text-gray-500 mt-1">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">
                             管理您的账户信息和偏好设置
                         </p>
                     </div>
@@ -35,7 +35,7 @@
                                     class="bg-gray-50!"
                                 >
                                     <template #prefix>
-                                        <icon-email class="text-gray-400" />
+                                        <icon-email class="text-gray-400 dark:text-gray-500" />
                                     </template>
                                     <template #suffix>
                                         <a-tag color="blue" size="small"
@@ -44,7 +44,7 @@
                                     </template>
                                 </a-input>
                                 <template #extra>
-                                    <span class="text-xs text-gray-400">
+                                    <span class="text-xs text-gray-400 dark:text-gray-500">
                                         邮箱地址无法修改
                                     </span>
                                 </template>
@@ -69,11 +69,11 @@
                                     show-word-limit
                                 >
                                     <template #prefix>
-                                        <icon-user class="text-gray-400" />
+                                        <icon-user class="text-gray-400 dark:text-gray-500" />
                                     </template>
                                 </a-input>
                                 <template #extra>
-                                    <span class="text-xs text-gray-400">
+                                    <span class="text-xs text-gray-400 dark:text-gray-500">
                                         未设置用户名时将显示邮箱前缀
                                     </span>
                                 </template>
@@ -116,11 +116,11 @@
                                     allow-clear
                                 >
                                     <template #prefix>
-                                        <icon-image class="text-gray-400" />
+                                        <icon-image class="text-gray-400 dark:text-gray-500" />
                                     </template>
                                 </a-input>
                                 <template #extra>
-                                    <span class="text-xs text-gray-400">
+                                    <span class="text-xs text-gray-400 dark:text-gray-500">
                                         输入图片链接地址，支持 https:// 协议
                                     </span>
                                 </template>
@@ -181,70 +181,70 @@
         <div class="profile-right space-y-6">
             <!-- 账户统计信息 -->
             <div
-                class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+                class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
             >
                 <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
-                    <h3 class="text-lg font-semibold text-gray-800">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
                         账户信息
                     </h3>
                 </div>
                 <div class="p-6">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div
-                            class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg"
+                            class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
                         >
                             <div
-                                class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"
+                                class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center"
                             >
-                                <icon-calendar class="text-blue-600 text-lg" />
+                                <icon-calendar class="text-blue-600 dark:text-blue-400 text-lg" />
                             </div>
                             <div>
-                                <div class="text-xs text-gray-500">
+                                <div class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
                                     注册时间
                                 </div>
-                                <div class="text-sm font-medium text-gray-800">
+                                <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                                     {{ formatDate(userInfo?.created_at) }}
                                 </div>
                             </div>
                         </div>
                         <div
-                            class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg"
+                            class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
                         >
                             <div
-                                class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"
+                                class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center"
                             >
                                 <icon-check-circle
-                                    class="text-green-600 text-lg"
+                                    class="text-green-600 dark:text-green-400 text-lg"
                                 />
                             </div>
                             <div>
-                                <div class="text-xs text-gray-500">
+                                <div class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
                                     账户状态
                                 </div>
-                                <div class="text-sm font-medium text-gray-800">
+                                <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                                     正常使用中
                                 </div>
                             </div>
                         </div>
                         <div
-                            class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg"
+                            class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
                         >
                             <div
-                                class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"
+                                class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center"
                             >
-                                <icon-user class="text-purple-600 text-lg" />
+                                <icon-user class="text-purple-600 dark:text-purple-400 text-lg" />
                             </div>
                             <div>
-                                <div class="text-xs text-gray-500">用户 ID</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">用户 ID</div>
                                 <div
-                                    class="text-sm font-medium text-gray-800 font-mono"
+                                    class="text-sm font-medium text-gray-800 dark:text-gray-200 font-mono"
                                 >
                                     {{ userInfo?.id?.slice(0, 8) }}...
                                 </div>
                             </div>
                         </div>
                         <div
-                            class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg"
+                            class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
                         >
                             <div
                                 class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center"
@@ -252,10 +252,10 @@
                                 <icon-lock class="text-orange-600 text-lg" />
                             </div>
                             <div>
-                                <div class="text-xs text-gray-500">
+                                <div class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
                                     认证方式
                                 </div>
-                                <div class="text-sm font-medium text-gray-800">
+                                <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                                     {{ getAuthProvider() }}
                                 </div>
                             </div>
@@ -266,13 +266,13 @@
 
             <!-- 账号绑定管理 -->
             <div
-                class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+                class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
             >
                 <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
-                    <h3 class="text-lg font-semibold text-gray-800">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
                         账号绑定
                     </h3>
-                    <p class="text-sm text-gray-500 mt-1">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">
                         绑定多个登录方式，方便随时登录
                     </p>
                 </div>
@@ -289,22 +289,22 @@
                                         class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center"
                                     >
                                         <icon-email
-                                            class="text-gray-600 text-lg"
+                                            class="text-gray-600 dark:text-gray-300 text-lg"
                                         />
                                     </div>
                                     <div>
-                                        <div class="font-medium text-gray-800">
+                                        <div class="font-medium text-gray-800 dark:text-gray-200">
                                             邮箱账号
                                         </div>
                                         <div
                                             v-if="bindings.email"
-                                            class="text-sm text-gray-500"
+                                            class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500"
                                         >
                                             {{ bindings.email.email }}
                                         </div>
                                         <div
                                             v-else
-                                            class="text-sm text-gray-400"
+                                            class="text-sm text-gray-400 dark:text-gray-500"
                                         >
                                             未绑定
                                         </div>
@@ -343,12 +343,12 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <div class="font-medium text-gray-800">
+                                        <div class="font-medium text-gray-800 dark:text-gray-200">
                                             GitHub 账号
                                         </div>
                                         <div
                                             v-if="bindings.github"
-                                            class="text-sm text-gray-500"
+                                            class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500"
                                         >
                                             {{
                                                 bindings.github.email ||
@@ -357,7 +357,7 @@
                                         </div>
                                         <div
                                             v-else
-                                            class="text-sm text-gray-400"
+                                            class="text-sm text-gray-400 dark:text-gray-500"
                                         >
                                             未绑定
                                         </div>
@@ -428,12 +428,12 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <div class="font-medium text-gray-800">
+                                        <div class="font-medium text-gray-800 dark:text-gray-200">
                                             Google 账号
                                         </div>
                                         <div
                                             v-if="bindings.google"
-                                            class="text-sm text-gray-500"
+                                            class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500"
                                         >
                                             {{
                                                 bindings.google.email ||
@@ -442,7 +442,7 @@
                                         </div>
                                         <div
                                             v-else
-                                            class="text-sm text-gray-400"
+                                            class="text-sm text-gray-400 dark:text-gray-500"
                                         >
                                             未绑定
                                         </div>
@@ -512,8 +512,8 @@
                 <div class="p-6">
                     <div class="flex items-start justify-between gap-4">
                         <div class="flex-1">
-                            <h4 class="font-medium text-gray-800">删除账号</h4>
-                            <p class="text-sm text-gray-500 mt-1">
+                            <h4 class="font-medium text-gray-800 dark:text-gray-200">删除账号</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">
                                 永久删除你的账号及所有相关数据，此操作不可恢复
                             </p>
                         </div>

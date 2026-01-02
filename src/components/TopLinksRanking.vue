@@ -1,11 +1,16 @@
 <template>
     <div
-        class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
     >
         <!-- 标题栏 -->
-        <div class="px-6 py-4 border-b border-gray-100" :class="headerClass">
+        <div
+            class="px-6 py-4 border-b border-gray-100 dark:border-gray-700"
+            :class="headerClass"
+        >
             <div class="flex items-center justify-between">
-                <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+                <h3
+                    class="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2"
+                >
                     <icon-trophy class="text-yellow-500" />
                     {{ title }}
                 </h3>
@@ -33,7 +38,7 @@
                     <div
                         v-for="(link, index) in links"
                         :key="link.id"
-                        class="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                        class="flex items-center gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                     >
                         <!-- 排名 -->
                         <div
@@ -69,7 +74,7 @@
                                 </a-link>
                             </div>
                             <div
-                                class="text-sm text-gray-400 truncate flex items-center gap-1"
+                                class="text-sm text-gray-400 dark:text-gray-500 truncate flex items-center gap-1"
                                 :title="link.link"
                             >
                                 <icon-link class="text-xs" />
@@ -87,7 +92,9 @@
                                 >
                                     {{ link.period_clicks || 0 }}
                                 </div>
-                                <div class="text-xs text-gray-400">
+                                <div
+                                    class="text-xs text-gray-400 dark:text-gray-500"
+                                >
                                     {{ getPeriodText() }}点击
                                 </div>
                             </div>
@@ -98,7 +105,11 @@
                                 >
                                     {{ link.click_count }}
                                 </div>
-                                <div class="text-xs text-gray-400">总点击</div>
+                                <div
+                                    class="text-xs text-gray-400 dark:text-gray-500"
+                                >
+                                    总点击
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -156,7 +167,7 @@ const getRankClass = (index) => {
     } else if (index === 2) {
         return "bg-gradient-to-br from-orange-400 to-orange-600 text-white";
     }
-    return "bg-white text-gray-600 border border-gray-200";
+    return "bg-white text-gray-600 dark:text-gray-300 border border-gray-200";
 };
 
 const getPeriodText = () => {

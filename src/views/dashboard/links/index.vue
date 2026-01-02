@@ -311,7 +311,7 @@ defineExpose({
 <template>
     <div class="space-y-6">
         <div
-            class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden pb-3"
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden pb-3"
         >
             <div
                 class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50"
@@ -320,7 +320,7 @@ defineExpose({
                     <a-input-search
                         v-model="searchInput"
                         placeholder="搜索链接..."
-                        class="bg-white!"
+                        class="bg-white! dark:bg-gray-800!"
                         style="width: 240px"
                         @search="handleSearch"
                         @clear="handleClear"
@@ -359,7 +359,9 @@ defineExpose({
                 v-if="hasSelected"
                 class="px-6 py-3 bg-blue-50 border-b border-blue-100 flex items-center justify-between"
             >
-                <div class="flex items-center gap-2 text-gray-600">
+                <div
+                    class="flex items-center gap-2 text-gray-600 dark:text-gray-300"
+                >
                     <span class="text-blue-600 font-medium"
                         >已选择 {{ selectedCount }} 项</span
                     >
@@ -450,7 +452,11 @@ defineExpose({
                                 </div>
                             </template>
                         </a-table-column>
-                        <a-table-column title="链接信息" data-index="link">
+                        <a-table-column
+                            title="链接信息"
+                            width="380"
+                            data-index="link"
+                        >
                             <template #cell="{ record }">
                                 <div class="py-2">
                                     <div class="flex items-center gap-2 mb-1">
@@ -616,6 +622,7 @@ defineExpose({
                             title="操作"
                             :width="180"
                             align="center"
+                            fixed="right"
                         >
                             <template #cell="{ record }">
                                 <a-space>
@@ -628,7 +635,7 @@ defineExpose({
                                         >
                                             <template #icon
                                                 ><icon-qrcode
-                                                    class="text-gray-600"
+                                                    class="text-gray-600 dark:text-gray-300"
                                             /></template>
                                         </a-button>
                                     </a-tooltip>
@@ -701,7 +708,7 @@ defineExpose({
                                         >
                                             <template #icon
                                                 ><icon-edit
-                                                    class="text-gray-600"
+                                                    class="text-gray-600 dark:text-gray-300"
                                             /></template>
                                         </a-button>
                                     </a-tooltip>
@@ -750,7 +757,7 @@ defineExpose({
         >
             <div class="flex flex-col items-center">
                 <div
-                    class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6"
+                    class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6"
                 >
                     <canvas ref="qrcodeCanvas" class="block"></canvas>
                 </div>
