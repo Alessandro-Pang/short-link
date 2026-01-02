@@ -330,7 +330,7 @@
                             >
                                 <div class="flex items-center gap-3">
                                     <div
-                                        class="w-10 h-10 bg-gray-100 bg-gray-400 rounded-lg flex items-center justify-center"
+                                        class="w-10 h-10 bg-gray-100 dark:bg-gray-400 rounded-lg flex items-center justify-center"
                                     >
                                         <icon-email
                                             class="text-gray-600 dark:text-gray-300 text-lg"
