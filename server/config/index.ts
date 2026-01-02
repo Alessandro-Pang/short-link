@@ -17,7 +17,8 @@ export const ENV = {
   PORT: Number.parseInt(process.env.PORT ?? "3000", 10),
 } as const;
 
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(",") || [];
+const ALLOWED_ORIGINS =
+  process.env.ALLOWED_ORIGINS?.split(",").filter(Boolean) || [];
 
 /**
  * CORS 配置

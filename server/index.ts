@@ -73,7 +73,6 @@ app.register(cors as any, {
       return;
     }
 
-    console.log("CORS_CONFIG.ALLOWED_ORIGINS", CORS_CONFIG.ALLOWED_ORIGINS);
     if (
       CORS_CONFIG.ALLOWED_ORIGINS.length === 0 ||
       CORS_CONFIG.ALLOWED_ORIGINS.includes(origin)
