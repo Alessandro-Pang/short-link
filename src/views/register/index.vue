@@ -207,7 +207,7 @@ async function handleEmailRegister({ errors }: any) {
 
 	try {
 		await userStore.registerWithEmail(form.email, form.password, {
-			username: form.username,
+			name: form.username,
 		});
 
 		Message.success("注册成功！请查收邮箱验证邮件");
