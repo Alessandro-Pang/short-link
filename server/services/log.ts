@@ -239,7 +239,7 @@ export async function getLoginStats(userId = null) {
 			last24h: countLast24h || 0,
 			last7d: countLast7d || 0,
 			last30d: countLast30d || 0,
-			successRate: total > 0 ? ((successful / total) * 100).toFixed(2) + "%" : "0%",
+			successRate: total > 0 ? `${((successful / total) * 100).toFixed(2)}%` : "0%",
 		};
 	} catch (error) {
 		console.error("获取登录统计异常:", error);

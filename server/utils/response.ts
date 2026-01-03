@@ -7,13 +7,7 @@
  * @FilePath: /short-link/api/utils/response
  */
 
-import type {
-	ErrorResponse,
-	FastifyReply,
-	HandleServiceResultOptions,
-	ServiceResult,
-	SuccessResponse,
-} from "../types/index.js";
+import type { FastifyReply, HandleServiceResultOptions, ServiceResult } from "../types/index.js";
 
 /**
  * 成功响应

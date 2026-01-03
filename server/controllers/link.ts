@@ -280,8 +280,8 @@ export async function getUserLinks(request, reply) {
 		if (paginationErr) return paginationErr;
 
 		const result = await dashboardService.getUserLinks(request.user.id, {
-			limit: parseInt(pageSize),
-			offset: (parseInt(page) - 1) * parseInt(pageSize),
+			limit: parseInt(pageSize, 10),
+			offset: (parseInt(page, 10) - 1) * parseInt(pageSize, 10),
 			sortBy,
 			sortOrder,
 		});
@@ -298,7 +298,7 @@ export async function getUserLinks(request, reply) {
  */
 export async function getLinkDetails(request, reply) {
 	try {
-		const linkId = parseInt(request.params.id);
+		const linkId = parseInt(request.params.id, 10);
 
 		if (Number.isNaN(linkId) || linkId < 1) {
 			return reply.status(400).send({
@@ -325,15 +325,15 @@ export async function getLinkDetails(request, reply) {
  */
 export async function getLinkAccessLogs(request, reply) {
 	try {
-		const linkId = parseInt(request.params.id);
+		const linkId = parseInt(request.params.id, 10);
 
 		if (Number.isNaN(linkId) || linkId < 1) {
 			return badRequest(reply, "无效的链接 ID");
 		}
 
 		const result = await dashboardService.getLinkAccessLogs(linkId, request.user.id, {
-			limit: parseInt(request.query.pageSize || 50),
-			offset: parseInt(request.query.offset || 0),
+			limit: parseInt(request.query.pageSize || 50, 10),
+			offset: parseInt(request.query.offset || 0, 10),
 		});
 
 		return success(reply, result);
@@ -348,7 +348,7 @@ export async function getLinkAccessLogs(request, reply) {
  */
 export async function updateLink(request, reply) {
 	try {
-		const linkId = parseInt(request.params.id);
+		const linkId = parseInt(request.params.id, 10);
 		const updates = request.body;
 
 		if (Number.isNaN(linkId) || linkId < 1) {
@@ -366,7 +366,7 @@ export async function updateLink(request, reply) {
 
 		// 处理 max_clicks 转换
 		if (updates.max_clicks !== undefined && updates.max_clicks !== null) {
-			updates.max_clicks = parseInt(updates.max_clicks);
+			updates.max_clicks = parseInt(updates.max_clicks, 10);
 		}
 
 		const result = await dashboardService.updateLink(linkId, request.user.id, updates);
@@ -383,7 +383,7 @@ export async function updateLink(request, reply) {
  */
 export async function toggleLinkStatus(request, reply) {
 	try {
-		const linkId = parseInt(request.params.id);
+		const linkId = parseInt(request.params.id, 10);
 		const { is_active } = request.body;
 
 		if (Number.isNaN(linkId) || linkId < 1) {
@@ -412,7 +412,7 @@ export async function toggleLinkStatus(request, reply) {
  */
 export async function deleteLink(request, reply) {
 	try {
-		const linkId = parseInt(request.params.id);
+		const linkId = parseInt(request.params.id, 10);
 
 		if (Number.isNaN(linkId) || linkId < 1) {
 			return badRequest(reply, "无效的链接 ID");
@@ -499,7 +499,7 @@ export async function batchUpdateLinkStatus(request, reply) {
 export async function getTopLinks(request, reply) {
 	try {
 		const period = request.query.period || "daily";
-		const limit = parseInt(request.query.limit || 20);
+		const limit = parseInt(request.query.limit || 20, 10);
 
 		// 验证 period 参数
 		if (!["daily", "weekly", "monthly"].includes(period)) {

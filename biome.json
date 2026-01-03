@@ -8,7 +8,18 @@
 	"files": {
 		"ignoreUnknown": true,
 		"maxSize": 1048576,
-		"includes": ["**", "!!**/dist", "!!**/node_modules", "!!**/coverage"]
+		"includes": [
+			"**",
+			"!!**/dist",
+			"!!**/node_modules",
+			"!!**/coverage",
+			"!!**/.zed",
+			"!!**/.config",
+			"!!**/subpabase",
+			"!!**/auto-imports.d.ts",
+			"!!**/components.d.ts",
+			"!!src/assets/main.css"
+		]
 	},
 	"formatter": {
 		"enabled": true,
@@ -42,7 +53,22 @@
 			"semicolons": "always"
 		}
 	},
+	"css": {
+		"parser": {
+			"cssModules": false,
+			"allowWrongLineComments": true
+		}
+	},
 	"overrides": [
+		{
+			"includes": ["src/assets/main.css"],
+			"linter": {
+				"enabled": false
+			},
+			"formatter": {
+				"enabled": false
+			}
+		},
 		{
 			"includes": ["*.vue"],
 			"linter": {
@@ -51,7 +77,8 @@
 						"useSelfClosingElements": "error"
 					},
 					"correctness": {
-						"noUnusedImports": "error"
+						"noUnusedImports": "error",
+						"noUnusedVariables": "off"
 					}
 				}
 			}

@@ -22,7 +22,7 @@ export async function verifyToken(token: string) {
 		const { data, error } = await (supabase.auth as any).getUser(token);
 
 		if (error) {
-			throw new Error("Token 验证失败: " + error.message);
+			throw new Error(`Token 验证失败: ${error.message}`);
 		}
 
 		if (!data?.user) {

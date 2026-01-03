@@ -71,7 +71,7 @@ async function verifyAndGetUser(
 	};
 
 	// 检查用户是否被禁用
-	if (userData && userData.banned) {
+	if (userData?.banned) {
 		throw new AuthorizationError("用户已被禁用");
 	}
 
@@ -115,7 +115,7 @@ async function handleAuth(
 	request: AuthenticatedRequest,
 	reply: FastifyReply,
 	options: Partial<AuthMiddlewareOptions> = {},
-): Promise<boolean | void> {
+): Promise<boolean | undefined> {
 	const { required = true, requireAdmin = false } = options;
 
 	try {
@@ -170,7 +170,7 @@ async function handleAuth(
 export async function authenticate(
 	request: AuthenticatedRequest,
 	reply: FastifyReply,
-): Promise<boolean | void> {
+): Promise<boolean | undefined> {
 	const result = await handleAuth(request, reply, {
 		required: true,
 		requireAdmin: false,
@@ -205,7 +205,7 @@ export async function optionalAuthenticate(
 export async function authenticateWithAdminCheck(
 	request: AuthenticatedRequest,
 	reply: FastifyReply,
-): Promise<boolean | void> {
+): Promise<boolean | undefined> {
 	const result = await handleAuth(request, reply, {
 		required: true,
 		requireAdmin: true,
@@ -224,7 +224,7 @@ export async function authenticateWithAdminCheck(
 export async function authenticateAdmin(
 	request: AuthenticatedRequest,
 	reply: FastifyReply,
-): Promise<boolean | void> {
+): Promise<boolean | undefined> {
 	return authenticateWithAdminCheck(request, reply);
 }
 

@@ -1,16 +1,16 @@
 <script setup>
 import { Message } from "@arco-design/web-vue";
 import {
-    IconCheck,
-    IconClose,
-    IconCopy,
-    IconDelete,
-    IconEdit,
-    IconLock,
-    IconPlus,
-    IconQrcode,
-    IconSearch,
-    IconUnlock,
+	IconCheck,
+	IconClose,
+	IconCopy,
+	IconDelete,
+	IconEdit,
+	IconLock,
+	IconPlus,
+	IconQrcode,
+	IconSearch,
+	IconUnlock,
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
@@ -35,8 +35,8 @@ const editDrawerVisible = ref(false);
 const editingLinkId = ref(null);
 const passwordModalVisible = ref(false);
 const passwordFormData = ref({
-    linkId: null,
-    password: "",
+	linkId: null,
+	password: "",
 });
 const isPasswordSubmitting = ref(false);
 
@@ -50,8 +50,8 @@ const filterLinkId = computed(() => linksStore.filterLinkId);
 const sortField = computed(() => linksStore.sortField);
 const sortOrder = computed(() => linksStore.sortOrder);
 const selectedRowKeys = computed({
-    get: () => linksStore.selectedLinkIds,
-    set: (val) => linksStore.setSelectedLinkIds(val),
+	get: () => linksStore.selectedLinkIds,
+	set: (val) => linksStore.setSelectedLinkIds(val),
 });
 const hasSelected = computed(() => linksStore.hasSelected);
 const selectedCount = computed(() => linksStore.selectedCount);
@@ -60,251 +60,243 @@ const togglingIds = computed(() => Array.from(linksStore.togglingIds));
 
 // 加载数据
 const loadData = async () => {
-    try {
-        await linksStore.fetchLinks();
-    } catch (error) {
-        console.error("加载链接列表失败:", error);
-        Message.error("加载链接列表失败");
-    }
+	try {
+		await linksStore.fetchLinks();
+	} catch (error) {
+		console.error("加载链接列表失败:", error);
+		Message.error("加载链接列表失败");
+	}
 };
 
 // 从路由参数获取筛选 ID
 onMounted(() => {
-    if (route.query.linkId) {
-        linksStore.setFilterLinkId(route.query.linkId);
-    }
-    loadData();
+	if (route.query.linkId) {
+		linksStore.setFilterLinkId(route.query.linkId);
+	}
+	loadData();
 });
 
 // 监听路由变化
 watch(
-    () => route.query.linkId,
-    (newLinkId) => {
-        const oldLinkId = filterLinkId.value;
-        if (oldLinkId !== newLinkId) {
-            linksStore.setFilterLinkId(newLinkId || null);
-            loadData();
-        }
-    },
+	() => route.query.linkId,
+	(newLinkId) => {
+		const oldLinkId = filterLinkId.value;
+		if (oldLinkId !== newLinkId) {
+			linksStore.setFilterLinkId(newLinkId || null);
+			loadData();
+		}
+	},
 );
 
 // Methods
 const goToHome = () => {
-    router.push("/");
+	router.push("/");
 };
 
 const handleSearch = () => {
-    linksStore.setSearchKeyword(searchInput.value);
-    loadData();
+	linksStore.setSearchKeyword(searchInput.value);
+	loadData();
 };
 
 const handleClear = () => {
-    searchInput.value = "";
-    linksStore.setSearchKeyword("");
-    loadData();
+	searchInput.value = "";
+	linksStore.setSearchKeyword("");
+	loadData();
 };
 
 const clearFilter = () => {
-    linksStore.setFilterLinkId(null);
-    // 移除 URL 中的 linkId 参数
-    router.replace({ query: {} });
-    loadData();
+	linksStore.setFilterLinkId(null);
+	// 移除 URL 中的 linkId 参数
+	router.replace({ query: {} });
+	loadData();
 };
 
 const handlePageChange = (page) => {
-    linksStore.setPagination(page);
-    loadData();
+	linksStore.setPagination(page);
+	loadData();
 };
 
 const handleSortChange = (dataIndex, direction) => {
-    if (!direction) {
-        // 取消排序，恢复默认
-        linksStore.setSort("created_at", "descend");
-    } else {
-        linksStore.setSort(dataIndex, direction);
-    }
-    loadData();
+	if (!direction) {
+		// 取消排序，恢复默认
+		linksStore.setSort("created_at", "descend");
+	} else {
+		linksStore.setSort(dataIndex, direction);
+	}
+	loadData();
 };
 
 const copyLink = async (short) => {
-    const url = `${origin}/u/${short}`;
-    try {
-        await navigator.clipboard.writeText(url);
-        Message.success("链接已复制到剪贴板");
-    } catch (error) {
-        Message.error("复制失败，请手动复制");
-    }
+	const url = `${origin}/u/${short}`;
+	try {
+		await navigator.clipboard.writeText(url);
+		Message.success("链接已复制到剪贴板");
+	} catch (error) {
+		Message.error("复制失败，请手动复制");
+	}
 };
 
 const showQRCode = async (short) => {
-    const url = `${origin}/u/${short}`;
-    currentQrUrl.value = url;
-    qrcodeModalVisible.value = true;
-    await nextTick();
-    if (qrcodeCanvas.value) {
-        QRCode.toCanvas(
-            qrcodeCanvas.value,
-            url,
-            { width: 200, margin: 1 },
-            (error) => {
-                if (error) console.error(error);
-            },
-        );
-    }
+	const url = `${origin}/u/${short}`;
+	currentQrUrl.value = url;
+	qrcodeModalVisible.value = true;
+	await nextTick();
+	if (qrcodeCanvas.value) {
+		QRCode.toCanvas(qrcodeCanvas.value, url, { width: 200, margin: 1 }, (error) => {
+			if (error) console.error(error);
+		});
+	}
 };
 
 const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("zh-CN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+	if (!dateString) return "-";
+	const date = new Date(dateString);
+	return date.toLocaleString("zh-CN", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
 };
 
 const isExpired = (dateString) => {
-    if (!dateString) return false;
-    return new Date(dateString) < new Date();
+	if (!dateString) return false;
+	return new Date(dateString) < new Date();
 };
 
 const hasAdvancedConfig = (record) => {
-    return linksStore.utils.hasAdvancedConfig(record);
+	return linksStore.utils.hasAdvancedConfig(record);
 };
 
 // Toggle link status
 const handleToggleStatus = async (record, newValue) => {
-    try {
-        await linksStore.toggleLinkStatus(record.id, newValue);
-        Message.success(newValue ? "链接已启用" : "链接已禁用");
-    } catch (error) {
-        // Revert the change
-        record.is_active = !newValue;
-        Message.error(error.message || "操作失败");
-    }
+	try {
+		await linksStore.toggleLinkStatus(record.id, newValue);
+		Message.success(newValue ? "链接已启用" : "链接已禁用");
+	} catch (error) {
+		// Revert the change
+		record.is_active = !newValue;
+		Message.error(error.message || "操作失败");
+	}
 };
 
 // Delete link
 const handleDeleteLink = async (linkId) => {
-    try {
-        await linksStore.deleteLink(linkId);
-        Message.success("链接已删除");
-    } catch (error) {
-        Message.error(error.message || "删除失败");
-    }
+	try {
+		await linksStore.deleteLink(linkId);
+		Message.success("链接已删除");
+	} catch (error) {
+		Message.error(error.message || "删除失败");
+	}
 };
 
 // Edit drawer
 const openEditDrawer = (record) => {
-    editingLinkId.value = record.id;
-    editDrawerVisible.value = true;
+	editingLinkId.value = record.id;
+	editDrawerVisible.value = true;
 };
 
 const handleEditSuccess = () => {
-    loadData();
+	loadData();
 };
 
 const handleEditDelete = () => {
-    loadData();
+	loadData();
 };
 
 // 密码管理
 const openPasswordModal = (record) => {
-    passwordFormData.value = {
-        linkId: record.id,
-        password: "",
-    };
-    passwordModalVisible.value = true;
+	passwordFormData.value = {
+		linkId: record.id,
+		password: "",
+	};
+	passwordModalVisible.value = true;
 };
 
 const handlePasswordSubmit = async () => {
-    if (!passwordFormData.value.password) {
-        Message.warning("请输入新密码");
-        return;
-    }
+	if (!passwordFormData.value.password) {
+		Message.warning("请输入新密码");
+		return;
+	}
 
-    isPasswordSubmitting.value = true;
-    try {
-        await updateLinkPassword(
-            passwordFormData.value.linkId,
-            passwordFormData.value.password,
-        );
-        Message.success("密码修改成功");
-        passwordModalVisible.value = false;
-        loadData();
-    } catch (error) {
-        Message.error(error.message || "修改密码失败");
-    } finally {
-        isPasswordSubmitting.value = false;
-    }
+	isPasswordSubmitting.value = true;
+	try {
+		await updateLinkPassword(passwordFormData.value.linkId, passwordFormData.value.password);
+		Message.success("密码修改成功");
+		passwordModalVisible.value = false;
+		loadData();
+	} catch (error) {
+		Message.error(error.message || "修改密码失败");
+	} finally {
+		isPasswordSubmitting.value = false;
+	}
 };
 
 const handlePasswordDelete = async (linkId) => {
-    try {
-        await updateLinkPassword(linkId, null);
-        Message.success("密码已删除");
-        loadData();
-    } catch (error) {
-        Message.error(error.message || "删除密码失败");
-    }
+	try {
+		await updateLinkPassword(linkId, null);
+		Message.success("密码已删除");
+		loadData();
+	} catch (error) {
+		Message.error(error.message || "删除密码失败");
+	}
 };
 
 // 清空选择
 const clearSelection = () => {
-    linksStore.clearSelection();
+	linksStore.clearSelection();
 };
 
 // 批量删除
 const handleBatchDelete = async () => {
-    if (!hasSelected.value) {
-        Message.warning("请先选择要删除的链接");
-        return;
-    }
+	if (!hasSelected.value) {
+		Message.warning("请先选择要删除的链接");
+		return;
+	}
 
-    try {
-        await linksStore.batchDelete();
-        Message.success("批量删除成功");
-        loadData();
-    } catch (error) {
-        Message.error(error.message || "批量删除失败");
-    }
+	try {
+		await linksStore.batchDelete();
+		Message.success("批量删除成功");
+		loadData();
+	} catch (error) {
+		Message.error(error.message || "批量删除失败");
+	}
 };
 
 // 批量启用
 const handleBatchEnable = async () => {
-    if (!hasSelected.value) {
-        Message.warning("请先选择要启用的链接");
-        return;
-    }
+	if (!hasSelected.value) {
+		Message.warning("请先选择要启用的链接");
+		return;
+	}
 
-    try {
-        await linksStore.batchEnable();
-        Message.success("批量启用成功");
-    } catch (error) {
-        Message.error(error.message || "批量启用失败");
-    }
+	try {
+		await linksStore.batchEnable();
+		Message.success("批量启用成功");
+	} catch (error) {
+		Message.error(error.message || "批量启用失败");
+	}
 };
 
 // 批量禁用
 const handleBatchDisable = async () => {
-    if (!hasSelected.value) {
-        Message.warning("请先选择要禁用的链接");
-        return;
-    }
+	if (!hasSelected.value) {
+		Message.warning("请先选择要禁用的链接");
+		return;
+	}
 
-    try {
-        await linksStore.batchDisable();
-        Message.success("批量禁用成功");
-    } catch (error) {
-        Message.error(error.message || "批量禁用失败");
-    }
+	try {
+		await linksStore.batchDisable();
+		Message.success("批量禁用成功");
+	} catch (error) {
+		Message.error(error.message || "批量禁用失败");
+	}
 };
 
 // 暴露刷新方法给父组件
 defineExpose({
-    refresh: loadData,
+	refresh: loadData,
 });
 </script>
 

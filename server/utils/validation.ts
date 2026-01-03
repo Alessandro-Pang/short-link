@@ -213,7 +213,7 @@ export function validateUrl(
 	}
 
 	// 尝试解析 URL
-	let parsedUrl;
+	let parsedUrl: URL;
 	try {
 		parsedUrl = new URL(trimmedUrl);
 	} catch {

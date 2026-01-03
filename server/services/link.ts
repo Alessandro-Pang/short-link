@@ -8,12 +8,7 @@
  */
 
 import dayjs from "dayjs";
-import type {
-	ExpirationOption,
-	Link,
-	LinkAccessLogInsert,
-	LinkInsert,
-} from "../../types/database.schema.js";
+import type { ExpirationOption, Link } from "../../types/database.schema.js";
 import { CACHE_CONFIG } from "../config/index.js";
 import supabase from "../database/client.js";
 import type { AccessRestrictions, LinkCreateOptions, VisitorInfo } from "../types/index.js";
@@ -60,7 +55,7 @@ export function parseDeviceType(userAgent: string | undefined): string {
 function ipInCidr(ip, cidr) {
 	try {
 		const [range, bits = "32"] = cidr.split("/");
-		const mask = ~(2 ** (32 - parseInt(bits)) - 1);
+		const mask = ~(2 ** (32 - parseInt(bits, 10)) - 1);
 
 		const ipParts = ip.split(".").map(Number);
 		const rangeParts = range.split(".").map(Number);
@@ -573,10 +568,10 @@ export async function updateLinkConfig(
 				if (field === "password") {
 					if (updates[field] === null || updates[field] === "") {
 						// 如果密码为 null 或空字符串，删除密码保护
-						filteredUpdates["password_hash"] = null;
+						filteredUpdates.password_hash = null;
 					} else if (typeof updates[field] === "string") {
 						// 否则使用 MD5 加密
-						filteredUpdates["password_hash"] = hashPassword(updates[field] as string);
+						filteredUpdates.password_hash = hashPassword(updates[field] as string);
 					}
 				} else {
 					filteredUpdates[field] = updates[field];

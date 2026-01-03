@@ -1,30 +1,30 @@
 <script setup>
 import { Message } from "@arco-design/web-vue";
 import {
-    IconCheck,
-    IconClose,
-    IconCopy,
-    IconDelete,
-    IconEdit,
-    IconEyeInvisible,
-    IconLock,
-    IconPlus,
-    IconQrcode,
-    IconSearch,
-    IconUnlock,
-    IconUser,
+	IconCheck,
+	IconClose,
+	IconCopy,
+	IconDelete,
+	IconEdit,
+	IconEyeInvisible,
+	IconLock,
+	IconPlus,
+	IconQrcode,
+	IconSearch,
+	IconUnlock,
+	IconUser,
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import UnifiedLinkConfigDrawer from "@/components/UnifiedLinkConfigDrawer.vue";
 import {
-    batchDeleteLinks,
-    batchToggleLinks,
-    deleteLink,
-    getAllLinks,
-    toggleLinkStatus,
-    updateLinkPassword,
+	batchDeleteLinks,
+	batchToggleLinks,
+	deleteLink,
+	getAllLinks,
+	toggleLinkStatus,
+	updateLinkPassword,
 } from "@/services/admin";
 
 const router = useRouter();
@@ -47,8 +47,8 @@ const editingLinkId = ref(null);
 const filterLinkId = ref(null);
 const passwordModalVisible = ref(false);
 const passwordFormData = ref({
-    linkId: null,
-    password: "",
+	linkId: null,
+	password: "",
 });
 const isPasswordSubmitting = ref(false);
 
@@ -58,8 +58,8 @@ const isBatchOperating = ref(false);
 
 // 分页
 const pagination = ref({
-    current: 1,
-    pageSize: 10,
+	current: 1,
+	pageSize: 10,
 });
 
 // 排序
@@ -72,324 +72,306 @@ const selectedCount = computed(() => selectedRowKeys.value.length);
 
 // 加载数据
 const loadData = async () => {
-    isLoading.value = true;
-    try {
-        const result = await getAllLinks({
-            limit: pagination.value.pageSize,
-            offset: (pagination.value.current - 1) * pagination.value.pageSize,
-            orderBy: sortField.value,
-            ascending: sortOrder.value === "ascend",
-            linkId: filterLinkId.value || null,
-            keyword: searchKeyword.value || null,
-            userId: filterUserId.value || null,
-        });
+	isLoading.value = true;
+	try {
+		const result = await getAllLinks({
+			limit: pagination.value.pageSize,
+			offset: (pagination.value.current - 1) * pagination.value.pageSize,
+			orderBy: sortField.value,
+			ascending: sortOrder.value === "ascend",
+			linkId: filterLinkId.value || null,
+			keyword: searchKeyword.value || null,
+			userId: filterUserId.value || null,
+		});
 
-        links.value = result.links || [];
-        total.value = result.total || 0;
-        // 清空选择
-        selectedRowKeys.value = [];
-    } catch (error) {
-        console.error("加载链接列表失败:", error);
-        Message.error("加载链接列表失败");
-    } finally {
-        isLoading.value = false;
-    }
+		links.value = result.links || [];
+		total.value = result.total || 0;
+		// 清空选择
+		selectedRowKeys.value = [];
+	} catch (error) {
+		console.error("加载链接列表失败:", error);
+		Message.error("加载链接列表失败");
+	} finally {
+		isLoading.value = false;
+	}
 };
 
 // 从路由参数获取筛选 ID
 onMounted(() => {
-    if (route.query.linkId) {
-        filterLinkId.value = route.query.linkId;
-    }
-    if (route.query.userId) {
-        filterUserId.value = route.query.userId;
-    }
-    loadData();
+	if (route.query.linkId) {
+		filterLinkId.value = route.query.linkId;
+	}
+	if (route.query.userId) {
+		filterUserId.value = route.query.userId;
+	}
+	loadData();
 });
 
 // 监听路由变化
 watch(
-    () => route.query,
-    (newQuery) => {
-        const newLinkId = newQuery.linkId || null;
-        const newUserId = newQuery.userId || null;
+	() => route.query,
+	(newQuery) => {
+		const newLinkId = newQuery.linkId || null;
+		const newUserId = newQuery.userId || null;
 
-        if (
-            filterLinkId.value !== newLinkId ||
-            filterUserId.value !== newUserId
-        ) {
-            filterLinkId.value = newLinkId;
-            filterUserId.value = newUserId;
-            pagination.value.current = 1;
-            loadData();
-        }
-    },
+		if (filterLinkId.value !== newLinkId || filterUserId.value !== newUserId) {
+			filterLinkId.value = newLinkId;
+			filterUserId.value = newUserId;
+			pagination.value.current = 1;
+			loadData();
+		}
+	},
 );
 
 // Methods
 const goToHome = () => {
-    router.push("/");
+	router.push("/");
 };
 
 const handleSearch = () => {
-    searchKeyword.value = searchInput.value;
-    pagination.value.current = 1;
-    loadData();
+	searchKeyword.value = searchInput.value;
+	pagination.value.current = 1;
+	loadData();
 };
 
 const handleClear = () => {
-    searchInput.value = "";
-    searchKeyword.value = "";
-    pagination.value.current = 1;
-    loadData();
+	searchInput.value = "";
+	searchKeyword.value = "";
+	pagination.value.current = 1;
+	loadData();
 };
 
 const clearFilter = () => {
-    filterLinkId.value = null;
-    filterUserId.value = null;
-    pagination.value.current = 1;
-    // 移除 URL 中的参数
-    router.replace({ query: {} });
-    loadData();
+	filterLinkId.value = null;
+	filterUserId.value = null;
+	pagination.value.current = 1;
+	// 移除 URL 中的参数
+	router.replace({ query: {} });
+	loadData();
 };
 
 const handlePageChange = (page) => {
-    pagination.value.current = page;
-    loadData();
+	pagination.value.current = page;
+	loadData();
 };
 
 const handleSortChange = (dataIndex, direction) => {
-    if (!direction) {
-        // 取消排序，恢复默认
-        sortField.value = "created_at";
-        sortOrder.value = "descend";
-    } else {
-        sortField.value = dataIndex;
-        sortOrder.value = direction;
-    }
-    pagination.value.current = 1; // 重置分页
-    loadData();
+	if (!direction) {
+		// 取消排序，恢复默认
+		sortField.value = "created_at";
+		sortOrder.value = "descend";
+	} else {
+		sortField.value = dataIndex;
+		sortOrder.value = direction;
+	}
+	pagination.value.current = 1; // 重置分页
+	loadData();
 };
 
 const copyLink = async (short) => {
-    const url = `${origin}/u/${short}`;
-    try {
-        await navigator.clipboard.writeText(url);
-        Message.success("链接已复制到剪贴板");
-    } catch (error) {
-        Message.error("复制失败，请手动复制");
-    }
+	const url = `${origin}/u/${short}`;
+	try {
+		await navigator.clipboard.writeText(url);
+		Message.success("链接已复制到剪贴板");
+	} catch (error) {
+		Message.error("复制失败，请手动复制");
+	}
 };
 
 const showQRCode = async (short) => {
-    const url = `${origin}/u/${short}`;
-    currentQrUrl.value = url;
-    qrcodeModalVisible.value = true;
-    await nextTick();
-    if (qrcodeCanvas.value) {
-        QRCode.toCanvas(
-            qrcodeCanvas.value,
-            url,
-            { width: 200, margin: 1 },
-            (error) => {
-                if (error) console.error(error);
-            },
-        );
-    }
+	const url = `${origin}/u/${short}`;
+	currentQrUrl.value = url;
+	qrcodeModalVisible.value = true;
+	await nextTick();
+	if (qrcodeCanvas.value) {
+		QRCode.toCanvas(qrcodeCanvas.value, url, { width: 200, margin: 1 }, (error) => {
+			if (error) console.error(error);
+		});
+	}
 };
 
 const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("zh-CN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+	if (!dateString) return "-";
+	const date = new Date(dateString);
+	return date.toLocaleString("zh-CN", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
 };
 
 const isExpired = (dateString) => {
-    if (!dateString) return false;
-    return new Date(dateString) < new Date();
+	if (!dateString) return false;
+	return new Date(dateString) < new Date();
 };
 
 const hasAdvancedConfig = (record) => {
-    return (
-        (record.redirect_type && record.redirect_type !== 302) ||
-        record.expiration_date ||
-        record.max_clicks ||
-        record.pass_query_params ||
-        record.forward_headers ||
-        (record.access_restrictions &&
-            Object.keys(record.access_restrictions).length > 0)
-    );
+	return (
+		(record.redirect_type && record.redirect_type !== 302) ||
+		record.expiration_date ||
+		record.max_clicks ||
+		record.pass_query_params ||
+		record.forward_headers ||
+		(record.access_restrictions && Object.keys(record.access_restrictions).length > 0)
+	);
 };
 
 // Toggle link status
 const handleToggleStatus = async (record, newValue) => {
-    togglingIds.value.push(record.id);
-    try {
-        await toggleLinkStatus(record.id, newValue);
-        Message.success(newValue ? "链接已启用" : "链接已禁用");
-    } catch (error) {
-        // Revert the change
-        record.is_active = !newValue;
-        Message.error(error.message || "操作失败");
-    } finally {
-        togglingIds.value = togglingIds.value.filter((id) => id !== record.id);
-    }
+	togglingIds.value.push(record.id);
+	try {
+		await toggleLinkStatus(record.id, newValue);
+		Message.success(newValue ? "链接已启用" : "链接已禁用");
+	} catch (error) {
+		// Revert the change
+		record.is_active = !newValue;
+		Message.error(error.message || "操作失败");
+	} finally {
+		togglingIds.value = togglingIds.value.filter((id) => id !== record.id);
+	}
 };
 
 // Delete link
 const handleDeleteLink = async (linkId) => {
-    try {
-        await deleteLink(linkId);
-        Message.success("链接已删除");
-        // 重新加载数据
-        loadData();
-    } catch (error) {
-        Message.error(error.message || "删除失败");
-    }
+	try {
+		await deleteLink(linkId);
+		Message.success("链接已删除");
+		// 重新加载数据
+		loadData();
+	} catch (error) {
+		Message.error(error.message || "删除失败");
+	}
 };
 
 // Filter by user
 const filterByUser = (userId) => {
-    if (userId) {
-        router.push({ query: { ...route.query, userId } });
-    } else {
-        const { userId: _, ...restQuery } = route.query;
-        router.push({ query: restQuery });
-    }
+	if (userId) {
+		router.push({ query: { ...route.query, userId } });
+	} else {
+		const { userId: _, ...restQuery } = route.query;
+		router.push({ query: restQuery });
+	}
 };
 
 // Edit drawer
 const openEditDrawer = (record) => {
-    editingLinkId.value = record.id;
-    editDrawerVisible.value = true;
+	editingLinkId.value = record.id;
+	editDrawerVisible.value = true;
 };
 
 const handleEditSuccess = () => {
-    loadData();
+	loadData();
 };
 
 const handleEditDelete = () => {
-    loadData();
+	loadData();
 };
 
 // 密码管理
 const openPasswordModal = (record) => {
-    passwordFormData.value = {
-        linkId: record.id,
-        password: "",
-    };
-    passwordModalVisible.value = true;
+	passwordFormData.value = {
+		linkId: record.id,
+		password: "",
+	};
+	passwordModalVisible.value = true;
 };
 
 const handlePasswordSubmit = async () => {
-    if (!passwordFormData.value.password) {
-        Message.warning("请输入新密码");
-        return;
-    }
+	if (!passwordFormData.value.password) {
+		Message.warning("请输入新密码");
+		return;
+	}
 
-    isPasswordSubmitting.value = true;
-    try {
-        await updateLinkPassword(
-            passwordFormData.value.linkId,
-            passwordFormData.value.password,
-        );
-        Message.success("密码修改成功");
-        passwordModalVisible.value = false;
-        loadData();
-    } catch (error) {
-        Message.error(error.message || "修改密码失败");
-    } finally {
-        isPasswordSubmitting.value = false;
-    }
+	isPasswordSubmitting.value = true;
+	try {
+		await updateLinkPassword(passwordFormData.value.linkId, passwordFormData.value.password);
+		Message.success("密码修改成功");
+		passwordModalVisible.value = false;
+		loadData();
+	} catch (error) {
+		Message.error(error.message || "修改密码失败");
+	} finally {
+		isPasswordSubmitting.value = false;
+	}
 };
 
 const handlePasswordDelete = async (linkId) => {
-    try {
-        await updateLinkPassword(linkId, null);
-        Message.success("密码已删除");
-        loadData();
-    } catch (error) {
-        Message.error(error.message || "删除密码失败");
-    }
+	try {
+		await updateLinkPassword(linkId, null);
+		Message.success("密码已删除");
+		loadData();
+	} catch (error) {
+		Message.error(error.message || "删除密码失败");
+	}
 };
 
 // 清空选择
 const clearSelection = () => {
-    selectedRowKeys.value = [];
+	selectedRowKeys.value = [];
 };
 
 // 批量删除
 const handleBatchDelete = async () => {
-    if (!hasSelected.value) {
-        Message.warning("请先选择要删除的链接");
-        return;
-    }
+	if (!hasSelected.value) {
+		Message.warning("请先选择要删除的链接");
+		return;
+	}
 
-    isBatchOperating.value = true;
-    try {
-        const response = await batchDeleteLinks(selectedRowKeys.value);
-        Message.success(
-            response.msg || `成功删除 ${response.data.success} 个链接`,
-        );
-        loadData();
-    } catch (error) {
-        Message.error(error.message || "批量删除失败");
-    } finally {
-        isBatchOperating.value = false;
-    }
+	isBatchOperating.value = true;
+	try {
+		const response = await batchDeleteLinks(selectedRowKeys.value);
+		Message.success(response.msg || `成功删除 ${response.data.success} 个链接`);
+		loadData();
+	} catch (error) {
+		Message.error(error.message || "批量删除失败");
+	} finally {
+		isBatchOperating.value = false;
+	}
 };
 
 // 批量启用
 const handleBatchEnable = async () => {
-    if (!hasSelected.value) {
-        Message.warning("请先选择要启用的链接");
-        return;
-    }
+	if (!hasSelected.value) {
+		Message.warning("请先选择要启用的链接");
+		return;
+	}
 
-    isBatchOperating.value = true;
-    try {
-        const response = await batchToggleLinks(selectedRowKeys.value, true);
-        Message.success(
-            response.msg || `成功启用 ${response.data.success} 个链接`,
-        );
-        loadData();
-    } catch (error) {
-        Message.error(error.message || "批量启用失败");
-    } finally {
-        isBatchOperating.value = false;
-    }
+	isBatchOperating.value = true;
+	try {
+		const response = await batchToggleLinks(selectedRowKeys.value, true);
+		Message.success(response.msg || `成功启用 ${response.data.success} 个链接`);
+		loadData();
+	} catch (error) {
+		Message.error(error.message || "批量启用失败");
+	} finally {
+		isBatchOperating.value = false;
+	}
 };
 
 // 批量禁用
 const handleBatchDisable = async () => {
-    if (!hasSelected.value) {
-        Message.warning("请先选择要禁用的链接");
-        return;
-    }
+	if (!hasSelected.value) {
+		Message.warning("请先选择要禁用的链接");
+		return;
+	}
 
-    isBatchOperating.value = true;
-    try {
-        const response = await batchToggleLinks(selectedRowKeys.value, false);
-        Message.success(
-            response.msg || `成功禁用 ${response.data.success} 个链接`,
-        );
-        loadData();
-    } catch (error) {
-        Message.error(error.message || "批量禁用失败");
-    } finally {
-        isBatchOperating.value = false;
-    }
+	isBatchOperating.value = true;
+	try {
+		const response = await batchToggleLinks(selectedRowKeys.value, false);
+		Message.success(response.msg || `成功禁用 ${response.data.success} 个链接`);
+		loadData();
+	} catch (error) {
+		Message.error(error.message || "批量禁用失败");
+	} finally {
+		isBatchOperating.value = false;
+	}
 };
 
 // 暴露刷新方法给父组件
 defineExpose({
-    refresh: loadData,
+	refresh: loadData,
 });
 </script>
 

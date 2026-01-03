@@ -8,9 +8,9 @@
  */
 
 import dayjs, { type Dayjs } from "dayjs";
-import type { Link, LinkAccessLog, UserLinkStats } from "../../types/database.schema.js";
+import type { Link, LinkAccessLog } from "../../types/database.schema.js";
 import supabase from "../database/client.js";
-import type { LinkAccessStatsOptions, LinkQueryOptions, QueryOptions } from "../types/index.js";
+import type { QueryOptions } from "../types/index.js";
 import { hashPassword } from "../utils/security.js";
 
 /**
@@ -251,11 +251,11 @@ export async function updateLink(
 				if (key === "password") {
 					if (value === null || value === "") {
 						// 如果密码为 null 或空字符串，删除密码保护
-						filteredUpdates["password_hash"] = null;
+						filteredUpdates.password_hash = null;
 					} else if (typeof value === "string") {
 						// 使用 MD5 加密密码
 						const hashed = hashPassword(value);
-						filteredUpdates["password_hash"] = hashed;
+						filteredUpdates.password_hash = hashed;
 					}
 				} else {
 					filteredUpdates[key] = value;
@@ -721,11 +721,11 @@ export async function updateLinkAdmin(
 				if (key === "password") {
 					if (value === null || value === "") {
 						// 如果密码为 null 或空字符串，删除密码保护
-						filteredUpdates["password_hash"] = null;
+						filteredUpdates.password_hash = null;
 					} else if (typeof value === "string") {
 						// 使用 MD5 加密密码
 						const hashed = hashPassword(value);
-						filteredUpdates["password_hash"] = hashed;
+						filteredUpdates.password_hash = hashed;
 					}
 				} else {
 					filteredUpdates[key] = value;

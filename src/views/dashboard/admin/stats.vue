@@ -272,22 +272,18 @@
 
 <script setup>
 import {
-    IconBarChart,
-    IconEyeInvisible,
-    IconHistory,
-    IconLink,
-    IconPlusCircle,
-    IconThunderbolt,
-    IconUserGroup,
+	IconBarChart,
+	IconEyeInvisible,
+	IconHistory,
+	IconLink,
+	IconPlusCircle,
+	IconThunderbolt,
+	IconUserGroup,
 } from "@arco-design/web-vue/es/icon";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import TopLinksRanking from "@/components/TopLinksRanking.vue";
-import {
-    getAllLinks,
-    getGlobalStats,
-    getGlobalTopLinks,
-} from "@/services/admin";
+import { getAllLinks, getGlobalStats, getGlobalTopLinks } from "@/services/admin";
 
 const router = useRouter();
 const origin = window.location.origin;
@@ -295,12 +291,12 @@ const origin = window.location.origin;
 // State
 const isLoading = ref(false);
 const stats = ref({
-    total_links: 0,
-    total_clicks: 0,
-    weekly_new_links: 0,
-    avg_clicks_per_link: 0,
-    total_users: 0,
-    anonymous_links: 0,
+	total_links: 0,
+	total_clicks: 0,
+	weekly_new_links: 0,
+	avg_clicks_per_link: 0,
+	total_users: 0,
+	anonymous_links: 0,
 });
 const recentLinks = ref([]);
 
@@ -311,74 +307,72 @@ const rankingLoading = ref(false);
 
 // Methods
 const loadData = async () => {
-    isLoading.value = true;
-    try {
-        // 并行请求统计和链接数据
-        const [statsData, linksData] = await Promise.all([
-            getGlobalStats(),
-            getAllLinks({ limit: 10, orderBy: "created_at", ascending: false }),
-            loadRankingData(),
-        ]);
+	isLoading.value = true;
+	try {
+		// 并行请求统计和链接数据
+		const [statsData, linksData] = await Promise.all([
+			getGlobalStats(),
+			getAllLinks({ limit: 10, orderBy: "created_at", ascending: false }),
+			loadRankingData(),
+		]);
 
-        stats.value = {
-            total_links: statsData.total_links || 0,
-            total_clicks: statsData.total_clicks || 0,
-            weekly_new_links: statsData.weekly_new_links || 0,
-            avg_clicks_per_link: parseFloat(
-                statsData.avg_clicks_per_link || 0,
-            ).toFixed(1),
-            total_users: statsData.total_users || 0,
-            anonymous_links: statsData.anonymous_links || 0,
-        };
+		stats.value = {
+			total_links: statsData.total_links || 0,
+			total_clicks: statsData.total_clicks || 0,
+			weekly_new_links: statsData.weekly_new_links || 0,
+			avg_clicks_per_link: parseFloat(statsData.avg_clicks_per_link || 0).toFixed(1),
+			total_users: statsData.total_users || 0,
+			anonymous_links: statsData.anonymous_links || 0,
+		};
 
-        recentLinks.value = linksData.links || [];
-    } catch (error) {
-        console.error("加载全局统计数据失败:", error);
-    } finally {
-        isLoading.value = false;
-    }
+		recentLinks.value = linksData.links || [];
+	} catch (error) {
+		console.error("加载全局统计数据失败:", error);
+	} finally {
+		isLoading.value = false;
+	}
 };
 
 const loadRankingData = async () => {
-    rankingLoading.value = true;
-    try {
-        const result = await getGlobalTopLinks(rankingPeriod.value, 20);
-        rankingLinks.value = result.links || [];
-    } catch (error) {
-        console.error("加载全局排行榜失败:", error);
-        rankingLinks.value = [];
-    } finally {
-        rankingLoading.value = false;
-    }
+	rankingLoading.value = true;
+	try {
+		const result = await getGlobalTopLinks(rankingPeriod.value, 20);
+		rankingLinks.value = result.links || [];
+	} catch (error) {
+		console.error("加载全局排行榜失败:", error);
+		rankingLinks.value = [];
+	} finally {
+		rankingLoading.value = false;
+	}
 };
 
 const handlePeriodChange = (period) => {
-    rankingPeriod.value = period;
-    loadRankingData();
+	rankingPeriod.value = period;
+	loadRankingData();
 };
 
 const goToAllLinks = () => {
-    router.push("/dashboard/admin/links");
+	router.push("/dashboard/admin/links");
 };
 
 const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("zh-CN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+	if (!dateString) return "-";
+	const date = new Date(dateString);
+	return date.toLocaleString("zh-CN", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
 };
 
 // 暴露刷新方法给父组件
 defineExpose({
-    refresh: loadData,
+	refresh: loadData,
 });
 
 onMounted(() => {
-    loadData();
+	loadData();
 });
 </script>

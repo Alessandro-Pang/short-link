@@ -67,9 +67,13 @@ export async function getAllLinks(request, reply) {
 		// 支持两种分页方式：
 		// 1. page + pageSize (传统分页)
 		// 2. limit + offset (直接偏移)
-		const finalLimit = limit ? parseInt(limit) : pageSize ? parseInt(pageSize) : 10;
+		const finalLimit = limit ? parseInt(limit, 10) : pageSize ? parseInt(pageSize, 10) : 10;
 		const finalOffset =
-			offset !== undefined ? parseInt(offset) : page ? (parseInt(page) - 1) * finalLimit : 0;
+			offset !== undefined
+				? parseInt(offset, 10)
+				: page
+					? (parseInt(page, 10) - 1) * finalLimit
+					: 0;
 
 		// 支持两种排序字段名：sortBy 或 orderBy
 		const finalOrderBy = orderBy || sortBy || "created_at";
@@ -83,7 +87,7 @@ export async function getAllLinks(request, reply) {
 			offset: finalOffset,
 			orderBy: finalOrderBy,
 			ascending: finalAscending,
-			linkId: linkId ? parseInt(linkId) : null,
+			linkId: linkId ? parseInt(linkId, 10) : null,
 			keyword,
 			userId,
 		});
@@ -100,7 +104,7 @@ export async function getAllLinks(request, reply) {
  */
 export async function getLinkDetails(request, reply) {
 	try {
-		const linkId = parseInt(request.params.id);
+		const linkId = parseInt(request.params.id, 10);
 
 		if (Number.isNaN(linkId) || linkId < 1) {
 			return badRequest(reply, "无效的链接 ID");
@@ -124,15 +128,15 @@ export async function getLinkDetails(request, reply) {
  */
 export async function getLinkAccessLogs(request, reply) {
 	try {
-		const linkId = parseInt(request.params.id);
+		const linkId = parseInt(request.params.id, 10);
 
 		if (Number.isNaN(linkId) || linkId < 1) {
 			return badRequest(reply, "无效的链接 ID");
 		}
 
 		const result = await dashboardService.getLinkAccessLogsAdmin(linkId, {
-			limit: parseInt(request.query.limit || request.query.pageSize || 50),
-			offset: parseInt(request.query.offset || 0),
+			limit: parseInt(request.query.limit || request.query.pageSize || 50, 10),
+			offset: parseInt(request.query.offset || 0, 10),
 		});
 
 		return success(reply, result);
@@ -147,7 +151,7 @@ export async function getLinkAccessLogs(request, reply) {
  */
 export async function updateLink(request, reply) {
 	try {
-		const linkId = parseInt(request.params.id);
+		const linkId = parseInt(request.params.id, 10);
 		const updates = request.body;
 
 		if (Number.isNaN(linkId) || linkId < 1) {
@@ -161,7 +165,7 @@ export async function updateLink(request, reply) {
 
 		// 处理 max_clicks 转换
 		if (updates.max_clicks !== undefined && updates.max_clicks !== null) {
-			updates.max_clicks = parseInt(updates.max_clicks);
+			updates.max_clicks = parseInt(updates.max_clicks, 10);
 		}
 
 		const result = await dashboardService.updateLinkAdmin(linkId, updates);
@@ -178,7 +182,7 @@ export async function updateLink(request, reply) {
  */
 export async function toggleLinkStatus(request, reply) {
 	try {
-		const linkId = parseInt(request.params.id);
+		const linkId = parseInt(request.params.id, 10);
 		const { is_active } = request.body;
 
 		if (Number.isNaN(linkId) || linkId < 1) {
@@ -208,7 +212,7 @@ export async function toggleLinkStatus(request, reply) {
  */
 export async function deleteLink(request, reply) {
 	try {
-		const linkId = parseInt(request.params.id);
+		const linkId = parseInt(request.params.id, 10);
 
 		if (Number.isNaN(linkId) || linkId < 1) {
 			return badRequest(reply, "无效的链接 ID");
@@ -288,8 +292,8 @@ export async function getAllUsers(request, reply) {
 		if (paginationErr) return paginationErr;
 
 		const result = await userManagementService.getAllUsers({
-			page: parseInt(page),
-			perPage: parseInt(perPage),
+			page: parseInt(page, 10),
+			perPage: parseInt(perPage, 10),
 		});
 
 		return success(reply, result);
@@ -460,8 +464,8 @@ export async function getLoginLogs(request, reply) {
 			endDate = null,
 		} = request.query;
 
-		const parsedLimit = parseInt(limit);
-		const parsedOffset = parseInt(offset);
+		const parsedLimit = parseInt(limit, 10);
+		const parsedOffset = parseInt(offset, 10);
 
 		if (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
 			return badRequest(reply, "limit 必须是 1-100 之间的整数");
@@ -500,8 +504,8 @@ export async function getAccessLogs(request, reply) {
 			endDate = null,
 		} = request.query;
 
-		const parsedLimit = parseInt(limit);
-		const parsedOffset = parseInt(offset);
+		const parsedLimit = parseInt(limit, 10);
+		const parsedOffset = parseInt(offset, 10);
 
 		if (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
 			return badRequest(reply, "limit 必须是 1-100 之间的整数");
@@ -519,7 +523,7 @@ export async function getAccessLogs(request, reply) {
 			.range(parsedOffset, parsedOffset + parsedLimit - 1);
 
 		if (linkId) {
-			query = query.eq("link_id", parseInt(linkId));
+			query = query.eq("link_id", parseInt(linkId, 10));
 		}
 
 		if (startDate) {
@@ -568,7 +572,7 @@ export async function getLoginStats(request, reply) {
 export async function getTopLinks(request, reply) {
 	try {
 		const period = request.query.period || "daily";
-		const limit = parseInt(request.query.limit || 20);
+		const limit = parseInt(request.query.limit || 20, 10);
 
 		// 验证 period 参数
 		if (!["daily", "weekly", "monthly"].includes(period)) {

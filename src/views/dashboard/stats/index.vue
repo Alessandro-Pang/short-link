@@ -196,11 +196,11 @@
 
 <script setup>
 import {
-    IconArrowRise,
-    IconBarChart,
-    IconLink,
-    IconPlusCircle,
-    IconThunderbolt,
+	IconArrowRise,
+	IconBarChart,
+	IconLink,
+	IconPlusCircle,
+	IconThunderbolt,
 } from "@arco-design/web-vue/es/icon";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -221,58 +221,58 @@ const rankingLoading = ref(false);
 
 // Methods
 const loadData = async () => {
-    // 并行请求统计和链接数据
-    await Promise.all([
-        linksStore.fetchStats(),
-        linksStore.fetchLinks({
-            limit: 5,
-            orderBy: "created_at",
-            ascending: false,
-        }),
-        loadRankingData(),
-    ]);
+	// 并行请求统计和链接数据
+	await Promise.all([
+		linksStore.fetchStats(),
+		linksStore.fetchLinks({
+			limit: 5,
+			orderBy: "created_at",
+			ascending: false,
+		}),
+		loadRankingData(),
+	]);
 };
 
 const loadRankingData = async () => {
-    rankingLoading.value = true;
-    try {
-        const result = await getTopLinks(rankingPeriod.value, 20);
-        rankingLinks.value = result.links || [];
-    } catch (error) {
-        console.error("加载排行榜失败:", error);
-        rankingLinks.value = [];
-    } finally {
-        rankingLoading.value = false;
-    }
+	rankingLoading.value = true;
+	try {
+		const result = await getTopLinks(rankingPeriod.value, 20);
+		rankingLinks.value = result.links || [];
+	} catch (error) {
+		console.error("加载排行榜失败:", error);
+		rankingLinks.value = [];
+	} finally {
+		rankingLoading.value = false;
+	}
 };
 
 const handlePeriodChange = (period) => {
-    rankingPeriod.value = period;
-    loadRankingData();
+	rankingPeriod.value = period;
+	loadRankingData();
 };
 
 const goToLinks = () => {
-    router.push("/dashboard/links");
+	router.push("/dashboard/links");
 };
 
 const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("zh-CN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+	if (!dateString) return "-";
+	const date = new Date(dateString);
+	return date.toLocaleString("zh-CN", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
 };
 
 // 暴露刷新方法给父组件
 defineExpose({
-    refresh: loadData,
+	refresh: loadData,
 });
 
 onMounted(() => {
-    loadData();
+	loadData();
 });
 </script>

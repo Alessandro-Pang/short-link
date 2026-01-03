@@ -90,6 +90,7 @@ export function sanitizeInput(input) {
 	}
 	// 移除控制字符和零宽字符
 	// 使用 Unicode 转义避免字面量控制字符
+	// biome-ignore lint/suspicious/noControlCharactersInRegex: Unicode escapes are intentional for control character matching
 	const controlCharsRegex = /[\u0000-\u001F\u007F]/g;
 	const zeroWidthRegex = /[\u200B-\u200D\uFEFF]/g;
 	return input.replace(controlCharsRegex, "").replace(zeroWidthRegex, "").trim();
