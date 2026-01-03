@@ -207,7 +207,7 @@
                                     <transition name="fade">
                                         <div
                                             v-if="currentShortUrl"
-                                            class="bg-linear-to-br mt-2 from-blue-50 via-purple-50 to-pink-50 p-4 rounded-2xl border-2 border-blue-200 shadow-lg"
+                                            class="bg-linear-to-br mt-2 from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/30 dark:via-purple-900/30 dark:to-pink-900/30 p-4 rounded-2xl border-2 border-blue-200 dark:border-blue-700 shadow-lg"
                                         >
                                             <!-- 成功标题 -->
                                             <div
@@ -228,7 +228,7 @@
                                                     />
                                                 </div>
                                                 <h3
-                                                    class="text-base font-bold text-gray-800"
+                                                    class="text-base font-bold text-gray-800 dark:text-gray-200"
                                                 >
                                                     短链接地址
                                                 </h3>
@@ -241,7 +241,7 @@
                                                     <a
                                                         :href="currentShortUrl"
                                                         target="_blank"
-                                                        class="text-base font-bold text-blue-600! hover:text-blue-700! hover:underline! break-all transition-colors"
+                                                        class="text-base font-bold text-blue-600! dark:text-blue-400! hover:text-blue-700! dark:hover:text-blue-300! hover:underline! break-all transition-colors"
                                                     >
                                                         {{ currentShortUrl }}
                                                     </a>
