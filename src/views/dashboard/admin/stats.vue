@@ -172,7 +172,7 @@
                     <template #columns>
                         <a-table-column
                             title="创建者"
-                            width="80"
+                            :width="80"
                             data-index="user_id"
                         >
                             <template #cell="{ record }">
@@ -193,7 +193,7 @@
                             data-index="link"
                             ellipsis
                             tooltip
-                            width="260"
+                            :width="260"
                         >
                             <template #cell="{ record }">
                                 <div class="flex items-center gap-2">
@@ -210,7 +210,7 @@
                         </a-table-column>
                         <a-table-column
                             title="短链接"
-                            width="260"
+                            :width="260"
                             data-index="short"
                         >
                             <template #cell="{ record }">
@@ -226,7 +226,7 @@
                             title="点击数"
                             data-index="click_count"
                             align="center"
-                            width="80"
+                            :width="80"
                         >
                             <template #cell="{ record }">
                                 <span
@@ -239,7 +239,7 @@
                             title="状态"
                             data-index="is_active"
                             align="center"
-                            width="80"
+                            :width="80"
                         >
                             <template #cell="{ record }">
                                 <a-tag
@@ -254,7 +254,7 @@
                             title="创建时间"
                             data-index="created_at"
                             align="center"
-                            width="150"
+                            :width="150"
                         >
                             <template #cell="{ record }">
                                 <span
@@ -271,23 +271,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
 import {
-    IconLink,
-    IconThunderbolt,
-    IconPlusCircle,
     IconBarChart,
-    IconUserGroup,
     IconEyeInvisible,
     IconHistory,
+    IconLink,
+    IconPlusCircle,
+    IconThunderbolt,
+    IconUserGroup,
 } from "@arco-design/web-vue/es/icon";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import TopLinksRanking from "@/components/TopLinksRanking.vue";
 import {
-    getGlobalStats,
     getAllLinks,
+    getGlobalStats,
     getGlobalTopLinks,
 } from "@/services/admin";
-import TopLinksRanking from "@/components/TopLinksRanking.vue";
 
 const router = useRouter();
 const origin = window.location.origin;

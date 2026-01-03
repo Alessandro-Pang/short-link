@@ -1,3 +1,13 @@
+<script setup lang="ts">
+defineProps<{
+	title: string;
+	description?: string;
+	modelValue: boolean;
+}>();
+
+defineEmits<(e: "update:modelValue", value: boolean) => void>();
+</script>
+
 <template>
     <div class="switch-row">
         <div class="switch-content">
@@ -14,18 +24,6 @@
         </div>
     </div>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-    title: string;
-    description?: string;
-    modelValue: boolean;
-}>();
-
-defineEmits<{
-    (e: "update:modelValue", value: boolean): void;
-}>();
-</script>
 
 <style scoped>
 .switch-row {

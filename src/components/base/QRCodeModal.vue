@@ -1,3 +1,31 @@
+<script setup lang="ts">
+import { Message } from "@arco-design/web-vue";
+import { useQRCode } from "@/composables/useQRCode";
+
+const { visible, currentUrl, canvasRef, hide } = useQRCode();
+
+const handleClose = () => {
+	hide();
+};
+
+const copyUrl = async () => {
+	if (!currentUrl.value) return;
+	try {
+		await navigator.clipboard.writeText(currentUrl.value);
+		Message.success("链接已复制到剪贴板");
+	} catch (error) {
+		Message.error("复制失败，请手动复制");
+	}
+};
+
+// 暴露给父组件使用
+defineExpose({
+	visible,
+	currentUrl,
+	canvasRef,
+});
+</script>
+
 <template>
     <a-modal
         v-model:visible="visible"
@@ -39,34 +67,6 @@
         </div>
     </a-modal>
 </template>
-
-<script setup lang="ts">
-import { Message } from "@arco-design/web-vue";
-import { useQRCode } from "@/composables/useQRCode";
-
-const { visible, currentUrl, canvasRef, hide } = useQRCode();
-
-const handleClose = () => {
-    hide();
-};
-
-const copyUrl = async () => {
-    if (!currentUrl.value) return;
-    try {
-        await navigator.clipboard.writeText(currentUrl.value);
-        Message.success("链接已复制到剪贴板");
-    } catch (error) {
-        Message.error("复制失败，请手动复制");
-    }
-};
-
-// 暴露给父组件使用
-defineExpose({
-    visible,
-    currentUrl,
-    canvasRef,
-});
-</script>
 
 <style scoped>
 .flex {

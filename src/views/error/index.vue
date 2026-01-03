@@ -147,16 +147,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
 import {
-    IconLink,
-    IconExclamationCircleFill,
-    IconHome,
-    IconRefresh,
-    IconLaunch,
-    IconLeft,
+	IconExclamationCircleFill,
+	IconHome,
+	IconLaunch,
+	IconLeft,
+	IconLink,
+	IconRefresh,
 } from "@arco-design/web-vue/es/icon";
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
 const router = useRouter();
@@ -165,21 +165,21 @@ const title = ref("链接无效");
 const message = ref("短链接不存在");
 
 onMounted(() => {
-    // 从 query 参数获取错误信息
-    if (route.query.title) {
-        title.value = route.query.title as string;
-    }
-    if (route.query.message) {
-        message.value = route.query.message as string;
-    }
+	// 从 query 参数获取错误信息
+	if (route.query.title) {
+		title.value = route.query.title as string;
+	}
+	if (route.query.message) {
+		message.value = route.query.message as string;
+	}
 });
 
 const retry = () => {
-    window.location.replace(`/u/${route.query.short}`);
+	window.location.replace(`/u/${route.query.short}`);
 };
 
 const goHome = () => {
-    router.push("/");
+	router.push("/");
 };
 </script>
 

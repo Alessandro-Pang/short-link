@@ -11,18 +11,18 @@
 
 <script setup>
 defineProps({
-  shortUrl: {
-    type: String,
-    default: ''
-  },
-  visible: {
-    type: Boolean,
-    default: false
-  },
-  isError: {
-    type: Boolean,
-    default: false
-  }
+	shortUrl: {
+		type: String,
+		default: "",
+	},
+	visible: {
+		type: Boolean,
+		default: false,
+	},
+	isError: {
+		type: Boolean,
+		default: false,
+	},
 });
 </script>
 

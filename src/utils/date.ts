@@ -11,11 +11,11 @@ import dayjs from "dayjs";
  * @returns 格式化后的日期字符串
  */
 export function formatDate(
-  dateString: string | number | Date | null | undefined,
-  format: string = "YYYY-MM-DD HH:mm:ss"
+	dateString: string | number | Date | null | undefined,
+	format: string = "YYYY-MM-DD HH:mm:ss",
 ): string {
-  if (!dateString) return "-";
-  return dayjs(dateString).format(format);
+	if (!dateString) return "-";
+	return dayjs(dateString).format(format);
 }
 
 /**
@@ -24,8 +24,8 @@ export function formatDate(
  * @returns 是否已过期
  */
 export function isExpired(dateString: string | null | undefined): boolean {
-  if (!dateString) return false;
-  return dayjs(dateString).isBefore(dayjs());
+	if (!dateString) return false;
+	return dayjs(dateString).isBefore(dayjs());
 }
 
 /**
@@ -34,8 +34,8 @@ export function isExpired(dateString: string | null | undefined): boolean {
  * @returns 是否在将来
  */
 export function isFuture(dateString: string | null | undefined): boolean {
-  if (!dateString) return false;
-  return dayjs(dateString).isAfter(dayjs());
+	if (!dateString) return false;
+	return dayjs(dateString).isAfter(dayjs());
 }
 
 /**
@@ -43,7 +43,7 @@ export function isFuture(dateString: string | null | undefined): boolean {
  * @returns ISO 格式的当前时间
  */
 export function now(): string {
-  return dayjs().toISOString();
+	return dayjs().toISOString();
 }
 
 /**
@@ -52,21 +52,21 @@ export function now(): string {
  * @returns 相对时间描述
  */
 export function timeAgo(dateString: string | null | undefined): string {
-  if (!dateString) return "-";
-  
-  const date = dayjs(dateString);
-  const now = dayjs();
-  const diffInSeconds = now.diff(date, "second");
-  
-  if (diffInSeconds < 60) {
-    return "刚刚";
-  } else if (diffInSeconds < 3600) {
-    return `${Math.floor(diffInSeconds / 60)}分钟前`;
-  } else if (diffInSeconds < 86400) {
-    return `${Math.floor(diffInSeconds / 3600)}小时前`;
-  } else if (diffInSeconds < 604800) {
-    return `${Math.floor(diffInSeconds / 86400)}天前`;
-  } else {
-    return formatDate(dateString, "YYYY-MM-DD");
-  }
+	if (!dateString) return "-";
+
+	const date = dayjs(dateString);
+	const now = dayjs();
+	const diffInSeconds = now.diff(date, "second");
+
+	if (diffInSeconds < 60) {
+		return "刚刚";
+	} else if (diffInSeconds < 3600) {
+		return `${Math.floor(diffInSeconds / 60)}分钟前`;
+	} else if (diffInSeconds < 86400) {
+		return `${Math.floor(diffInSeconds / 3600)}小时前`;
+	} else if (diffInSeconds < 604800) {
+		return `${Math.floor(diffInSeconds / 86400)}天前`;
+	} else {
+		return formatDate(dateString, "YYYY-MM-DD");
+	}
 }

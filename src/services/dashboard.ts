@@ -5,15 +5,15 @@
 
 import dayjs from "dayjs";
 import {
-  getDashboardStats,
-  getDashboardLinks,
-  getLinkDetail,
-  updateLink,
-  deleteLink,
-  toggleLinkStatus,
-  getLinkAccessLogs,
-  batchDeleteLinks,
-  batchToggleLinks,
+	batchDeleteLinks,
+	batchToggleLinks,
+	deleteLink,
+	getDashboardLinks,
+	getDashboardStats,
+	getLinkAccessLogs,
+	getLinkDetail,
+	toggleLinkStatus,
+	updateLink,
 } from "./api";
 import { fetchApi } from "./request";
 
@@ -22,19 +22,19 @@ import { fetchApi } from "./request";
  * @returns {Promise} 统计数据
  */
 export async function getUserLinkStats() {
-  try {
-    const response = await getDashboardStats();
-    return response.data;
-  } catch (error) {
-    console.error("获取用户统计失败:", error);
-    // 返回默认值
-    return {
-      total_links: 0,
-      total_clicks: 0,
-      weekly_new_links: 0,
-      avg_clicks_per_link: 0,
-    };
-  }
+	try {
+		const response = await getDashboardStats();
+		return response.data;
+	} catch (error) {
+		console.error("获取用户统计失败:", error);
+		// 返回默认值
+		return {
+			total_links: 0,
+			total_clicks: 0,
+			weekly_new_links: 0,
+			avg_clicks_per_link: 0,
+		};
+	}
 }
 
 /**
@@ -43,13 +43,13 @@ export async function getUserLinkStats() {
  * @returns {Promise} 链接列表
  */
 export async function getUserLinks(options = {}) {
-  try {
-    const response = await getDashboardLinks(options);
-    return response.data;
-  } catch (error) {
-    console.error("获取用户链接列表失败:", error);
-    return { links: [], total: 0 };
-  }
+	try {
+		const response = await getDashboardLinks(options);
+		return response.data;
+	} catch (error) {
+		console.error("获取用户链接列表失败:", error);
+		return { links: [], total: 0 };
+	}
 }
 
 /**
@@ -58,13 +58,13 @@ export async function getUserLinks(options = {}) {
  * @returns {Promise} 链接详情
  */
 export async function getLinkDetailById(linkId) {
-  try {
-    const response = await getLinkDetail(linkId);
-    return response.data;
-  } catch (error) {
-    console.error("获取链接详情失败:", error);
-    throw error;
-  }
+	try {
+		const response = await getLinkDetail(linkId);
+		return response.data;
+	} catch (error) {
+		console.error("获取链接详情失败:", error);
+		throw error;
+	}
 }
 
 /**
@@ -74,13 +74,13 @@ export async function getLinkDetailById(linkId) {
  * @returns {Promise} 更新结果
  */
 export async function updateLinkConfig(linkId, updates) {
-  try {
-    const response = await updateLink(linkId, updates);
-    return response.data;
-  } catch (error) {
-    console.error("更新链接失败:", error);
-    throw error;
-  }
+	try {
+		const response = await updateLink(linkId, updates);
+		return response.data;
+	} catch (error) {
+		console.error("更新链接失败:", error);
+		throw error;
+	}
 }
 
 /**
@@ -89,13 +89,13 @@ export async function updateLinkConfig(linkId, updates) {
  * @returns {Promise}
  */
 export async function removeLinkById(linkId) {
-  try {
-    await deleteLink(linkId);
-    return true;
-  } catch (error) {
-    console.error("删除链接失败:", error);
-    throw error;
-  }
+	try {
+		await deleteLink(linkId);
+		return true;
+	} catch (error) {
+		console.error("删除链接失败:", error);
+		throw error;
+	}
 }
 
 /**
@@ -105,13 +105,13 @@ export async function removeLinkById(linkId) {
  * @returns {Promise} 更新结果
  */
 export async function toggleLink(linkId, isActive) {
-  try {
-    const response = await toggleLinkStatus(linkId, isActive);
-    return response.data;
-  } catch (error) {
-    console.error("切换链接状态失败:", error);
-    throw error;
-  }
+	try {
+		const response = await toggleLinkStatus(linkId, isActive);
+		return response.data;
+	} catch (error) {
+		console.error("切换链接状态失败:", error);
+		throw error;
+	}
 }
 
 /**
@@ -120,13 +120,13 @@ export async function toggleLink(linkId, isActive) {
  * @returns {Promise} 删除结果
  */
 export async function batchRemoveLinks(linkIds) {
-  try {
-    const response = await batchDeleteLinks(linkIds);
-    return response.data;
-  } catch (error) {
-    console.error("批量删除链接失败:", error);
-    throw error;
-  }
+	try {
+		const response = await batchDeleteLinks(linkIds);
+		return response.data;
+	} catch (error) {
+		console.error("批量删除链接失败:", error);
+		throw error;
+	}
 }
 
 /**
@@ -135,13 +135,13 @@ export async function batchRemoveLinks(linkIds) {
  * @returns {Promise} 操作结果
  */
 export async function batchEnableLinks(linkIds) {
-  try {
-    const response = await batchToggleLinks(linkIds, true);
-    return response.data;
-  } catch (error) {
-    console.error("批量启用链接失败:", error);
-    throw error;
-  }
+	try {
+		const response = await batchToggleLinks(linkIds, true);
+		return response.data;
+	} catch (error) {
+		console.error("批量启用链接失败:", error);
+		throw error;
+	}
 }
 
 /**
@@ -150,13 +150,13 @@ export async function batchEnableLinks(linkIds) {
  * @returns {Promise} 操作结果
  */
 export async function batchDisableLinks(linkIds) {
-  try {
-    const response = await batchToggleLinks(linkIds, false);
-    return response.data;
-  } catch (error) {
-    console.error("批量禁用链接失败:", error);
-    throw error;
-  }
+	try {
+		const response = await batchToggleLinks(linkIds, false);
+		return response.data;
+	} catch (error) {
+		console.error("批量禁用链接失败:", error);
+		throw error;
+	}
 }
 
 /**
@@ -166,13 +166,13 @@ export async function batchDisableLinks(linkIds) {
  * @returns {Promise} 访问日志列表
  */
 export async function getLinkLogs(linkId, options = {}) {
-  try {
-    const response = await getLinkAccessLogs(linkId, options);
-    return response.data;
-  } catch (error) {
-    console.error("获取访问日志失败:", error);
-    return { logs: [], total: 0 };
-  }
+	try {
+		const response = await getLinkAccessLogs(linkId, options);
+		return response.data;
+	} catch (error) {
+		console.error("获取访问日志失败:", error);
+		return { logs: [], total: 0 };
+	}
 }
 
 /**
@@ -182,15 +182,13 @@ export async function getLinkLogs(linkId, options = {}) {
  * @returns {Promise} 排行榜数据
  */
 export async function getTopLinks(period = "daily", limit = 20) {
-  try {
-    const response = await fetchApi(
-      `/api/dashboard/top-links?period=${period}&limit=${limit}`,
-    );
-    return response.data;
-  } catch (error) {
-    console.error("获取排行榜数据失败:", error);
-    return { links: [] };
-  }
+	try {
+		const response = await fetchApi(`/api/dashboard/top-links?period=${period}&limit=${limit}`);
+		return response.data;
+	} catch (error) {
+		console.error("获取排行榜数据失败:", error);
+		return { links: [] };
+	}
 }
 
 /**
@@ -199,19 +197,19 @@ export async function getTopLinks(period = "daily", limit = 20) {
  * @returns {Object} 状态信息
  */
 export function formatLinkStatus(link) {
-  if (!link.is_active) {
-    return { status: "disabled", label: "已禁用", color: "red" };
-  }
+	if (!link.is_active) {
+		return { status: "disabled", label: "已禁用", color: "red" };
+	}
 
-  if (link.expiration_date && dayjs(link.expiration_date).isBefore(dayjs())) {
-    return { status: "expired", label: "已过期", color: "orange" };
-  }
+	if (link.expiration_date && dayjs(link.expiration_date).isBefore(dayjs())) {
+		return { status: "expired", label: "已过期", color: "orange" };
+	}
 
-  if (link.max_clicks && link.click_count >= link.max_clicks) {
-    return { status: "limit_reached", label: "已达上限", color: "yellow" };
-  }
+	if (link.max_clicks && link.click_count >= link.max_clicks) {
+		return { status: "limit_reached", label: "已达上限", color: "yellow" };
+	}
 
-  return { status: "active", label: "运行中", color: "green" };
+	return { status: "active", label: "运行中", color: "green" };
 }
 
 /**
@@ -220,15 +218,14 @@ export function formatLinkStatus(link) {
  * @returns {boolean}
  */
 export function hasAdvancedConfig(link) {
-  return (
-    (link.redirect_type && link.redirect_type !== 302) ||
-    link.expiration_date ||
-    link.max_clicks ||
-    link.pass_query_params ||
-    link.forward_headers ||
-    (link.access_restrictions &&
-      Object.keys(link.access_restrictions).length > 0)
-  );
+	return (
+		(link.redirect_type && link.redirect_type !== 302) ||
+		link.expiration_date ||
+		link.max_clicks ||
+		link.pass_query_params ||
+		link.forward_headers ||
+		(link.access_restrictions && Object.keys(link.access_restrictions).length > 0)
+	);
 }
 
 /**
@@ -237,59 +234,56 @@ export function hasAdvancedConfig(link) {
  * @returns {Array} 配置摘要列表
  */
 export function getConfigSummary(link) {
-  const summary = [];
+	const summary = [];
 
-  if (link.redirect_type && link.redirect_type !== 302) {
-    summary.push({
-      type: "redirect",
-      label: `${link.redirect_type} 重定向`,
-      color: "arcoblue",
-    });
-  }
+	if (link.redirect_type && link.redirect_type !== 302) {
+		summary.push({
+			type: "redirect",
+			label: `${link.redirect_type} 重定向`,
+			color: "arcoblue",
+		});
+	}
 
-  if (link.expiration_date) {
-    const isExpired = dayjs(link.expiration_date).isBefore(dayjs());
-    summary.push({
-      type: "expiration",
-      label: isExpired ? "已过期" : "有时效",
-      color: isExpired ? "red" : "orange",
-    });
-  }
+	if (link.expiration_date) {
+		const isExpired = dayjs(link.expiration_date).isBefore(dayjs());
+		summary.push({
+			type: "expiration",
+			label: isExpired ? "已过期" : "有时效",
+			color: isExpired ? "red" : "orange",
+		});
+	}
 
-  if (link.max_clicks) {
-    summary.push({
-      type: "max_clicks",
-      label: `${link.click_count}/${link.max_clicks}次`,
-      color: "green",
-    });
-  }
+	if (link.max_clicks) {
+		summary.push({
+			type: "max_clicks",
+			label: `${link.click_count}/${link.max_clicks}次`,
+			color: "green",
+		});
+	}
 
-  if (link.pass_query_params) {
-    summary.push({
-      type: "query_params",
-      label: "参数透传",
-      color: "purple",
-    });
-  }
+	if (link.pass_query_params) {
+		summary.push({
+			type: "query_params",
+			label: "参数透传",
+			color: "purple",
+		});
+	}
 
-  if (link.forward_headers) {
-    summary.push({
-      type: "headers",
-      label: "Header转发",
-      color: "cyan",
-    });
-  }
+	if (link.forward_headers) {
+		summary.push({
+			type: "headers",
+			label: "Header转发",
+			color: "cyan",
+		});
+	}
 
-  if (
-    link.access_restrictions &&
-    Object.keys(link.access_restrictions).length > 0
-  ) {
-    summary.push({
-      type: "restrictions",
-      label: "访问限制",
-      color: "red",
-    });
-  }
+	if (link.access_restrictions && Object.keys(link.access_restrictions).length > 0) {
+		summary.push({
+			type: "restrictions",
+			label: "访问限制",
+			color: "red",
+		});
+	}
 
-  return summary;
+	return summary;
 }

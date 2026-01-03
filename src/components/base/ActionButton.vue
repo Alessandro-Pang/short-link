@@ -12,25 +12,25 @@
 <script setup>
 // 定义props和emits
 defineProps({
-  icon: {
-    type: String,
-    required: true
-  },
-  buttonClass: {
-    type: String,
-    default: ''
-  },
-  animation: {
-    type: Boolean,
-    default: false
-  },
-  success: {
-    type: Boolean,
-    default: false
-  }
+	icon: {
+		type: String,
+		required: true,
+	},
+	buttonClass: {
+		type: String,
+		default: "",
+	},
+	animation: {
+		type: Boolean,
+		default: false,
+	},
+	success: {
+		type: Boolean,
+		default: false,
+	},
 });
 
-const emit = defineEmits(['click']);
+const emit = defineEmits(["click"]);
 </script>
 
 <style scoped>

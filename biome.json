@@ -1,37 +1,68 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.10/schemaon",
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
-  },
-  "files": {
-    "includes": ["**", "!!**/dist"]
-  },
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "tab"
-  },
-  "linter": {
-    "enabled": true,
-    "domains": {
-      "vue": "all"
-    },
-    "rules": {
-      "recommended": true
-    }
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "double"
-    }
-  },
-  "assist": {
-    "enabled": true,
-    "actions": {
-      "source": {
-        "organizeImports": "on"
-      }
-    }
-  }
+	"$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"ignoreUnknown": true,
+		"maxSize": 1048576,
+		"includes": ["**", "!!**/dist", "!!**/node_modules", "!!**/coverage"]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"lineWidth": 100,
+		"lineEnding": "lf"
+	},
+	"linter": {
+		"enabled": true,
+		"domains": {
+			"vue": "all"
+		},
+		"rules": {
+			"recommended": true,
+			"style": {
+				"useConst": "error",
+				"noDefaultExport": "off"
+			},
+			"correctness": {
+				"noUnusedVariables": "warn"
+			},
+			"suspicious": {
+				"noExplicitAny": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double",
+			"trailingCommas": "all",
+			"semicolons": "always"
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["*.vue"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useSelfClosingElements": "error"
+					},
+					"correctness": {
+						"noUnusedImports": "error"
+					}
+				}
+			}
+		}
+	],
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	}
 }

@@ -1,266 +1,259 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
 import { Message, Modal } from "@arco-design/web-vue";
 import {
-    IconPlus,
-    IconEdit,
-    IconDelete,
-    IconLock,
-    IconUnlock,
-    IconRefresh,
-    IconUser,
-    IconEmail,
-    IconCalendar,
-    IconSafe,
-    IconUserAdd,
+	IconCalendar,
+	IconDelete,
+	IconEdit,
+	IconEmail,
+	IconLock,
+	IconPlus,
+	IconRefresh,
+	IconSafe,
+	IconUnlock,
+	IconUser,
+	IconUserAdd,
 } from "@arco-design/web-vue/es/icon";
+import { computed, onMounted, ref } from "vue";
 import {
-    getAllUsers,
-    getUserDetails,
-    createUser,
-    deleteUser,
-    resetUserPassword,
-    toggleUserStatus,
-    updateUser,
+	createUser,
+	deleteUser,
+	getAllUsers,
+	getUserDetails,
+	resetUserPassword,
+	toggleUserStatus,
+	updateUser,
 } from "@/services/admin";
 
 // State
 const isLoading = ref(false);
 const users = ref([]);
 const pagination = ref({
-    current: 1,
-    pageSize: 20,
+	current: 1,
+	pageSize: 20,
 });
 const total = ref(0);
 
 // 创建用户对话框
 const createModalVisible = ref(false);
 const createForm = ref({
-    email: "",
-    password: "",
-    name: "",
+	email: "",
+	password: "",
+	name: "",
 });
 
 // 重置密码对话框
 const resetPasswordModalVisible = ref(false);
 const resetPasswordForm = ref({
-    userId: "",
-    userEmail: "",
-    password: "",
+	userId: "",
+	userEmail: "",
+	password: "",
 });
 
 // 加载用户列表
 const loadUsers = async () => {
-    isLoading.value = true;
-    try {
-        const result = await getAllUsers({
-            page: pagination.value.current,
-            perPage: pagination.value.pageSize,
-        });
+	isLoading.value = true;
+	try {
+		const result = await getAllUsers({
+			page: pagination.value.current,
+			perPage: pagination.value.pageSize,
+		});
 
-        users.value = result?.users || [];
-        total.value = result?.total || 0;
-    } catch (error) {
-        console.error("加载用户列表失败:", error);
-        Message.error(error.message || "加载用户列表失败");
-    } finally {
-        isLoading.value = false;
-    }
+		users.value = result?.users || [];
+		total.value = result?.total || 0;
+	} catch (error) {
+		console.error("加载用户列表失败:", error);
+		Message.error(error.message || "加载用户列表失败");
+	} finally {
+		isLoading.value = false;
+	}
 };
 
 // 格式化日期
 const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("zh-CN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+	if (!dateString) return "-";
+	const date = new Date(dateString);
+	return date.toLocaleString("zh-CN", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
 };
 
 // 获取用户状态
 const getUserStatus = (user) => {
-    if (user.banned_until) {
-        const bannedUntil = new Date(user.banned_until);
-        if (bannedUntil > new Date()) {
-            return { text: "已禁用", color: "red", banned: true };
-        }
-    }
-    return { text: "正常", color: "green", banned: false };
+	if (user.banned_until) {
+		const bannedUntil = new Date(user.banned_until);
+		if (bannedUntil > new Date()) {
+			return { text: "已禁用", color: "red", banned: true };
+		}
+	}
+	return { text: "正常", color: "green", banned: false };
 };
 
 // 获取邮箱验证状态
 const getEmailVerifiedStatus = (user) => {
-    return user.email_confirmed_at ? "已验证" : "未验证";
+	return user.email_confirmed_at ? "已验证" : "未验证";
 };
 
 // 获取用户角色
 const getUserRole = (user) => {
-    if (user?.is_admin) {
-        return { text: "管理员", color: "orange", isAdmin: true };
-    }
-    return { text: "普通用户", color: "blue", isAdmin: false };
+	if (user?.is_admin) {
+		return { text: "管理员", color: "orange", isAdmin: true };
+	}
+	return { text: "普通用户", color: "blue", isAdmin: false };
 };
 
 // 获取登录方式
 const getAuthProvider = (user) => {
-    if (user.app_metadata?.providers) {
-        const providers = {
-            email: "邮箱",
-            github: "GitHub",
-            google: "Google",
-        };
-        return user.app_metadata.providers.map(
-            (provider) => providers[provider] || provider,
-        );
-    }
-    return ["邮箱"];
+	if (user.app_metadata?.providers) {
+		const providers = {
+			email: "邮箱",
+			github: "GitHub",
+			google: "Google",
+		};
+		return user.app_metadata.providers.map((provider) => providers[provider] || provider);
+	}
+	return ["邮箱"];
 };
 
 // 创建用户
 const handleCreateUser = async () => {
-    if (!createForm.value.email || !createForm.value.password) {
-        Message.warning("邮箱和密码不能为空");
-        return;
-    }
+	if (!createForm.value.email || !createForm.value.password) {
+		Message.warning("邮箱和密码不能为空");
+		return;
+	}
 
-    try {
-        await createUser({
-            email: createForm.value.email,
-            password: createForm.value.password,
-            user_metadata: {
-                name:
-                    createForm.value.name ||
-                    createForm.value.email.split("@")[0],
-            },
-        });
+	try {
+		await createUser({
+			email: createForm.value.email,
+			password: createForm.value.password,
+			user_metadata: {
+				name: createForm.value.name || createForm.value.email.split("@")[0],
+			},
+		});
 
-        Message.success("用户创建成功");
-        createModalVisible.value = false;
-        createForm.value = { email: "", password: "", name: "" };
-        loadUsers();
-    } catch (error) {
-        Message.error(error.message || "创建用户失败");
-    }
+		Message.success("用户创建成功");
+		createModalVisible.value = false;
+		createForm.value = { email: "", password: "", name: "" };
+		loadUsers();
+	} catch (error) {
+		Message.error(error.message || "创建用户失败");
+	}
 };
 
 // 删除用户
 const handleDeleteUser = (user) => {
-    Modal.warning({
-        title: "删除用户",
-        content: `确定要删除用户 ${user.email} 吗？此操作不可恢复！`,
-        okText: "确定删除",
-        cancelText: "取消",
-        onOk: async () => {
-            try {
-                await deleteUser(user.id);
-                Message.success("用户已删除");
-                loadUsers();
-            } catch (error) {
-                Message.error(error.message || "删除用户失败");
-            }
-        },
-    });
+	Modal.warning({
+		title: "删除用户",
+		content: `确定要删除用户 ${user.email} 吗？此操作不可恢复！`,
+		okText: "确定删除",
+		cancelText: "取消",
+		onOk: async () => {
+			try {
+				await deleteUser(user.id);
+				Message.success("用户已删除");
+				loadUsers();
+			} catch (error) {
+				Message.error(error.message || "删除用户失败");
+			}
+		},
+	});
 };
 
 // 打开重置密码对话框
 const openResetPasswordModal = (user) => {
-    resetPasswordForm.value = {
-        userId: user.id,
-        userEmail: user.email,
-        password: "",
-    };
-    resetPasswordModalVisible.value = true;
+	resetPasswordForm.value = {
+		userId: user.id,
+		userEmail: user.email,
+		password: "",
+	};
+	resetPasswordModalVisible.value = true;
 };
 
 // 重置密码
 const handleResetPassword = async () => {
-    if (!resetPasswordForm.value.password) {
-        Message.warning("密码不能为空");
-        return;
-    }
+	if (!resetPasswordForm.value.password) {
+		Message.warning("密码不能为空");
+		return;
+	}
 
-    if (resetPasswordForm.value.password.length < 6) {
-        Message.warning("密码长度至少为 6 位");
-        return;
-    }
+	if (resetPasswordForm.value.password.length < 6) {
+		Message.warning("密码长度至少为 6 位");
+		return;
+	}
 
-    try {
-        await resetUserPassword(
-            resetPasswordForm.value.userId,
-            resetPasswordForm.value.password,
-        );
+	try {
+		await resetUserPassword(resetPasswordForm.value.userId, resetPasswordForm.value.password);
 
-        Message.success("密码重置成功");
-        resetPasswordModalVisible.value = false;
-        resetPasswordForm.value = { userId: "", userEmail: "", password: "" };
-    } catch (error) {
-        Message.error(error.message || "密码重置失败");
-    }
+		Message.success("密码重置成功");
+		resetPasswordModalVisible.value = false;
+		resetPasswordForm.value = { userId: "", userEmail: "", password: "" };
+	} catch (error) {
+		Message.error(error.message || "密码重置失败");
+	}
 };
 
 // 切换用户状态
 const handleToggleStatus = async (user) => {
-    const status = getUserStatus(user);
-    const action = status.banned ? "启用" : "禁用";
+	const status = getUserStatus(user);
+	const action = status.banned ? "启用" : "禁用";
 
-    Modal.confirm({
-        title: `${action}用户`,
-        content: `确定要${action}用户 ${user.email} 吗？`,
-        okText: `确定${action}`,
-        cancelText: "取消",
-        onOk: async () => {
-            try {
-                await toggleUserStatus(user.id, !status.banned);
-                Message.success(`用户已${action}`);
-                loadUsers();
-            } catch (error) {
-                Message.error(error.message || `${action}用户失败`);
-            }
-        },
-    });
+	Modal.confirm({
+		title: `${action}用户`,
+		content: `确定要${action}用户 ${user.email} 吗？`,
+		okText: `确定${action}`,
+		cancelText: "取消",
+		onOk: async () => {
+			try {
+				await toggleUserStatus(user.id, !status.banned);
+				Message.success(`用户已${action}`);
+				loadUsers();
+			} catch (error) {
+				Message.error(error.message || `${action}用户失败`);
+			}
+		},
+	});
 };
 
 // 设置/取消管理员
 const handleToggleAdmin = async (user) => {
-    const role = getUserRole(user);
-    const action = role.isAdmin ? "取消管理员" : "设为管理员";
+	const role = getUserRole(user);
+	const action = role.isAdmin ? "取消管理员" : "设为管理员";
 
-    Modal.confirm({
-        title: action,
-        content: `确定要${action} ${user.email} 吗？`,
-        okText: `确定${action}`,
-        cancelText: "取消",
-        onOk: async () => {
-            try {
-                await updateUser(user.id, {
-                    is_admin: !role.isAdmin,
-                });
-                Message.success(`已${action}`);
-                loadUsers();
-            } catch (error) {
-                Message.error(error.message || `${action}失败`);
-            }
-        },
-    });
+	Modal.confirm({
+		title: action,
+		content: `确定要${action} ${user.email} 吗？`,
+		okText: `确定${action}`,
+		cancelText: "取消",
+		onOk: async () => {
+			try {
+				await updateUser(user.id, {
+					is_admin: !role.isAdmin,
+				});
+				Message.success(`已${action}`);
+				loadUsers();
+			} catch (error) {
+				Message.error(error.message || `${action}失败`);
+			}
+		},
+	});
 };
 
 // 分页
 const handlePageChange = (page) => {
-    pagination.value.current = page;
-    loadUsers();
+	pagination.value.current = page;
+	loadUsers();
 };
 
 onMounted(() => {
-    loadUsers();
+	loadUsers();
 });
 
 // 暴露刷新方法
 defineExpose({
-    refresh: loadUsers,
+	refresh: loadUsers,
 });
 </script>
 

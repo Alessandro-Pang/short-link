@@ -16,8 +16,8 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
 import { IconMoonFill, IconSunFill } from "@arco-design/web-vue/es/icon";
+import { computed } from "vue";
 import { useUiStore } from "@/stores/ui";
 
 const uiStore = useUiStore();
@@ -27,7 +27,7 @@ const isDarkTheme = computed(() => uiStore.isDarkTheme);
 
 // 切换主题
 const handleToggleTheme = () => {
-    uiStore.toggleTheme();
+	uiStore.toggleTheme();
 };
 </script>
 

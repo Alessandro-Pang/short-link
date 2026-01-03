@@ -8,10 +8,10 @@
 <script setup>
 // 定义props
 defineProps({
-  active: {
-    type: Boolean,
-    default: false
-  }
+	active: {
+		type: Boolean,
+		default: false,
+	},
 });
 </script>
 

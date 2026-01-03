@@ -7,16 +7,16 @@
  * @FilePath: /short-link/api/middlewares/auth
  */
 
-import * as authService from "../services/auth.js";
-import cache, { CACHE_KEYS, buildCacheKey } from "../utils/cache.js";
 import { CACHE_CONFIG } from "../config/index.js";
-import { AuthenticationError, AuthorizationError } from "./errorHandler.js";
+import * as authService from "../services/auth.js";
 import type {
-  FastifyRequest,
-  FastifyReply,
-  AuthenticatedRequest,
-  AuthMiddlewareOptions,
+	AuthenticatedRequest,
+	AuthMiddlewareOptions,
+	FastifyReply,
+	FastifyRequest,
 } from "../types/index.js";
+import cache, { buildCacheKey, CACHE_KEYS } from "../utils/cache.js";
+import { AuthenticationError, AuthorizationError } from "./errorHandler.js";
 
 /**
  * 从请求头中提取 Bearer Token
@@ -24,11 +24,11 @@ import type {
  * @returns {string|null} Token 或 null
  */
 function extractToken(request: FastifyRequest): string | null {
-  const authHeader = request.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
-  }
-  return authHeader.substring(7);
+	const authHeader = request.headers.authorization;
+	if (!authHeader || !authHeader.startsWith("Bearer ")) {
+		return null;
+	}
+	return authHeader.substring(7);
 }
 
 /**
@@ -38,45 +38,44 @@ function extractToken(request: FastifyRequest): string | null {
  * @returns {Promise<Object>} 用户信息
  */
 async function verifyAndGetUser(
-  token: string,
-  _request: FastifyRequest,
+	token: string,
+	_request: FastifyRequest,
 ): Promise<AuthenticatedRequest["user"]> {
-  // 首先验证 token（这步必须每次执行，不能缓存）
-  const user = await authService.verifyToken(token);
+	// 首先验证 token（这步必须每次执行，不能缓存）
+	const user = await authService.verifyToken(token);
 
-  if (!user || !user.id) {
-    throw new AuthenticationError("无效的 Token");
-  }
+	if (!user || !user.id) {
+		throw new AuthenticationError("无效的 Token");
+	}
 
-  // 尝试从缓存获取用户 profile
-  const cacheKey = buildCacheKey(CACHE_KEYS.USER_PROFILE, user.id);
-  let userProfile = cache.get(cacheKey);
+	// 尝试从缓存获取用户 profile
+	const cacheKey = buildCacheKey(CACHE_KEYS.USER_PROFILE, user.id);
+	let userProfile = cache.get(cacheKey);
 
-  if (userProfile === undefined) {
-    // 缓存未命中，从数据库获取
-    userProfile = await authService.getUserById(user.id);
+	if (userProfile === undefined) {
+		// 缓存未命中，从数据库获取
+		userProfile = await authService.getUserById(user.id);
 
-    // 缓存用户信息
-    if (userProfile) {
-      cache.set(cacheKey, userProfile, CACHE_CONFIG.USER_INFO_TTL);
-    }
-  }
+		// 缓存用户信息
+		if (userProfile) {
+			cache.set(cacheKey, userProfile, CACHE_CONFIG.USER_INFO_TTL);
+		}
+	}
 
-  // 如果 user_profiles 没有数据，使用 auth user 数据
-  const userData: AuthenticatedRequest["user"] =
-    (userProfile as AuthenticatedRequest["user"]) || {
-      id: user.id,
-      email: user.email,
-      is_admin: false,
-      banned: false,
-    };
+	// 如果 user_profiles 没有数据，使用 auth user 数据
+	const userData: AuthenticatedRequest["user"] = (userProfile as AuthenticatedRequest["user"]) || {
+		id: user.id,
+		email: user.email,
+		is_admin: false,
+		banned: false,
+	};
 
-  // 检查用户是否被禁用
-  if (userData && userData.banned) {
-    throw new AuthorizationError("用户已被禁用");
-  }
+	// 检查用户是否被禁用
+	if (userData && userData.banned) {
+		throw new AuthorizationError("用户已被禁用");
+	}
 
-  return userData;
+	return userData;
 }
 
 /**
@@ -84,9 +83,9 @@ async function verifyAndGetUser(
  * @param {string} userId - 用户 ID
  */
 export function clearUserCache(userId: string): void {
-  cache.delete(buildCacheKey(CACHE_KEYS.USER_PROFILE, userId));
-  cache.delete(buildCacheKey(CACHE_KEYS.USER_ADMIN_STATUS, userId));
-  cache.delete(buildCacheKey(CACHE_KEYS.USER_INFO, userId));
+	cache.delete(buildCacheKey(CACHE_KEYS.USER_PROFILE, userId));
+	cache.delete(buildCacheKey(CACHE_KEYS.USER_ADMIN_STATUS, userId));
+	cache.delete(buildCacheKey(CACHE_KEYS.USER_INFO, userId));
 }
 
 /**
@@ -97,10 +96,10 @@ export function clearUserCache(userId: string): void {
  * @returns {Object}
  */
 function sendAuthError(reply: FastifyReply, msg: string, statusCode = 401) {
-  return reply.status(statusCode).send({
-    code: statusCode === 401 ? "UNAUTHORIZED" : "FORBIDDEN",
-    msg,
-  });
+	return reply.status(statusCode).send({
+		code: statusCode === 401 ? "UNAUTHORIZED" : "FORBIDDEN",
+		msg,
+	});
 }
 
 /**
@@ -113,54 +112,54 @@ function sendAuthError(reply: FastifyReply, msg: string, statusCode = 401) {
  * @returns {Promise<boolean>} 是否继续处理请求
  */
 async function handleAuth(
-  request: AuthenticatedRequest,
-  reply: FastifyReply,
-  options: Partial<AuthMiddlewareOptions> = {},
+	request: AuthenticatedRequest,
+	reply: FastifyReply,
+	options: Partial<AuthMiddlewareOptions> = {},
 ): Promise<boolean | void> {
-  const { required = true, requireAdmin = false } = options;
+	const { required = true, requireAdmin = false } = options;
 
-  try {
-    const token = extractToken(request);
+	try {
+		const token = extractToken(request);
 
-    // 如果没有 token
-    if (!token) {
-      if (required) {
-        return sendAuthError(reply, "缺少授权头或格式不正确");
-      }
-      // 可选认证，继续处理
-      return true;
-    }
+		// 如果没有 token
+		if (!token) {
+			if (required) {
+				return sendAuthError(reply, "缺少授权头或格式不正确");
+			}
+			// 可选认证，继续处理
+			return true;
+		}
 
-    // 验证 token 并获取用户信息
-    const userData = await verifyAndGetUser(token, request);
-    request.user = userData;
+		// 验证 token 并获取用户信息
+		const userData = await verifyAndGetUser(token, request);
+		request.user = userData;
 
-    // 如果需要管理员权限
-    if (requireAdmin) {
-      if (!userData.is_admin) {
-        request.log.warn(
-          `User ${userData.id} (${userData.email}) attempted admin access but is_admin=${userData.is_admin}`,
-        );
-        return sendAuthError(reply, "需要管理员权限", 403);
-      }
-    }
+		// 如果需要管理员权限
+		if (requireAdmin) {
+			if (!userData.is_admin) {
+				request.log.warn(
+					`User ${userData.id} (${userData.email}) attempted admin access but is_admin=${userData.is_admin}`,
+				);
+				return sendAuthError(reply, "需要管理员权限", 403);
+			}
+		}
 
-    return true;
-  } catch (error) {
-    // 可选认证失败不阻止请求
-    if (!required) {
-      request.log.warn("Optional authentication failed:", error.message);
-      return true;
-    }
+		return true;
+	} catch (error) {
+		// 可选认证失败不阻止请求
+		if (!required) {
+			request.log.warn("Optional authentication failed:", error.message);
+			return true;
+		}
 
-    request.log.error("Authentication error:", error);
+		request.log.error("Authentication error:", error);
 
-    if (error instanceof AuthorizationError) {
-      return sendAuthError(reply, error.message, 403);
-    }
+		if (error instanceof AuthorizationError) {
+			return sendAuthError(reply, error.message, 403);
+		}
 
-    return sendAuthError(reply, error.message || "认证失败");
-  }
+		return sendAuthError(reply, error.message || "认证失败");
+	}
 }
 
 /**
@@ -169,18 +168,18 @@ async function handleAuth(
  * @param {Object} reply - Fastify reply 对象
  */
 export async function authenticate(
-  request: AuthenticatedRequest,
-  reply: FastifyReply,
+	request: AuthenticatedRequest,
+	reply: FastifyReply,
 ): Promise<boolean | void> {
-  const result = await handleAuth(request, reply, {
-    required: true,
-    requireAdmin: false,
-  });
+	const result = await handleAuth(request, reply, {
+		required: true,
+		requireAdmin: false,
+	});
 
-  // 如果返回的不是 true，说明已经发送了错误响应
-  if (result !== true) {
-    return result;
-  }
+	// 如果返回的不是 true，说明已经发送了错误响应
+	if (result !== true) {
+		return result;
+	}
 }
 
 /**
@@ -189,13 +188,13 @@ export async function authenticate(
  * @param {Object} reply - Fastify reply 对象
  */
 export async function optionalAuthenticate(
-  request: AuthenticatedRequest,
-  reply: FastifyReply,
+	request: AuthenticatedRequest,
+	reply: FastifyReply,
 ): Promise<void> {
-  await handleAuth(request, reply, {
-    required: false,
-    requireAdmin: false,
-  });
+	await handleAuth(request, reply, {
+		required: false,
+		requireAdmin: false,
+	});
 }
 
 /**
@@ -204,17 +203,17 @@ export async function optionalAuthenticate(
  * @param {Object} reply - Fastify reply 对象
  */
 export async function authenticateWithAdminCheck(
-  request: AuthenticatedRequest,
-  reply: FastifyReply,
+	request: AuthenticatedRequest,
+	reply: FastifyReply,
 ): Promise<boolean | void> {
-  const result = await handleAuth(request, reply, {
-    required: true,
-    requireAdmin: true,
-  });
+	const result = await handleAuth(request, reply, {
+		required: true,
+		requireAdmin: true,
+	});
 
-  if (result !== true) {
-    return result;
-  }
+	if (result !== true) {
+		return result;
+	}
 }
 
 /**
@@ -223,10 +222,10 @@ export async function authenticateWithAdminCheck(
  * @param {Object} reply - Fastify reply 对象
  */
 export async function authenticateAdmin(
-  request: AuthenticatedRequest,
-  reply: FastifyReply,
+	request: AuthenticatedRequest,
+	reply: FastifyReply,
 ): Promise<boolean | void> {
-  return authenticateWithAdminCheck(request, reply);
+	return authenticateWithAdminCheck(request, reply);
 }
 
 /**
@@ -238,39 +237,37 @@ export async function authenticateAdmin(
  * @param {string} options.customCheckErrorMsg - 自定义检查失败时的错误消息
  * @returns {Function} 中间件函数
  */
-export function createAuthMiddleware(
-  options: Partial<AuthMiddlewareOptions> = {},
-) {
-  const {
-    required = true,
-    requireAdmin = false,
-    customCheck = null,
-    customCheckErrorMsg = "权限验证失败",
-  } = options;
+export function createAuthMiddleware(options: Partial<AuthMiddlewareOptions> = {}) {
+	const {
+		required = true,
+		requireAdmin = false,
+		customCheck = null,
+		customCheckErrorMsg = "权限验证失败",
+	} = options;
 
-  return async (request: AuthenticatedRequest, reply: FastifyReply) => {
-    const result = await handleAuth(request, reply, {
-      required,
-      requireAdmin,
-    });
+	return async (request: AuthenticatedRequest, reply: FastifyReply) => {
+		const result = await handleAuth(request, reply, {
+			required,
+			requireAdmin,
+		});
 
-    if (result !== true) {
-      return result;
-    }
+		if (result !== true) {
+			return result;
+		}
 
-    // 执行自定义检查
-    if (customCheck && request.user) {
-      try {
-        const checkResult = await customCheck(request.user, request);
-        if (!checkResult) {
-          return sendAuthError(reply, customCheckErrorMsg, 403);
-        }
-      } catch (error) {
-        request.log.error("Custom auth check error:", error);
-        return sendAuthError(reply, customCheckErrorMsg, 403);
-      }
-    }
-  };
+		// 执行自定义检查
+		if (customCheck && request.user) {
+			try {
+				const checkResult = await customCheck(request.user, request);
+				if (!checkResult) {
+					return sendAuthError(reply, customCheckErrorMsg, 403);
+				}
+			} catch (error) {
+				request.log.error("Custom auth check error:", error);
+				return sendAuthError(reply, customCheckErrorMsg, 403);
+			}
+		}
+	};
 }
 
 /**
@@ -280,24 +277,22 @@ export function createAuthMiddleware(
  * @returns {Function} 中间件函数
  */
 export function requireOwnership(
-  getResourceOwnerId: (
-    request: AuthenticatedRequest,
-  ) => string | Promise<string>,
+	getResourceOwnerId: (request: AuthenticatedRequest) => string | Promise<string>,
 ) {
-  return createAuthMiddleware({
-    required: true,
-    requireAdmin: false,
-    customCheck: async (user, request) => {
-      // 管理员可以访问所有资源
-      if (user.is_admin) {
-        return true;
-      }
+	return createAuthMiddleware({
+		required: true,
+		requireAdmin: false,
+		customCheck: async (user, request) => {
+			// 管理员可以访问所有资源
+			if (user.is_admin) {
+				return true;
+			}
 
-      const ownerId = await getResourceOwnerId(request);
-      return ownerId === user.id;
-    },
-    customCheckErrorMsg: "无权访问此资源",
-  });
+			const ownerId = await getResourceOwnerId(request);
+			return ownerId === user.id;
+		},
+		customCheckErrorMsg: "无权访问此资源",
+	});
 }
 
 /**
@@ -305,16 +300,16 @@ export function requireOwnership(
  * @returns {Object}
  */
 export function getAuthCacheStats() {
-  return cache.getStats();
+	return cache.getStats();
 }
 
 export default {
-  authenticate,
-  optionalAuthenticate,
-  authenticateWithAdminCheck,
-  authenticateAdmin,
-  createAuthMiddleware,
-  requireOwnership,
-  clearUserCache,
-  getAuthCacheStats,
+	authenticate,
+	optionalAuthenticate,
+	authenticateWithAdminCheck,
+	authenticateAdmin,
+	createAuthMiddleware,
+	requireOwnership,
+	clearUserCache,
+	getAuthCacheStats,
 };

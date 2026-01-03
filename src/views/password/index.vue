@@ -189,95 +189,87 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
 import { Message } from "@arco-design/web-vue";
-import {
-    IconLock,
-    IconCheckCircle,
-    IconInfoCircle,
-    IconLeft,
-} from "@arco-design/web-vue/es/icon";
+import { IconCheckCircle, IconInfoCircle, IconLeft, IconLock } from "@arco-design/web-vue/es/icon";
+import { onMounted, reactive, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
 const router = useRouter();
 
 const formRef = ref();
 const formData = reactive({
-    password: "",
+	password: "",
 });
 const errorMessage = ref("");
 const loading = ref(false);
 const shortCode = ref("");
 
 onMounted(() => {
-    // 从路由参数获取短链接代码
-    shortCode.value = route.params.hash as string;
+	// 从路由参数获取短链接代码
+	shortCode.value = route.params.hash as string;
 
-    if (!shortCode.value) {
-        Message.error("短链接代码无效");
-        router.push("/");
-    }
+	if (!shortCode.value) {
+		Message.error("短链接代码无效");
+		router.push("/");
+	}
 });
 
 const clearError = () => {
-    errorMessage.value = "";
+	errorMessage.value = "";
 };
 
 const handleSubmit = async (data?: any) => {
-    // 如果是表单验证失败
-    if (data?.errors) {
-        return;
-    }
+	// 如果是表单验证失败
+	if (data?.errors) {
+		return;
+	}
 
-    const pwd = formData.password.trim();
+	const pwd = formData.password.trim();
 
-    if (!pwd) {
-        errorMessage.value = "请输入密码";
-        return;
-    }
+	if (!pwd) {
+		errorMessage.value = "请输入密码";
+		return;
+	}
 
-    loading.value = true;
-    errorMessage.value = "";
+	loading.value = true;
+	errorMessage.value = "";
 
-    try {
-        const response = await fetch(
-            `/api/verify-password/${shortCode.value}`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ password: pwd }),
-            },
-        );
+	try {
+		const response = await fetch(`/api/verify-password/${shortCode.value}`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ password: pwd }),
+		});
 
-        const result = await response.json();
+		const result = await response.json();
 
-        if (response.ok && result.code === 200) {
-            // 密码正确，显示成功提示
-            Message.success("密码验证成功，正在跳转...");
+		if (response.ok && result.code === 200) {
+			// 密码正确，显示成功提示
+			Message.success("密码验证成功，正在跳转...");
 
-            // 延迟跳转，让用户看到成功提示
-            setTimeout(() => {
-                window.location.href = result.data.url;
-            }, 500);
-        } else {
-            errorMessage.value = result.msg || "密码错误，请重试";
-            formData.password = "";
-        }
-    } catch (error: any) {
-        console.error("密码验证失败:", error);
-        errorMessage.value = "验证失败，请稍后重试";
-        Message.error("验证失败，请稍后重试");
-        formData.password = "";
-    } finally {
-        loading.value = false;
-    }
+			// 延迟跳转，让用户看到成功提示
+			setTimeout(() => {
+				window.location.href = result.data.url;
+			}, 500);
+		} else {
+			errorMessage.value = result.msg || "密码错误，请重试";
+			formData.password = "";
+		}
+	} catch (error: any) {
+		console.error("密码验证失败:", error);
+		errorMessage.value = "验证失败，请稍后重试";
+		Message.error("验证失败，请稍后重试");
+		formData.password = "";
+	} finally {
+		loading.value = false;
+	}
 };
 
 const goHome = () => {
-    router.push("/");
+	router.push("/");
 };
 </script>
 

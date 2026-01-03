@@ -12,9 +12,9 @@ const supabaseAnonKey = __SUPABASE_ANON_KEY__;
 // 创建 Supabase 客户端实例
 // 注意：仅用于认证，所有数据操作都通过后端 API
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
+	auth: {
+		autoRefreshToken: true,
+		persistSession: true,
+		detectSessionInUrl: true,
+	},
 });

@@ -58,29 +58,29 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-import { useRouter, useRoute } from "vue-router";
 import {
-    IconBarChart,
-    IconLink,
-    IconDashboard,
-    IconApps,
-    IconUser,
-    IconHistory,
-    IconSettings,
-    IconFile,
+	IconApps,
+	IconBarChart,
+	IconDashboard,
+	IconFile,
+	IconHistory,
+	IconLink,
+	IconSettings,
+	IconUser,
 } from "@arco-design/web-vue/es/icon";
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { getDashboardMenuRoutes } from "@/router";
 
 const props = defineProps({
-    isAdmin: {
-        type: Boolean,
-        default: false,
-    },
-    collapsed: {
-        type: Boolean,
-        default: false,
-    },
+	isAdmin: {
+		type: Boolean,
+		default: false,
+	},
+	collapsed: {
+		type: Boolean,
+		default: false,
+	},
 });
 
 const router = useRouter();
@@ -88,41 +88,37 @@ const route = useRoute();
 
 // 图标映射表
 const iconMap = {
-    IconBarChart,
-    IconLink,
-    IconDashboard,
-    IconApps,
-    IconUser,
-    IconHistory,
-    IconSettings,
-    IconFile,
+	IconBarChart,
+	IconLink,
+	IconDashboard,
+	IconApps,
+	IconUser,
+	IconHistory,
+	IconSettings,
+	IconFile,
 };
 
 // 获取图标组件
 const getIconComponent = (iconName) => {
-    return iconMap[iconName] || IconFile;
+	return iconMap[iconName] || IconFile;
 };
 
 // 从路由树获取菜单分组
 const menuGroups = computed(() => {
-    return getDashboardMenuRoutes(props.isAdmin);
+	return getDashboardMenuRoutes(props.isAdmin);
 });
 
 // 当前选中的路由 key
 const currentRouteKey = computed(() => {
-    return route.name || "";
+	return route.name || "";
 });
 
 // 菜单点击处理
 const handleMenuClick = (key) => {
-    const allRoutes = [
-        ...menuGroups.value.main,
-        ...menuGroups.value.user,
-        ...menuGroups.value.admin,
-    ];
-    const targetRoute = allRoutes.find((item) => item.key === key);
-    if (targetRoute) {
-        router.push(targetRoute.path);
-    }
+	const allRoutes = [...menuGroups.value.main, ...menuGroups.value.user, ...menuGroups.value.admin];
+	const targetRoute = allRoutes.find((item) => item.key === key);
+	if (targetRoute) {
+		router.push(targetRoute.path);
+	}
 };
 </script>

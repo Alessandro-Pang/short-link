@@ -1,17 +1,17 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
 import { Message } from "@arco-design/web-vue";
 import {
-    IconRefresh,
-    IconFilter,
-    IconSearch,
-    IconCheckCircle,
-    IconCloseCircle,
-    IconUser,
-    IconCalendar,
-    IconComputer,
-    IconLocation,
+	IconCalendar,
+	IconCheckCircle,
+	IconCloseCircle,
+	IconComputer,
+	IconFilter,
+	IconLocation,
+	IconRefresh,
+	IconSearch,
+	IconUser,
 } from "@arco-design/web-vue/es/icon";
+import { computed, onMounted, ref } from "vue";
 import { getAllLoginLogs, getLoginStats } from "@/services/admin";
 
 // State
@@ -19,116 +19,116 @@ const isLoading = ref(false);
 const logs = ref([]);
 const stats = ref(null);
 const pagination = ref({
-    current: 1,
-    pageSize: 20,
+	current: 1,
+	pageSize: 20,
 });
 const total = ref(0);
 
 // 筛选条件
 const filters = ref({
-    userId: null,
-    success: null,
-    startDate: null,
-    endDate: null,
+	userId: null,
+	success: null,
+	startDate: null,
+	endDate: null,
 });
 
 const showFilters = ref(false);
 
 // 加载登录日志
 const loadLogs = async () => {
-    isLoading.value = true;
-    try {
-        const result = await getAllLoginLogs({
-            limit: pagination.value.pageSize,
-            offset: (pagination.value.current - 1) * pagination.value.pageSize,
-            ...filters.value,
-        });
+	isLoading.value = true;
+	try {
+		const result = await getAllLoginLogs({
+			limit: pagination.value.pageSize,
+			offset: (pagination.value.current - 1) * pagination.value.pageSize,
+			...filters.value,
+		});
 
-        logs.value = result.logs || [];
-        total.value = result.total || 0;
-    } catch (error) {
-        console.error("加载登录日志失败:", error);
-        Message.error(error.message || "加载登录日志失败");
-    } finally {
-        isLoading.value = false;
-    }
+		logs.value = result.logs || [];
+		total.value = result.total || 0;
+	} catch (error) {
+		console.error("加载登录日志失败:", error);
+		Message.error(error.message || "加载登录日志失败");
+	} finally {
+		isLoading.value = false;
+	}
 };
 
 // 加载统计数据
 const loadStats = async () => {
-    try {
-        const result = await getLoginStats();
-        stats.value = result;
-    } catch (error) {
-        console.error("加载统计数据失败:", error);
-    }
+	try {
+		const result = await getLoginStats();
+		stats.value = result;
+	} catch (error) {
+		console.error("加载统计数据失败:", error);
+	}
 };
 
 // 格式化日期
 const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("zh-CN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-    });
+	if (!dateString) return "-";
+	const date = new Date(dateString);
+	return date.toLocaleString("zh-CN", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+	});
 };
 
 // 应用筛选
 const applyFilters = () => {
-    pagination.value.current = 1;
-    loadLogs();
+	pagination.value.current = 1;
+	loadLogs();
 };
 
 // 重置筛选
 const resetFilters = () => {
-    filters.value = {
-        userId: null,
-        success: null,
-        startDate: null,
-        endDate: null,
-    };
-    pagination.value.current = 1;
-    loadLogs();
+	filters.value = {
+		userId: null,
+		success: null,
+		startDate: null,
+		endDate: null,
+	};
+	pagination.value.current = 1;
+	loadLogs();
 };
 
 // 分页
 const handlePageChange = (page) => {
-    pagination.value.current = page;
-    loadLogs();
+	pagination.value.current = page;
+	loadLogs();
 };
 
 // 获取登录方法文本
 const getLoginMethodText = (method) => {
-    const methods = {
-        email: "邮箱登录",
-        github: "GitHub",
-        google: "Google",
-    };
-    return methods[method] || method;
+	const methods = {
+		email: "邮箱登录",
+		github: "GitHub",
+		google: "Google",
+	};
+	return methods[method] || method;
 };
 
 // 成功率计算
 const successRate = computed(() => {
-    if (!stats.value || stats.value.total === 0) return 0;
-    return ((stats.value.successful / stats.value.total) * 100).toFixed(1);
+	if (!stats.value || stats.value.total === 0) return 0;
+	return ((stats.value.successful / stats.value.total) * 100).toFixed(1);
 });
 
 onMounted(() => {
-    loadLogs();
-    loadStats();
+	loadLogs();
+	loadStats();
 });
 
 // 暴露刷新方法
 defineExpose({
-    refresh: () => {
-        loadLogs();
-        loadStats();
-    },
+	refresh: () => {
+		loadLogs();
+		loadStats();
+	},
 });
 </script>
 

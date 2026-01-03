@@ -120,38 +120,38 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import { IconTrophy, IconLink } from "@arco-design/web-vue/es/icon";
+import { IconLink, IconTrophy } from "@arco-design/web-vue/es/icon";
+import { computed, ref } from "vue";
 
 const props = defineProps({
-    title: {
-        type: String,
-        default: "热门链接排行榜",
-    },
-    showCreator: {
-        type: Boolean,
-        default: false,
-    },
-    initialPeriod: {
-        type: String,
-        default: "daily",
-    },
-    headerClass: {
-        type: String,
-        default: "bg-gradient-to-r from-blue-50 to-purple-50",
-    },
-    periodClicksClass: {
-        type: String,
-        default: "text-blue-600",
-    },
-    links: {
-        type: Array,
-        default: () => [],
-    },
-    loading: {
-        type: Boolean,
-        default: false,
-    },
+	title: {
+		type: String,
+		default: "热门链接排行榜",
+	},
+	showCreator: {
+		type: Boolean,
+		default: false,
+	},
+	initialPeriod: {
+		type: String,
+		default: "daily",
+	},
+	headerClass: {
+		type: String,
+		default: "bg-gradient-to-r from-blue-50 to-purple-50",
+	},
+	periodClicksClass: {
+		type: String,
+		default: "text-blue-600",
+	},
+	links: {
+		type: Array,
+		default: () => [],
+	},
+	loading: {
+		type: Boolean,
+		default: false,
+	},
 });
 
 const emit = defineEmits(["period-change"]);
@@ -160,26 +160,26 @@ const origin = window.location.origin;
 const currentPeriod = ref(props.initialPeriod);
 
 const getRankClass = (index) => {
-    if (index === 0) {
-        return "bg-gradient-to-br from-yellow-400 to-yellow-600 text-white";
-    } else if (index === 1) {
-        return "bg-gradient-to-br from-gray-300 to-gray-500 text-white";
-    } else if (index === 2) {
-        return "bg-gradient-to-br from-orange-400 to-orange-600 text-white";
-    }
-    return "bg-white text-gray-600 dark:text-gray-300 border border-gray-200";
+	if (index === 0) {
+		return "bg-gradient-to-br from-yellow-400 to-yellow-600 text-white";
+	} else if (index === 1) {
+		return "bg-gradient-to-br from-gray-300 to-gray-500 text-white";
+	} else if (index === 2) {
+		return "bg-gradient-to-br from-orange-400 to-orange-600 text-white";
+	}
+	return "bg-white text-gray-600 dark:text-gray-300 border border-gray-200";
 };
 
 const getPeriodText = () => {
-    const periodMap = {
-        daily: "今日",
-        weekly: "本周",
-        monthly: "本月",
-    };
-    return periodMap[currentPeriod.value] || "今日";
+	const periodMap = {
+		daily: "今日",
+		weekly: "本周",
+		monthly: "本月",
+	};
+	return periodMap[currentPeriod.value] || "今日";
 };
 
 const handlePeriodChange = () => {
-    emit("period-change", currentPeriod.value);
+	emit("period-change", currentPeriod.value);
 };
 </script>

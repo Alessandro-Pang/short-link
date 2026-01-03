@@ -1,23 +1,23 @@
 <script setup>
-import { ref, watch, nextTick, onMounted, computed } from "vue";
-import { useRouter, useRoute } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
-    IconPlus,
-    IconCopy,
-    IconQrcode,
-    IconEdit,
-    IconDelete,
-    IconSearch,
     IconCheck,
     IconClose,
+    IconCopy,
+    IconDelete,
+    IconEdit,
     IconLock,
+    IconPlus,
+    IconQrcode,
+    IconSearch,
     IconUnlock,
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
-import { useLinksStore } from "@/stores";
-import { updateLinkPassword } from "@/services/api";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import UnifiedLinkConfigDrawer from "@/components/UnifiedLinkConfigDrawer.vue";
+import { updateLinkPassword } from "@/services/api";
+import { useLinksStore } from "@/stores";
 
 const router = useRouter();
 const route = useRoute();
@@ -146,7 +146,7 @@ const showQRCode = async (short) => {
             qrcodeCanvas.value,
             url,
             { width: 200, margin: 1 },
-            function (error) {
+            (error) => {
                 if (error) console.error(error);
             },
         );
@@ -454,7 +454,7 @@ defineExpose({
                         </a-table-column>
                         <a-table-column
                             title="链接信息"
-                            width="380"
+                            :width="380"
                             data-index="link"
                         >
                             <template #cell="{ record }">
@@ -799,7 +799,7 @@ defineExpose({
             @ok="handlePasswordSubmit"
             @cancel="passwordModalVisible = false"
         >
-            <a-form layout="vertical">
+            <a-form layout="vertical" :model="passwordFormData">
                 <a-form-item label="新密码" required>
                     <a-input-password
                         v-model="passwordFormData.password"

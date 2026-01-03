@@ -132,7 +132,7 @@
                             data-index="link"
                             ellipsis
                             tooltip
-                            width="300"
+                            :width="300"
                         >
                             <template #cell="{ record }">
                                 <div class="flex items-center gap-2">
@@ -150,7 +150,7 @@
                         </a-table-column>
                         <a-table-column
                             title="短链接"
-                            width="260"
+                            :width="260"
                             data-index="short"
                         >
                             <template #cell="{ record }">
@@ -166,7 +166,7 @@
                             title="点击数"
                             data-index="click_count"
                             align="center"
-                            width="100"
+                            :width="100"
                         >
                             <template #cell="{ record }">
                                 <span
@@ -179,7 +179,7 @@
                             title="创建时间"
                             data-index="created_at"
                             align="center"
-                            width="200"
+                            :width="200"
                         >
                             <template #cell="{ record }">
                                 <span class="text-gray-400 text-sm">{{
@@ -195,18 +195,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
 import {
-    IconLink,
-    IconThunderbolt,
-    IconPlusCircle,
-    IconBarChart,
     IconArrowRise,
+    IconBarChart,
+    IconLink,
+    IconPlusCircle,
+    IconThunderbolt,
 } from "@arco-design/web-vue/es/icon";
-import { useLinksStore } from "@/stores";
-import { getTopLinks } from "@/services/dashboard";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import TopLinksRanking from "@/components/TopLinksRanking.vue";
+import { getTopLinks } from "@/services/dashboard";
+import { useLinksStore } from "@/stores";
 
 const router = useRouter();
 const origin = window.location.origin;

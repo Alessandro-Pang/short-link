@@ -1,10 +1,4 @@
-import type {
-  Database,
-  Tables,
-  TablesInsert,
-  TablesUpdate,
-  Enums,
-} from "./database";
+import type { Database, Enums, Tables, TablesInsert, TablesUpdate } from "./database";
 
 // 重新导出数据库类型
 export type { Database, Tables, TablesInsert, TablesUpdate, Enums };

@@ -18,8 +18,8 @@
 import BrandingSection from "@/components/base/BrandingSection.vue";
 
 defineProps<{
-    brandingTitle: string;
-    brandingDescription: string;
+	brandingTitle: string;
+	brandingDescription: string;
 }>();
 </script>
 

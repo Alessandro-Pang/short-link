@@ -9,8 +9,8 @@
  * @returns {boolean} - 验证结果
  */
 export function validateUrl(url) {
-  const urlPattern = /^(https?:\/\/|#小程序:\/\/).+/;
-  return urlPattern.test(url);
+	const urlPattern = /^(https?:\/\/|#小程序:\/\/).+/;
+	return urlPattern.test(url);
 }
 
 /**
@@ -25,43 +25,36 @@ export function validateUrl(url) {
  * @param {string} [params.email]
  * @returns {{ valid: boolean, message: string }}
  */
-export function validatePasswordStrength({
-  password,
-  username = "",
-  email = "",
-}) {
-  const pwd = String(password || "");
+export function validatePasswordStrength({ password, username = "", email = "" }) {
+	const pwd = String(password || "");
 
-  if (pwd.length < 6) {
-    return { valid: false, message: "密码长度至少 6 个字符" };
-  }
+	if (pwd.length < 6) {
+		return { valid: false, message: "密码长度至少 6 个字符" };
+	}
 
-  const u = String(username || "").trim();
-  const e = String(email || "").trim();
-  const pLower = pwd.toLowerCase();
-  if ((u && pLower === u.toLowerCase()) || (e && pLower === e.toLowerCase())) {
-    return { valid: false, message: "密码不能与用户名或邮箱一致" };
-  }
+	const u = String(username || "").trim();
+	const e = String(email || "").trim();
+	const pLower = pwd.toLowerCase();
+	if ((u && pLower === u.toLowerCase()) || (e && pLower === e.toLowerCase())) {
+		return { valid: false, message: "密码不能与用户名或邮箱一致" };
+	}
 
-  const hasEnglish = /[A-Za-z]/.test(pwd);
-  const hasNumber = /\d/.test(pwd);
-  const hasPunct = /[^A-Za-z0-9]/.test(pwd);
-  const hasCase = /[A-Z]/.test(pwd) && /[a-z]/.test(pwd);
+	const hasEnglish = /[A-Za-z]/.test(pwd);
+	const hasNumber = /\d/.test(pwd);
+	const hasPunct = /[^A-Za-z0-9]/.test(pwd);
+	const hasCase = /[A-Z]/.test(pwd) && /[a-z]/.test(pwd);
 
-  const satisfiedCount =
-    (hasEnglish ? 1 : 0) +
-    (hasNumber ? 1 : 0) +
-    (hasPunct ? 1 : 0) +
-    (hasCase ? 1 : 0);
+	const satisfiedCount =
+		(hasEnglish ? 1 : 0) + (hasNumber ? 1 : 0) + (hasPunct ? 1 : 0) + (hasCase ? 1 : 0);
 
-  if (satisfiedCount < 3) {
-    return {
-      valid: false,
-      message: "密码需至少满足三项：英文、数字、标点符号、同时包含大写小写",
-    };
-  }
+	if (satisfiedCount < 3) {
+		return {
+			valid: false,
+			message: "密码需至少满足三项：英文、数字、标点符号、同时包含大写小写",
+		};
+	}
 
-  return { valid: true, message: "" };
+	return { valid: true, message: "" };
 }
 
 /**
@@ -74,38 +67,38 @@ export function validatePasswordStrength({
  * @returns {Array} Arco Form rules
  */
 export function makePasswordRules({
-  getUsername,
-  getEmail,
-  requiredMessage = "请输入密码",
+	getUsername,
+	getEmail,
+	requiredMessage = "请输入密码",
 }: {
-  getUsername?: () => string;
-  getEmail?: () => string;
-  requiredMessage?: string;
+	getUsername?: () => string;
+	getEmail?: () => string;
+	requiredMessage?: string;
 } = {}) {
-  return [
-    { required: true, message: requiredMessage },
-    { minLength: 6, message: "密码长度至少 6 个字符" },
-    {
-      validator: (value, cb) => {
-        const result = validatePasswordStrength({
-          password: String(value || ""),
-          username: typeof getUsername === "function" ? getUsername() : "",
-          email: typeof getEmail === "function" ? getEmail() : "",
-        });
+	return [
+		{ required: true, message: requiredMessage },
+		{ minLength: 6, message: "密码长度至少 6 个字符" },
+		{
+			validator: (value, cb) => {
+				const result = validatePasswordStrength({
+					password: String(value || ""),
+					username: typeof getUsername === "function" ? getUsername() : "",
+					email: typeof getEmail === "function" ? getEmail() : "",
+				});
 
-        if (!result.valid) {
-          cb(result.message);
-          return;
-        }
+				if (!result.valid) {
+					cb(result.message);
+					return;
+				}
 
-        cb();
-      },
-    },
-  ];
+				cb();
+			},
+		},
+	];
 }
 
 export default {
-  validateUrl,
-  validatePasswordStrength,
-  makePasswordRules,
+	validateUrl,
+	validatePasswordStrength,
+	makePasswordRules,
 };

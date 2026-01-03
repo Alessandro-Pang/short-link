@@ -124,15 +124,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
-import { useRouter, useRoute } from "vue-router";
 import { Message } from "@arco-design/web-vue";
-import {
-    IconEmail,
-    IconLeft,
-    IconLock,
-    IconCheckCircleFill,
-} from "@arco-design/web-vue/es/icon";
+import { IconCheckCircleFill, IconEmail, IconLeft, IconLock } from "@arco-design/web-vue/es/icon";
+import { reactive, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { resetPassword } from "@/services/auth";
 
 const router = useRouter();
@@ -142,39 +137,39 @@ const isLoading = ref(false);
 const sent = ref(false);
 
 const form = reactive({
-    email: typeof route.query.email === "string" ? route.query.email : "",
+	email: typeof route.query.email === "string" ? route.query.email : "",
 });
 
 async function handleSendResetEmail({ errors }) {
-    if (errors) return;
-    if (isLoading.value) return;
+	if (errors) return;
+	if (isLoading.value) return;
 
-    const email = String(form.email || "").trim();
-    if (!email) return;
+	const email = String(form.email || "").trim();
+	if (!email) return;
 
-    isLoading.value = true;
-    sent.value = false;
+	isLoading.value = true;
+	sent.value = false;
 
-    try {
-        await resetPassword(email);
+	try {
+		await resetPassword(email);
 
-        // 这里建议对用户始终返回“已发送”，避免账号枚举（即使邮箱未注册）
-        sent.value = true;
-        Message.success("已发送重置邮件，请检查收件箱");
-    } catch (error) {
-        // Supabase 可能会返回频率限制等错误
-        const msg = error?.message || "发送失败，请稍后再试";
-        Message.error(msg);
-    } finally {
-        isLoading.value = false;
-    }
+		// 这里建议对用户始终返回“已发送”，避免账号枚举（即使邮箱未注册）
+		sent.value = true;
+		Message.success("已发送重置邮件，请检查收件箱");
+	} catch (error) {
+		// Supabase 可能会返回频率限制等错误
+		const msg = error?.message || "发送失败，请稍后再试";
+		Message.error(msg);
+	} finally {
+		isLoading.value = false;
+	}
 }
 
 function goToLogin() {
-    router.push("/login");
+	router.push("/login");
 }
 
 function goToHome() {
-    router.push("/");
+	router.push("/");
 }
 </script>

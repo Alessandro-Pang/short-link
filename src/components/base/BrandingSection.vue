@@ -38,8 +38,8 @@
 import { IconLink } from "@arco-design/web-vue/es/icon";
 
 defineProps<{
-    title: string;
-    description: string;
+	title: string;
+	description: string;
 }>();
 </script>
 

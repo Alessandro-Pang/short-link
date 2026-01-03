@@ -278,226 +278,218 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
-    getUserIdentities,
-    linkEmailAccount as linkEmail,
-    linkGithubAccount,
-    linkGoogleAccount,
-    unlinkIdentity as unlinkProvider,
-    deleteAccount,
-    formatIdentities,
-    handleOAuthLinkCallback,
+	deleteAccount,
+	formatIdentities,
+	getUserIdentities,
+	handleOAuthLinkCallback,
+	linkEmailAccount as linkEmail,
+	linkGithubAccount,
+	linkGoogleAccount,
+	unlinkIdentity as unlinkProvider,
 } from "../../services/account";
 
 export default {
-    name: "AccountBindings",
-    setup() {
-        const router = useRouter();
-        const route = useRoute();
+	name: "AccountBindings",
+	setup() {
+		const router = useRouter();
+		const route = useRoute();
 
-        const loading = ref(true);
-        const identities = ref([]);
-        const bindings = ref({
-            email: null,
-            github: null,
-            google: null,
-        });
+		const loading = ref(true);
+		const identities = ref([]);
+		const bindings = ref({
+			email: null,
+			github: null,
+			google: null,
+		});
 
-        const linking = ref(null);
-        const unlinking = ref(null);
-        const deleting = ref(false);
+		const linking = ref(null);
+		const unlinking = ref(null);
+		const deleting = ref(false);
 
-        const emailDialogVisible = ref(false);
-        const emailForm = ref({
-            email: "",
-            password: "",
-        });
+		const emailDialogVisible = ref(false);
+		const emailForm = ref({
+			email: "",
+			password: "",
+		});
 
-        const deleteDialogVisible = ref(false);
-        const deleteReason = ref("");
+		const deleteDialogVisible = ref(false);
+		const deleteReason = ref("");
 
-        // 计算是否可以解绑（至少保留一种登录方式）
-        const canUnlink = computed(() => {
-            const linkedCount = Object.values(bindings.value).filter(
-                (b) => b !== null,
-            ).length;
-            return linkedCount > 1;
-        });
+		// 计算是否可以解绑（至少保留一种登录方式）
+		const canUnlink = computed(() => {
+			const linkedCount = Object.values(bindings.value).filter((b) => b !== null).length;
+			return linkedCount > 1;
+		});
 
-        // 加载身份绑定列表
-        const loadIdentities = async () => {
-            try {
-                loading.value = true;
-                identities.value = await getUserIdentities();
-                bindings.value = formatIdentities(identities.value);
-            } catch (error) {
-                console.error("加载身份绑定失败:", error);
-                alert("加载失败: " + error.message);
-            } finally {
-                loading.value = false;
-            }
-        };
+		// 加载身份绑定列表
+		const loadIdentities = async () => {
+			try {
+				loading.value = true;
+				identities.value = await getUserIdentities();
+				bindings.value = formatIdentities(identities.value);
+			} catch (error) {
+				console.error("加载身份绑定失败:", error);
+				alert("加载失败: " + error.message);
+			} finally {
+				loading.value = false;
+			}
+		};
 
-        // 显示邮箱绑定对话框
-        const showEmailBindingDialog = () => {
-            emailDialogVisible.value = true;
-        };
+		// 显示邮箱绑定对话框
+		const showEmailBindingDialog = () => {
+			emailDialogVisible.value = true;
+		};
 
-        // 关闭邮箱绑定对话框
-        const closeEmailDialog = () => {
-            emailDialogVisible.value = false;
-            emailForm.value = { email: "", password: "" };
-        };
+		// 关闭邮箱绑定对话框
+		const closeEmailDialog = () => {
+			emailDialogVisible.value = false;
+			emailForm.value = { email: "", password: "" };
+		};
 
-        // 绑定邮箱账号
-        const linkEmailAccount = async () => {
-            try {
-                linking.value = "email";
-                await linkEmail(
-                    emailForm.value.email,
-                    emailForm.value.password,
-                );
-                alert("邮箱绑定成功！");
-                closeEmailDialog();
-                await loadIdentities();
-            } catch (error) {
-                console.error("绑定邮箱失败:", error);
-                alert("绑定失败: " + error.message);
-            } finally {
-                linking.value = null;
-            }
-        };
+		// 绑定邮箱账号
+		const linkEmailAccount = async () => {
+			try {
+				linking.value = "email";
+				await linkEmail(emailForm.value.email, emailForm.value.password);
+				alert("邮箱绑定成功！");
+				closeEmailDialog();
+				await loadIdentities();
+			} catch (error) {
+				console.error("绑定邮箱失败:", error);
+				alert("绑定失败: " + error.message);
+			} finally {
+				linking.value = null;
+			}
+		};
 
-        // 绑定第三方账号（GitHub/Google）
-        const linkProvider = async (provider) => {
-            try {
-                linking.value = provider;
-                if (provider === "github") {
-                    await linkGithubAccount();
-                } else if (provider === "google") {
-                    await linkGoogleAccount();
-                }
-                // OAuth 会跳转，不需要在这里处理
-            } catch (error) {
-                console.error(`绑定 ${provider} 失败:`, error);
-                alert(`绑定失败: ${error.message}`);
-                linking.value = null;
-            }
-        };
+		// 绑定第三方账号（GitHub/Google）
+		const linkProvider = async (provider) => {
+			try {
+				linking.value = provider;
+				if (provider === "github") {
+					await linkGithubAccount();
+				} else if (provider === "google") {
+					await linkGoogleAccount();
+				}
+				// OAuth 会跳转，不需要在这里处理
+			} catch (error) {
+				console.error(`绑定 ${provider} 失败:`, error);
+				alert(`绑定失败: ${error.message}`);
+				linking.value = null;
+			}
+		};
 
-        // 解绑账号
-        const unlinkAccount = async (provider) => {
-            if (!canUnlink.value) {
-                alert("至少需要保留一种登录方式");
-                return;
-            }
+		// 解绑账号
+		const unlinkAccount = async (provider) => {
+			if (!canUnlink.value) {
+				alert("至少需要保留一种登录方式");
+				return;
+			}
 
-            if (!confirm(`确定要解绑 ${provider} 账号吗？`)) {
-                return;
-            }
+			if (!confirm(`确定要解绑 ${provider} 账号吗？`)) {
+				return;
+			}
 
-            try {
-                unlinking.value = provider;
-                await unlinkProvider(provider);
-                alert(`${provider} 账号解绑成功！`);
-                await loadIdentities();
-            } catch (error) {
-                console.error(`解绑 ${provider} 失败:`, error);
-                alert(`解绑失败: ${error.message}`);
-            } finally {
-                unlinking.value = null;
-            }
-        };
+			try {
+				unlinking.value = provider;
+				await unlinkProvider(provider);
+				alert(`${provider} 账号解绑成功！`);
+				await loadIdentities();
+			} catch (error) {
+				console.error(`解绑 ${provider} 失败:`, error);
+				alert(`解绑失败: ${error.message}`);
+			} finally {
+				unlinking.value = null;
+			}
+		};
 
-        // 显示删除账号对话框
-        const showDeleteAccountDialog = () => {
-            deleteDialogVisible.value = true;
-        };
+		// 显示删除账号对话框
+		const showDeleteAccountDialog = () => {
+			deleteDialogVisible.value = true;
+		};
 
-        // 关闭删除账号对话框
-        const closeDeleteDialog = () => {
-            deleteDialogVisible.value = false;
-            deleteReason.value = "";
-        };
+		// 关闭删除账号对话框
+		const closeDeleteDialog = () => {
+			deleteDialogVisible.value = false;
+			deleteReason.value = "";
+		};
 
-        // 确认删除账号
-        const confirmDeleteAccount = async () => {
-            if (!confirm("最后确认：真的要删除账号吗？此操作不可逆！")) {
-                return;
-            }
+		// 确认删除账号
+		const confirmDeleteAccount = async () => {
+			if (!confirm("最后确认：真的要删除账号吗？此操作不可逆！")) {
+				return;
+			}
 
-            try {
-                deleting.value = true;
-                await deleteAccount(deleteReason.value);
-                alert("账号已删除，感谢你的使用！");
-                router.push("/");
-            } catch (error) {
-                console.error("删除账号失败:", error);
-                alert(`删除失败: ${error.message}`);
-                deleting.value = false;
-            }
-        };
+			try {
+				deleting.value = true;
+				await deleteAccount(deleteReason.value);
+				alert("账号已删除，感谢你的使用！");
+				router.push("/");
+			} catch (error) {
+				console.error("删除账号失败:", error);
+				alert(`删除失败: ${error.message}`);
+				deleting.value = false;
+			}
+		};
 
-        // 格式化日期
-        const formatDate = (dateString) => {
-            if (!dateString) return "";
-            const date = new Date(dateString);
-            return date.toLocaleDateString("zh-CN", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            });
-        };
+		// 格式化日期
+		const formatDate = (dateString) => {
+			if (!dateString) return "";
+			const date = new Date(dateString);
+			return date.toLocaleDateString("zh-CN", {
+				year: "numeric",
+				month: "long",
+				day: "numeric",
+			});
+		};
 
-        // 处理 OAuth 绑定回调
-        const handleOAuthCallback = async () => {
-            const linkProvider = route.query.link;
-            if (
-                linkProvider &&
-                (linkProvider === "github" || linkProvider === "google")
-            ) {
-                try {
-                    await handleOAuthLinkCallback(linkProvider);
-                    alert(`${linkProvider} 账号绑定成功！`);
-                    // 清除 URL 参数
-                    router.replace({ query: {} });
-                    await loadIdentities();
-                } catch (error) {
-                    console.error(`处理 ${linkProvider} 绑定回调失败:`, error);
-                    alert(`绑定失败: ${error.message}`);
-                }
-            }
-        };
+		// 处理 OAuth 绑定回调
+		const handleOAuthCallback = async () => {
+			const linkProvider = route.query.link;
+			if (linkProvider && (linkProvider === "github" || linkProvider === "google")) {
+				try {
+					await handleOAuthLinkCallback(linkProvider);
+					alert(`${linkProvider} 账号绑定成功！`);
+					// 清除 URL 参数
+					router.replace({ query: {} });
+					await loadIdentities();
+				} catch (error) {
+					console.error(`处理 ${linkProvider} 绑定回调失败:`, error);
+					alert(`绑定失败: ${error.message}`);
+				}
+			}
+		};
 
-        onMounted(async () => {
-            await loadIdentities();
-            await handleOAuthCallback();
-        });
+		onMounted(async () => {
+			await loadIdentities();
+			await handleOAuthCallback();
+		});
 
-        return {
-            loading,
-            bindings,
-            linking,
-            unlinking,
-            deleting,
-            canUnlink,
-            emailDialogVisible,
-            emailForm,
-            deleteDialogVisible,
-            deleteReason,
-            showEmailBindingDialog,
-            closeEmailDialog,
-            linkEmailAccount,
-            linkProvider,
-            unlinkProvider: unlinkAccount,
-            showDeleteAccountDialog,
-            closeDeleteDialog,
-            confirmDeleteAccount,
-            formatDate,
-        };
-    },
+		return {
+			loading,
+			bindings,
+			linking,
+			unlinking,
+			deleting,
+			canUnlink,
+			emailDialogVisible,
+			emailForm,
+			deleteDialogVisible,
+			deleteReason,
+			showEmailBindingDialog,
+			closeEmailDialog,
+			linkEmailAccount,
+			linkProvider,
+			unlinkProvider: unlinkAccount,
+			showDeleteAccountDialog,
+			closeDeleteDialog,
+			confirmDeleteAccount,
+			formatDate,
+		};
+	},
 };
 </script>
 

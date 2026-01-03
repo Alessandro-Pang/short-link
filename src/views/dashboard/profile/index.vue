@@ -638,30 +638,30 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from "vue";
-import { useRouter } from "vue-router";
 import { Message, Modal } from "@arco-design/web-vue";
 import {
-    IconEmail,
-    IconUser,
-    IconImage,
-    IconSave,
-    IconRefresh,
-    IconCalendar,
-    IconCheckCircle,
-    IconLock,
-    IconInfoCircle,
-    IconExclamationCircle,
+	IconCalendar,
+	IconCheckCircle,
+	IconEmail,
+	IconExclamationCircle,
+	IconImage,
+	IconInfoCircle,
+	IconLock,
+	IconRefresh,
+	IconSave,
+	IconUser,
 } from "@arco-design/web-vue/es/icon";
-import { useUserStore } from "@/stores";
+import { computed, onMounted, reactive, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import {
-    getUserIdentities,
-    linkGithubAccount,
-    linkGoogleAccount,
-    unlinkIdentity,
-    deleteAccount,
-    formatIdentities,
+	deleteAccount,
+	formatIdentities,
+	getUserIdentities,
+	linkGithubAccount,
+	linkGoogleAccount,
+	unlinkIdentity,
 } from "@/services/account";
+import { useUserStore } from "@/stores";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -679,9 +679,9 @@ const isLoading = computed(() => userStore.isLoading);
 const loadingIdentities = ref(false);
 const identities = ref([]);
 const bindings = ref({
-    email: null,
-    github: null,
-    google: null,
+	email: null,
+	github: null,
+	google: null,
 });
 const linking = ref(null);
 const unlinking = ref(null);
@@ -691,17 +691,17 @@ const deleteReason = ref("");
 
 // 表单数据
 const formData = reactive({
-    email: "",
-    name: "",
-    bio: "",
-    avatar_url: "",
+	email: "",
+	name: "",
+	bio: "",
+	avatar_url: "",
 });
 
 // 原始数据备份（用于重置）
 const originalData = reactive({
-    name: "",
-    bio: "",
-    avatar_url: "",
+	name: "",
+	bio: "",
+	avatar_url: "",
 });
 
 // 表单验证规则
@@ -709,235 +709,233 @@ const rules = {};
 
 // 计算是否可以解绑（至少保留一种登录方式）
 const canUnlink = computed(() => {
-    const linkedCount = Object.values(bindings.value).filter(
-        (b) => b !== null,
-    ).length;
-    return linkedCount > 1;
+	const linkedCount = Object.values(bindings.value).filter((b) => b !== null).length;
+	return linkedCount > 1;
 });
 
 // URL 验证
 const validateUrl = (value, callback) => {
-    if (!value) {
-        callback();
-        return;
-    }
-    try {
-        const url = new URL(value);
-        if (url.protocol !== "https:") {
-            callback("头像链接必须使用 https:// 协议");
-        } else {
-            callback();
-        }
-    } catch {
-        callback("请输入有效的 URL 地址");
-    }
+	if (!value) {
+		callback();
+		return;
+	}
+	try {
+		const url = new URL(value);
+		if (url.protocol !== "https:") {
+			callback("头像链接必须使用 https:// 协议");
+		} else {
+			callback();
+		}
+	} catch {
+		callback("请输入有效的 URL 地址");
+	}
 };
 
 // 格式化日期
 const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("zh-CN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-    });
+	if (!dateString) return "-";
+	const date = new Date(dateString);
+	return date.toLocaleString("zh-CN", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	});
 };
 
 // 获取认证方式
 const getAuthProvider = () => {
-    if (!userInfo.value?.app_metadata?.provider) return "邮箱密码";
-    const provider = userInfo.value.app_metadata.provider;
-    const providerMap = {
-        email: "邮箱密码",
-        google: "Google",
-        github: "GitHub",
-    };
-    return providerMap[provider] || provider;
+	if (!userInfo.value?.app_metadata?.provider) return "邮箱密码";
+	const provider = userInfo.value.app_metadata.provider;
+	const providerMap = {
+		email: "邮箱密码",
+		google: "Google",
+		github: "GitHub",
+	};
+	return providerMap[provider] || provider;
 };
 
 // 头像加载错误处理
 const handleAvatarError = () => {
-    avatarError.value = true;
+	avatarError.value = true;
 };
 
 // 同步 store 中的用户信息到表单
 const syncUserToForm = () => {
-    if (userStore.user) {
-        formData.email = userStore.userEmail || "";
-        formData.name = userStore.userName || "";
-        formData.bio = userStore.userBio || "";
-        formData.avatar_url = userStore.userAvatar || "";
+	if (userStore.user) {
+		formData.email = userStore.userEmail || "";
+		formData.name = userStore.userName || "";
+		formData.bio = userStore.userBio || "";
+		formData.avatar_url = userStore.userAvatar || "";
 
-        // 备份原始数据
-        originalData.name = formData.name;
-        originalData.bio = formData.bio;
-        originalData.avatar_url = formData.avatar_url;
-    }
+		// 备份原始数据
+		originalData.name = formData.name;
+		originalData.bio = formData.bio;
+		originalData.avatar_url = formData.avatar_url;
+	}
 };
 
 // 监听 store 中用户信息变化，同步到表单
 watch(
-    () => userStore.user,
-    (newUser) => {
-        if (newUser) {
-            syncUserToForm();
-        }
-    },
-    { immediate: true },
+	() => userStore.user,
+	(newUser) => {
+		if (newUser) {
+			syncUserToForm();
+		}
+	},
+	{ immediate: true },
 );
 
 // 保存修改
 const handleSave = async () => {
-    try {
-        const valid = await formRef.value?.validate();
-        if (valid) return;
+	try {
+		const valid = await formRef.value?.validate();
+		if (valid) return;
 
-        isSaving.value = true;
-        avatarError.value = false;
+		isSaving.value = true;
+		avatarError.value = false;
 
-        // 构建更新数据
-        const updates = {
-            name: formData.name || null,
-            bio: formData.bio || null,
-            avatar_url: formData.avatar_url || null,
-        };
+		// 构建更新数据
+		const updates = {
+			name: formData.name || null,
+			bio: formData.bio || null,
+			avatar_url: formData.avatar_url || null,
+		};
 
-        // 使用 store 更新用户资料（会自动更新 store 状态并触发事件）
-        await userStore.updateProfile(updates);
-        Message.success("个人信息更新成功");
+		// 使用 store 更新用户资料（会自动更新 store 状态并触发事件）
+		await userStore.updateProfile(updates);
+		Message.success("个人信息更新成功");
 
-        // 更新备份数据
-        originalData.name = formData.name;
-        originalData.bio = formData.bio;
-        originalData.avatar_url = formData.avatar_url;
-    } catch (error) {
-        console.error("更新个人信息失败:", error);
-        Message.error(error.message || "更新失败，请重试");
-    } finally {
-        isSaving.value = false;
-    }
+		// 更新备份数据
+		originalData.name = formData.name;
+		originalData.bio = formData.bio;
+		originalData.avatar_url = formData.avatar_url;
+	} catch (error) {
+		console.error("更新个人信息失败:", error);
+		Message.error(error.message || "更新失败，请重试");
+	} finally {
+		isSaving.value = false;
+	}
 };
 
 // 重置表单
 const handleReset = () => {
-    formData.name = originalData.name;
-    formData.bio = originalData.bio;
-    formData.avatar_url = originalData.avatar_url;
-    avatarError.value = false;
-    formRef.value?.clearValidate();
+	formData.name = originalData.name;
+	formData.bio = originalData.bio;
+	formData.avatar_url = originalData.avatar_url;
+	avatarError.value = false;
+	formRef.value?.clearValidate();
 };
 
 // 加载身份绑定列表
 const loadIdentities = async () => {
-    try {
-        loadingIdentities.value = true;
-        identities.value = await getUserIdentities();
-        bindings.value = formatIdentities(identities.value);
-    } catch (error) {
-        console.error("加载身份绑定失败:", error);
-        Message.error("加载绑定信息失败");
-    } finally {
-        loadingIdentities.value = false;
-    }
+	try {
+		loadingIdentities.value = true;
+		identities.value = await getUserIdentities();
+		bindings.value = formatIdentities(identities.value);
+	} catch (error) {
+		console.error("加载身份绑定失败:", error);
+		Message.error("加载绑定信息失败");
+	} finally {
+		loadingIdentities.value = false;
+	}
 };
 
 // 绑定第三方账号（GitHub/Google）
 const linkProvider = async (provider) => {
-    try {
-        linking.value = provider;
-        if (provider === "github") {
-            await linkGithubAccount();
-        } else if (provider === "google") {
-            await linkGoogleAccount();
-        }
-        // OAuth 会跳转，不需要在这里处理
-    } catch (error) {
-        console.error(`绑定 ${provider} 失败:`, error);
-        Message.error(`绑定失败: ${error.message}`);
-        linking.value = null;
-    }
+	try {
+		linking.value = provider;
+		if (provider === "github") {
+			await linkGithubAccount();
+		} else if (provider === "google") {
+			await linkGoogleAccount();
+		}
+		// OAuth 会跳转，不需要在这里处理
+	} catch (error) {
+		console.error(`绑定 ${provider} 失败:`, error);
+		Message.error(`绑定失败: ${error.message}`);
+		linking.value = null;
+	}
 };
 
 // 解绑账号
 const unlinkAccount = async (provider) => {
-    if (!canUnlink.value) {
-        Message.warning("至少需要保留一种登录方式");
-        return;
-    }
+	if (!canUnlink.value) {
+		Message.warning("至少需要保留一种登录方式");
+		return;
+	}
 
-    Modal.confirm({
-        title: "确认解绑",
-        content: `确定要解绑 ${provider} 账号吗？`,
-        onOk: async () => {
-            try {
-                unlinking.value = provider;
-                await unlinkIdentity(provider);
-                Message.success(`${provider} 账号解绑成功！`);
-                await loadIdentities();
-            } catch (error) {
-                console.error(`解绑 ${provider} 失败:`, error);
-                Message.error(`解绑失败: ${error.message}`);
-            } finally {
-                unlinking.value = null;
-            }
-        },
-    });
+	Modal.confirm({
+		title: "确认解绑",
+		content: `确定要解绑 ${provider} 账号吗？`,
+		onOk: async () => {
+			try {
+				unlinking.value = provider;
+				await unlinkIdentity(provider);
+				Message.success(`${provider} 账号解绑成功！`);
+				await loadIdentities();
+			} catch (error) {
+				console.error(`解绑 ${provider} 失败:`, error);
+				Message.error(`解绑失败: ${error.message}`);
+			} finally {
+				unlinking.value = null;
+			}
+		},
+	});
 };
 
 // 显示删除账号确认
 const showDeleteConfirm = () => {
-    deleteModalVisible.value = true;
-    deleteReason.value = "";
+	deleteModalVisible.value = true;
+	deleteReason.value = "";
 };
 
 // 确认删除账号
 const confirmDeleteAccount = async () => {
-    Modal.confirm({
-        title: "最后确认",
-        content: "真的要删除账号吗？此操作不可逆！",
-        okText: "确认删除",
-        cancelText: "取消",
-        okButtonProps: {
-            status: "danger",
-        },
-        onOk: async () => {
-            try {
-                deleting.value = true;
-                await deleteAccount(deleteReason.value);
-                Message.success("账号已删除");
-                deleteModalVisible.value = false;
+	Modal.confirm({
+		title: "最后确认",
+		content: "真的要删除账号吗？此操作不可逆！",
+		okText: "确认删除",
+		cancelText: "取消",
+		okButtonProps: {
+			status: "danger",
+		},
+		onOk: async () => {
+			try {
+				deleting.value = true;
+				await deleteAccount(deleteReason.value);
+				Message.success("账号已删除");
+				deleteModalVisible.value = false;
 
-                // 等待一下再登出和跳转
-                setTimeout(async () => {
-                    await userStore.logout();
-                    router.push("/");
-                }, 1000);
-            } catch (error) {
-                console.error("删除账号失败:", error);
-                Message.error(`删除失败: ${error.message}`);
-                deleting.value = false;
-            }
-        },
-    });
+				// 等待一下再登出和跳转
+				setTimeout(async () => {
+					await userStore.logout();
+					router.push("/");
+				}, 1000);
+			} catch (error) {
+				console.error("删除账号失败:", error);
+				Message.error(`删除失败: ${error.message}`);
+				deleting.value = false;
+			}
+		},
+	});
 };
 
 // 组件挂载时加载数据
 onMounted(async () => {
-    // 确保用户信息已加载（使用缓存，不会重复请求）
-    await userStore.initialize();
-    // 同步到表单
-    syncUserToForm();
-    // 加载身份绑定信息
-    loadIdentities();
+	// 确保用户信息已加载（使用缓存，不会重复请求）
+	await userStore.initialize();
+	// 同步到表单
+	syncUserToForm();
+	// 加载身份绑定信息
+	loadIdentities();
 });
 
 // 暴露刷新方法给父组件
 defineExpose({
-    refresh: async () => {
-        await userStore.refreshUser();
-        syncUserToForm();
-    },
+	refresh: async () => {
+		await userStore.refreshUser();
+		syncUserToForm();
+	},
 });
 </script>
 

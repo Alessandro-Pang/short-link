@@ -119,81 +119,75 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch, ref, nextTick } from "vue";
-import {
-    IconMobile,
-    IconDesktop,
-    IconComputer,
-} from "@arco-design/web-vue/es/icon";
+import { IconComputer, IconDesktop, IconMobile } from "@arco-design/web-vue/es/icon";
+import { nextTick, reactive, ref, watch } from "vue";
 
 const props = defineProps<{
-    modelValue: any;
+	modelValue: any;
 }>();
 
-const emit = defineEmits<{
-    (e: "update:modelValue", value: any): void;
-}>();
+const emit = defineEmits<(e: "update:modelValue", value: any) => void>();
 
 const isUpdating = ref(false);
 
 const localRestrictions = reactive({
-    allowed_devices: [],
-    ip_whitelist: [],
-    ip_blacklist: [],
-    allowed_referrers: [],
-    blocked_referrers: [],
-    allowed_countries: [],
+	allowed_devices: [],
+	ip_whitelist: [],
+	ip_blacklist: [],
+	allowed_referrers: [],
+	blocked_referrers: [],
+	allowed_countries: [],
 });
 
 // 初始化本地值
 const initLocalRestrictions = (val: any) => {
-    if (!val) {
-        Object.assign(localRestrictions, {
-            allowed_devices: [],
-            ip_whitelist: [],
-            ip_blacklist: [],
-            allowed_referrers: [],
-            blocked_referrers: [],
-            allowed_countries: [],
-        });
-    } else {
-        Object.assign(localRestrictions, {
-            allowed_devices: val.allowed_devices || [],
-            ip_whitelist: val.ip_whitelist || [],
-            ip_blacklist: val.ip_blacklist || [],
-            allowed_referrers: val.allowed_referrers || [],
-            blocked_referrers: val.blocked_referrers || [],
-            allowed_countries: val.allowed_countries || [],
-        });
-    }
+	if (!val) {
+		Object.assign(localRestrictions, {
+			allowed_devices: [],
+			ip_whitelist: [],
+			ip_blacklist: [],
+			allowed_referrers: [],
+			blocked_referrers: [],
+			allowed_countries: [],
+		});
+	} else {
+		Object.assign(localRestrictions, {
+			allowed_devices: val.allowed_devices || [],
+			ip_whitelist: val.ip_whitelist || [],
+			ip_blacklist: val.ip_blacklist || [],
+			allowed_referrers: val.allowed_referrers || [],
+			blocked_referrers: val.blocked_referrers || [],
+			allowed_countries: val.allowed_countries || [],
+		});
+	}
 };
 
 // 监听 modelValue 变化
 watch(
-    () => props.modelValue,
-    (newVal) => {
-        if (isUpdating.value) {
-            return;
-        }
+	() => props.modelValue,
+	(newVal) => {
+		if (isUpdating.value) {
+			return;
+		}
 
-        isUpdating.value = true;
-        initLocalRestrictions(newVal);
-        // 使用 nextTick 确保在下一个事件循环中重置标志
-        nextTick(() => {
-            isUpdating.value = false;
-        });
-    },
-    { immediate: true, deep: true },
+		isUpdating.value = true;
+		initLocalRestrictions(newVal);
+		// 使用 nextTick 确保在下一个事件循环中重置标志
+		nextTick(() => {
+			isUpdating.value = false;
+		});
+	},
+	{ immediate: true, deep: true },
 );
 
 // 监听本地值变化
 watch(
-    localRestrictions,
-    (newVal) => {
-        if (!isUpdating.value) {
-            emit("update:modelValue", { ...newVal });
-        }
-    },
-    { deep: true },
+	localRestrictions,
+	(newVal) => {
+		if (!isUpdating.value) {
+			emit("update:modelValue", { ...newVal });
+		}
+	},
+	{ deep: true },
 );
 </script>

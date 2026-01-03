@@ -1,3 +1,24 @@
+<script setup lang="ts">
+import { IconGithub, IconGoogle } from "@arco-design/web-vue/es/icon";
+
+defineProps<{
+	loading?: boolean;
+}>();
+
+const emit = defineEmits<{
+	(e: "github-login"): void;
+	(e: "google-login"): void;
+}>();
+
+const handleGithubLogin = () => {
+	emit("github-login");
+};
+
+const handleGoogleLogin = () => {
+	emit("google-login");
+};
+</script>
+
 <template>
     <div class="social-auth-buttons">
         <div class="grid grid-cols-2 gap-4">
@@ -22,27 +43,6 @@
         </div>
     </div>
 </template>
-
-<script setup lang="ts">
-import { IconGithub, IconGoogle } from "@arco-design/web-vue/es/icon";
-
-defineProps<{
-    loading?: boolean;
-}>();
-
-const emit = defineEmits<{
-    (e: 'github-login'): void;
-    (e: 'google-login'): void;
-}>();
-
-const handleGithubLogin = () => {
-    emit('github-login');
-};
-
-const handleGoogleLogin = () => {
-    emit('google-login');
-};
-</script>
 
 <style scoped>
 .social-auth-buttons {

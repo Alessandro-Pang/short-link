@@ -113,151 +113,147 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, onUnmounted } from "vue";
-import { useRouter } from "vue-router";
 import { Message } from "@arco-design/web-vue";
-import { IconEmail, IconLock, IconLeft } from "@arco-design/web-vue/es/icon";
-import { useUserStore } from "@/stores";
+import { IconEmail, IconLeft, IconLock } from "@arco-design/web-vue/es/icon";
+import { onMounted, onUnmounted, reactive } from "vue";
+import { useRouter } from "vue-router";
 import AuthLayout from "@/components/AuthLayout.vue";
 import SocialAuthButtons from "@/components/base/SocialAuthButtons.vue";
+import { useUserStore } from "@/stores";
 
 const router = useRouter();
 const userStore = useUserStore();
 
 const form = reactive({
-    email: "",
-    password: "",
+	email: "",
+	password: "",
 });
 
 // 处理认证错误事件（用于第三方登录被禁用提示）
 function handleAuthError(event: any) {
-    const { error } = event.detail;
-    if (error?.code === "USER_BANNED") {
-        Message.error({
-            content: error.message || "您的账号已被管理员禁用，请联系管理员",
-            duration: 5000,
-        });
-    }
+	const { error } = event.detail;
+	if (error?.code === "USER_BANNED") {
+		Message.error({
+			content: error.message || "您的账号已被管理员禁用，请联系管理员",
+			duration: 5000,
+		});
+	}
 }
 
 // 检查 URL 中的 OAuth 错误参数
 function checkOAuthError() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const error = urlParams.get("error");
-    const errorCode = urlParams.get("error_code");
-    const errorDescription = urlParams.get("error_description");
+	const urlParams = new URLSearchParams(window.location.search);
+	const error = urlParams.get("error");
+	const errorCode = urlParams.get("error_code");
+	const errorDescription = urlParams.get("error_description");
 
-    if (error) {
-        let errorMessage = "登录失败";
+	if (error) {
+		let errorMessage = "登录失败";
 
-        if (
-            errorCode === "user_banned" ||
-            errorDescription?.includes("banned")
-        ) {
-            errorMessage = "您的账号已被管理员禁用，请联系管理员";
+		if (errorCode === "user_banned" || errorDescription?.includes("banned")) {
+			errorMessage = "您的账号已被管理员禁用，请联系管理员";
 
-            // 记录失败日志（尝试从其他 URL 参数获取邮箱）
-            const email =
-                urlParams.get("email") || sessionStorage.getItem("oauth_email");
-            if (email) {
-                import("@/services/auth").then(({ recordLoginAttempt }) => {
-                    recordLoginAttempt(email, false, "用户已被禁用", "oauth");
-                });
-            }
-        } else if (error === "access_denied") {
-            errorMessage = "您拒绝了授权请求";
-        } else {
-            errorMessage = errorDescription || `登录失败: ${error}`;
-        }
+			// 记录失败日志（尝试从其他 URL 参数获取邮箱）
+			const email = urlParams.get("email") || sessionStorage.getItem("oauth_email");
+			if (email) {
+				import("@/services/auth").then(({ recordLoginAttempt }) => {
+					recordLoginAttempt(email, false, "用户已被禁用", "oauth");
+				});
+			}
+		} else if (error === "access_denied") {
+			errorMessage = "您拒绝了授权请求";
+		} else {
+			errorMessage = errorDescription || `登录失败: ${error}`;
+		}
 
-        Message.error({
-            content: errorMessage,
-            duration: 5000,
-        });
+		Message.error({
+			content: errorMessage,
+			duration: 5000,
+		});
 
-        // 清理 URL 中的错误参数
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-    }
+		// 清理 URL 中的错误参数
+		const cleanUrl = window.location.pathname;
+		window.history.replaceState({}, document.title, cleanUrl);
+	}
 }
 
 // 组件挂载时添加事件监听和检查 URL 错误
 onMounted(() => {
-    window.addEventListener("auth-error", handleAuthError);
-    checkOAuthError();
+	window.addEventListener("auth-error", handleAuthError);
+	checkOAuthError();
 });
 
 // 组件卸载时移除事件监听
 onUnmounted(() => {
-    window.removeEventListener("auth-error", handleAuthError);
+	window.removeEventListener("auth-error", handleAuthError);
 });
 
 // 处理 GitHub 登录
 async function handleGithubLogin() {
-    if (userStore.isLoading) return;
-    try {
-        await userStore.loginWithGithub();
-    } catch (error: any) {
-        Message.error(error.message || "GitHub 登录失败，请稍后再试");
-    }
+	if (userStore.isLoading) return;
+	try {
+		await userStore.loginWithGithub();
+	} catch (error: any) {
+		Message.error(error.message || "GitHub 登录失败，请稍后再试");
+	}
 }
 
 // 处理 Google 登录
 async function handleGoogleLogin() {
-    if (userStore.isLoading) return;
-    try {
-        await userStore.loginWithGoogle();
-    } catch (error: any) {
-        Message.error(error.message || "Google 登录失败，请稍后再试");
-    }
+	if (userStore.isLoading) return;
+	try {
+		await userStore.loginWithGoogle();
+	} catch (error: any) {
+		Message.error(error.message || "Google 登录失败，请稍后再试");
+	}
 }
 
 // 处理邮箱登录
 async function handleEmailLogin({ errors }: any) {
-    if (errors) return;
+	if (errors) return;
 
-    try {
-        await userStore.loginWithEmail(form.email, form.password);
-        Message.success("登录成功！");
-        setTimeout(() => {
-            router.push("/dashboard");
-        }, 500);
-    } catch (error: any) {
-        console.error("登录错误:", error);
+	try {
+		await userStore.loginWithEmail(form.email, form.password);
+		Message.success("登录成功！");
+		setTimeout(() => {
+			router.push("/dashboard");
+		}, 500);
+	} catch (error: any) {
+		console.error("登录错误:", error);
 
-        // 处理不同的错误情况
-        if (error.code === "USER_BANNED") {
-            // 用户被禁用的特殊提示
-            Message.error({
-                content: "您的账号已被管理员禁用，如有疑问请联系管理员",
-                duration: 5000,
-            });
-        } else if (error.message.includes("Invalid login credentials")) {
-            Message.error("邮箱或密码错误");
-        } else if (error.message.includes("Email not confirmed")) {
-            Message.error("请先验证您的邮箱");
-        } else if (error.message.includes("禁用")) {
-            // 兜底处理所有包含"禁用"的错误消息
-            Message.error({
-                content: error.message,
-                duration: 5000,
-            });
-        } else {
-            Message.error(error.message || "登录失败，请稍后再试");
-        }
-    }
+		// 处理不同的错误情况
+		if (error.code === "USER_BANNED") {
+			// 用户被禁用的特殊提示
+			Message.error({
+				content: "您的账号已被管理员禁用，如有疑问请联系管理员",
+				duration: 5000,
+			});
+		} else if (error.message.includes("Invalid login credentials")) {
+			Message.error("邮箱或密码错误");
+		} else if (error.message.includes("Email not confirmed")) {
+			Message.error("请先验证您的邮箱");
+		} else if (error.message.includes("禁用")) {
+			// 兜底处理所有包含"禁用"的错误消息
+			Message.error({
+				content: error.message,
+				duration: 5000,
+			});
+		} else {
+			Message.error(error.message || "登录失败，请稍后再试");
+		}
+	}
 }
 
 function handleForgotPassword() {
-    router.push("/forgot-password");
+	router.push("/forgot-password");
 }
 
 function goToRegister() {
-    router.push("/register");
+	router.push("/register");
 }
 
 function goToHome() {
-    router.push("/");
+	router.push("/");
 }
 </script>
 

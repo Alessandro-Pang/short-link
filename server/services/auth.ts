@@ -6,8 +6,9 @@
  * @Description: 认证服务 - Supabase Auth 验证（使用配置常量）
  * @FilePath: /short-link/service/auth
  */
-import supabase from "../database/client.js";
+
 import { USER_CONFIG } from "../config/index.js";
+import supabase from "../database/client.js";
 
 /**
  * 验证 Supabase JWT Token
@@ -15,24 +16,24 @@ import { USER_CONFIG } from "../config/index.js";
  * @returns {Promise<Object>} 用户信息
  */
 export async function verifyToken(token: string) {
-  try {
-    // 在服务端使用 service role key 创建的 supabase 客户端
-    // 可以直接验证用户的 access token
-    const { data, error } = await (supabase.auth as any).getUser(token);
+	try {
+		// 在服务端使用 service role key 创建的 supabase 客户端
+		// 可以直接验证用户的 access token
+		const { data, error } = await (supabase.auth as any).getUser(token);
 
-    if (error) {
-      throw new Error("Token 验证失败: " + error.message);
-    }
+		if (error) {
+			throw new Error("Token 验证失败: " + error.message);
+		}
 
-    if (!data?.user) {
-      throw new Error("无效的 token");
-    }
+		if (!data?.user) {
+			throw new Error("无效的 token");
+		}
 
-    return data.user;
-  } catch (error) {
-    console.error("Token 验证失败:", error);
-    throw error;
-  }
+		return data.user;
+	} catch (error) {
+		console.error("Token 验证失败:", error);
+		throw error;
+	}
 }
 
 /**
@@ -41,22 +42,22 @@ export async function verifyToken(token: string) {
  * @returns {Promise<Object>} 用户信息
  */
 export async function getUserById(userId) {
-  try {
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+	try {
+		const { data, error } = await supabase
+			.from("user_profiles")
+			.select("*")
+			.eq("id", userId)
+			.single();
 
-    if (error && error.code !== "PGRST116") {
-      throw error;
-    }
+		if (error && error.code !== "PGRST116") {
+			throw error;
+		}
 
-    return data;
-  } catch (error) {
-    console.error("获取用户信息失败:", error);
-    return null;
-  }
+		return data;
+	} catch (error) {
+		console.error("获取用户信息失败:", error);
+		return null;
+	}
 }
 
 /**
@@ -74,29 +75,29 @@ export async function getUserById(userId) {
  * @returns {Promise<boolean>} 是否为管理员
  */
 export async function isAdmin(userId) {
-  if (!userId) return false;
+	if (!userId) return false;
 
-  try {
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("is_admin")
-      .eq("id", userId)
-      .single();
+	try {
+		const { data, error } = await supabase
+			.from("user_profiles")
+			.select("is_admin")
+			.eq("id", userId)
+			.single();
 
-    if (error) {
-      // PGRST116 表示没有找到记录，不是管理员
-      if (error.code === "PGRST116") {
-        return false;
-      }
-      console.error("检查管理员权限失败:", error);
-      return false;
-    }
+		if (error) {
+			// PGRST116 表示没有找到记录，不是管理员
+			if (error.code === "PGRST116") {
+				return false;
+			}
+			console.error("检查管理员权限失败:", error);
+			return false;
+		}
 
-    return data?.is_admin === true;
-  } catch (error) {
-    console.error("检查管理员权限异常:", error);
-    return false;
-  }
+		return data?.is_admin === true;
+	} catch (error) {
+		console.error("检查管理员权限异常:", error);
+		return false;
+	}
 }
 
 /**
@@ -105,13 +106,13 @@ export async function isAdmin(userId) {
  * @returns {Promise<Object>} 包含用户信息和管理员状态的对象
  */
 export async function verifyTokenWithAdminCheck(token) {
-  const user = await verifyToken(token);
-  const adminStatus = await isAdmin(user.id);
+	const user = await verifyToken(token);
+	const adminStatus = await isAdmin(user.id);
 
-  return {
-    ...user,
-    isAdmin: adminStatus,
-  };
+	return {
+		...user,
+		isAdmin: adminStatus,
+	};
 }
 
 /**
@@ -121,21 +122,19 @@ export async function verifyTokenWithAdminCheck(token) {
  * @throws {Error} 非管理员抛出错误
  */
 export async function requireAdmin(token: string) {
-  const user = await verifyToken(token);
-  const adminStatus = await isAdmin(user.id);
+	const user = await verifyToken(token);
+	const adminStatus = await isAdmin(user.id);
 
-  if (!adminStatus) {
-    const error: Error & { statusCode?: number; code?: string } = new Error(
-      "需要管理员权限",
-    );
-    error.code = "ADMIN_REQUIRED";
-    throw error;
-  }
+	if (!adminStatus) {
+		const error: Error & { statusCode?: number; code?: string } = new Error("需要管理员权限");
+		error.code = "ADMIN_REQUIRED";
+		throw error;
+	}
 
-  return {
-    ...user,
-    isAdmin: true,
-  };
+	return {
+		...user,
+		isAdmin: true,
+	};
 }
 
 /**
@@ -143,30 +142,28 @@ export async function requireAdmin(token: string) {
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 用户列表
  */
-export async function getAllUsers(
-  options: Partial<{ page: number; perPage: number }> = {},
-) {
-  const { page = 1, perPage = 50 } = options;
+export async function getAllUsers(options: Partial<{ page: number; perPage: number }> = {}) {
+	const { page = 1, perPage = 50 } = options;
 
-  try {
-    const {
-      data: { users },
-      error,
-    } = await (supabase.auth as any).admin.listUsers({
-      page,
-      perPage,
-    });
+	try {
+		const {
+			data: { users },
+			error,
+		} = await (supabase.auth as any).admin.listUsers({
+			page,
+			perPage,
+		});
 
-    if (error) {
-      console.error("获取用户列表失败:", error);
-      throw error;
-    }
+		if (error) {
+			console.error("获取用户列表失败:", error);
+			throw error;
+		}
 
-    return users || [];
-  } catch (error) {
-    console.error("获取用户列表异常:", error);
-    throw error;
-  }
+		return users || [];
+	} catch (error) {
+		console.error("获取用户列表异常:", error);
+		throw error;
+	}
 }
 
 /**
@@ -175,22 +172,22 @@ export async function getAllUsers(
  * @returns {Promise<Object>} 用户信息
  */
 export async function getUserByIdAdmin(userId: string) {
-  try {
-    const {
-      data: { user },
-      error,
-    } = await (supabase.auth as any).admin.getUserById(userId);
+	try {
+		const {
+			data: { user },
+			error,
+		} = await (supabase.auth as any).admin.getUserById(userId);
 
-    if (error) {
-      console.error("获取用户信息失败:", error);
-      throw error;
-    }
+		if (error) {
+			console.error("获取用户信息失败:", error);
+			throw error;
+		}
 
-    return user;
-  } catch (error) {
-    console.error("获取用户信息异常:", error);
-    throw error;
-  }
+		return user;
+	} catch (error) {
+		console.error("获取用户信息异常:", error);
+		throw error;
+	}
 }
 
 /**
@@ -199,53 +196,53 @@ export async function getUserByIdAdmin(userId: string) {
  * @returns {Promise<Array>} 身份绑定列表
  */
 export async function getUserIdentities(userId: string) {
-  try {
-    // 先从 Supabase Auth 获取真实的身份信息
-    const {
-      data: { user },
-      error: userError,
-    } = await (supabase.auth as any).admin.getUserById(userId);
+	try {
+		// 先从 Supabase Auth 获取真实的身份信息
+		const {
+			data: { user },
+			error: userError,
+		} = await (supabase.auth as any).admin.getUserById(userId);
 
-    if (userError) {
-      console.error("获取用户信息失败:", userError);
-      throw userError;
-    }
+		if (userError) {
+			console.error("获取用户信息失败:", userError);
+			throw userError;
+		}
 
-    // 同步到 user_identities 表
-    if (user?.identities) {
-      for (const identity of user.identities) {
-        await supabase.from("user_identities").upsert(
-          {
-            user_id: userId,
-            provider: identity.provider,
-            provider_user_id: identity.id,
-            provider_email: identity.identity_data?.email || user.email,
-            provider_metadata: identity.identity_data || {},
-          },
-          {
-            onConflict: "user_id,provider",
-          },
-        );
-      }
-    }
+		// 同步到 user_identities 表
+		if (user?.identities) {
+			for (const identity of user.identities) {
+				await supabase.from("user_identities").upsert(
+					{
+						user_id: userId,
+						provider: identity.provider,
+						provider_user_id: identity.id,
+						provider_email: identity.identity_data?.email || user.email,
+						provider_metadata: identity.identity_data || {},
+					},
+					{
+						onConflict: "user_id,provider",
+					},
+				);
+			}
+		}
 
-    // 从 user_identities 表读取
-    const { data, error } = await supabase
-      .from("user_identities")
-      .select("*")
-      .eq("user_id", userId)
-      .order("linked_at", { ascending: true });
+		// 从 user_identities 表读取
+		const { data, error } = await supabase
+			.from("user_identities")
+			.select("*")
+			.eq("user_id", userId)
+			.order("linked_at", { ascending: true });
 
-    if (error) {
-      console.error("获取身份绑定失败:", error);
-      throw error;
-    }
+		if (error) {
+			console.error("获取身份绑定失败:", error);
+			throw error;
+		}
 
-    return data || [];
-  } catch (error) {
-    console.error("获取身份绑定异常:", error);
-    throw error;
-  }
+		return data || [];
+	} catch (error) {
+		console.error("获取身份绑定异常:", error);
+		throw error;
+	}
 }
 
 /**
@@ -256,70 +253,66 @@ export async function getUserIdentities(userId: string) {
  * @returns {Promise<Object>} 绑定结果
  */
 export async function linkIdentity(
-  userId: string,
-  provider: string,
-  identityData: {
-    provider: string;
-    provider_user_id: string;
-    provider_email?: string;
-    provider_metadata?: Record<string, unknown>;
-  },
+	userId: string,
+	provider: string,
+	identityData: {
+		provider: string;
+		provider_user_id: string;
+		provider_email?: string;
+		provider_metadata?: Record<string, unknown>;
+	},
 ) {
-  try {
-    const {
-      provider_user_id,
-      provider_email,
-      provider_metadata = {},
-    } = identityData;
+	try {
+		const { provider_user_id, provider_email, provider_metadata = {} } = identityData;
 
-    // 检查是否已经绑定了该提供商
-    const { data: existing } = await supabase
-      .from("user_identities")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("provider", provider)
-      .single();
+		// 检查是否已经绑定了该提供商
+		const { data: existing } = await supabase
+			.from("user_identities")
+			.select("id")
+			.eq("user_id", userId)
+			.eq("provider", provider)
+			.single();
 
-    if (existing) {
-      throw new Error(`已经绑定了 ${provider} 账号`);
-    }
+		if (existing) {
+			throw new Error(`已经绑定了 ${provider} 账号`);
+		}
 
-    // 检查该第三方账号是否已被其他用户绑定
-    const { data: usedByOther } = await supabase
-      .from("user_identities")
-      .select("id")
-      .eq("provider", provider)
-      .eq("provider_user_id", provider_user_id)
-      .neq("user_id", userId)
-      .single();
+		// 检查该第三方账号是否已被其他用户绑定
+		const { data: usedByOther } = await supabase
+			.from("user_identities")
+			.select("id")
+			.eq("provider", provider)
+			.eq("provider_user_id", provider_user_id)
+			.neq("user_id", userId)
+			.single();
 
-    if (usedByOther) {
-      throw new Error(`该 ${provider} 账号已被其他用户绑定`);
-    }
+		if (usedByOther) {
+			throw new Error(`该 ${provider} 账号已被其他用户绑定`);
+		}
 
-    // 创建绑定记录
-    const { data, error } = await supabase
-      .from("user_identities")
-      .insert({
-        user_id: userId,
-        provider,
-        provider_user_id,
-        provider_email,
-        provider_metadata,
-      })
-      .select()
-      .single();
+		// 创建绑定记录
+		const { data, error } = await supabase
+			.from("user_identities")
+			.insert({
+				user_id: userId,
+				provider,
+				provider_user_id,
+				provider_email,
+				provider_metadata,
+			})
+			.select()
+			.single();
 
-    if (error) {
-      console.error("绑定身份失败:", error);
-      throw error;
-    }
+		if (error) {
+			console.error("绑定身份失败:", error);
+			throw error;
+		}
 
-    return data;
-  } catch (error) {
-    console.error("绑定身份异常:", error);
-    throw error;
-  }
+		return data;
+	} catch (error) {
+		console.error("绑定身份异常:", error);
+		throw error;
+	}
 }
 
 /**
@@ -329,31 +322,31 @@ export async function linkIdentity(
  * @returns {Promise<Object>} 解绑结果
  */
 export async function unlinkIdentity(userId: string, provider: string) {
-  try {
-    // 检查用户至少保留一种登录方式
-    const identities = await getUserIdentities(userId);
+	try {
+		// 检查用户至少保留一种登录方式
+		const identities = await getUserIdentities(userId);
 
-    if (identities.length <= 1) {
-      throw new Error("至少需要保留一种登录方式");
-    }
+		if (identities.length <= 1) {
+			throw new Error("至少需要保留一种登录方式");
+		}
 
-    // 删除绑定记录
-    const { error } = await supabase
-      .from("user_identities")
-      .delete()
-      .eq("user_id", userId)
-      .eq("provider", provider);
+		// 删除绑定记录
+		const { error } = await supabase
+			.from("user_identities")
+			.delete()
+			.eq("user_id", userId)
+			.eq("provider", provider);
 
-    if (error) {
-      console.error("解绑身份失败:", error);
-      throw error;
-    }
+		if (error) {
+			console.error("解绑身份失败:", error);
+			throw error;
+		}
 
-    return { success: true, message: `已成功解绑 ${provider} 账号` };
-  } catch (error) {
-    console.error("解绑身份异常:", error);
-    throw error;
-  }
+		return { success: true, message: `已成功解绑 ${provider} 账号` };
+	} catch (error) {
+		console.error("解绑身份异常:", error);
+		throw error;
+	}
 }
 
 /**
@@ -362,30 +355,27 @@ export async function unlinkIdentity(userId: string, provider: string) {
  * @param {string} reason - 删除原因（可选，仅用于日志）
  * @returns {Promise<Object>} 删除结果
  */
-export async function deleteUserAccount(
-  userId: string,
-  reason: string | null = null,
-) {
-  try {
-    // 使用 Supabase Admin API 删除用户
-    // 这会自动触发级联删除（user_identities, user_profiles, links 等）
-    const { error } = await (supabase.auth as any).admin.deleteUser(userId);
+export async function deleteUserAccount(userId: string, reason: string | null = null) {
+	try {
+		// 使用 Supabase Admin API 删除用户
+		// 这会自动触发级联删除（user_identities, user_profiles, links 等）
+		const { error } = await (supabase.auth as any).admin.deleteUser(userId);
 
-    if (error) {
-      console.error("删除账号失败:", error);
-      throw error;
-    }
+		if (error) {
+			console.error("删除账号失败:", error);
+			throw error;
+		}
 
-    // 可选：记录删除原因到日志
-    if (reason) {
-      console.log(`用户 ${userId} 删除账号，原因: ${reason}`);
-    }
+		// 可选：记录删除原因到日志
+		if (reason) {
+			console.log(`用户 ${userId} 删除账号，原因: ${reason}`);
+		}
 
-    return { success: true, message: "账号已成功删除" };
-  } catch (error) {
-    console.error("删除账号异常:", error);
-    throw error;
-  }
+		return { success: true, message: "账号已成功删除" };
+	} catch (error) {
+		console.error("删除账号异常:", error);
+		throw error;
+	}
 }
 
 /**
@@ -394,38 +384,38 @@ export async function deleteUserAccount(
  * @returns {Promise<Object>} 创建结果
  */
 export async function createUser(userData: {
-  email: string;
-  password: string;
-  [key: string]: unknown;
+	email: string;
+	password: string;
+	[key: string]: unknown;
 }) {
-  try {
-    const { email, password, user_metadata = {} } = userData;
+	try {
+		const { email, password, user_metadata = {} } = userData;
 
-    if (!email || !password) {
-      throw new Error("邮箱和密码是必填项");
-    }
+		if (!email || !password) {
+			throw new Error("邮箱和密码是必填项");
+		}
 
-    // 创建用户
-    const {
-      data: { user },
-      error,
-    } = await (supabase.auth as any).admin.createUser({
-      email,
-      password,
-      email_confirm: true, // 自动确认邮箱
-      user_metadata,
-    });
+		// 创建用户
+		const {
+			data: { user },
+			error,
+		} = await (supabase.auth as any).admin.createUser({
+			email,
+			password,
+			email_confirm: true, // 自动确认邮箱
+			user_metadata,
+		});
 
-    if (error) {
-      console.error("创建用户失败:", error);
-      throw error;
-    }
+		if (error) {
+			console.error("创建用户失败:", error);
+			throw error;
+		}
 
-    return { success: true, user, message: "用户创建成功" };
-  } catch (error) {
-    console.error("创建用户异常:", error);
-    throw error;
-  }
+		return { success: true, user, message: "用户创建成功" };
+	} catch (error) {
+		console.error("创建用户异常:", error);
+		throw error;
+	}
 }
 
 /**
@@ -435,47 +425,43 @@ export async function createUser(userData: {
  * @returns {Promise<Object>} 更新结果
  */
 export async function updateUser(
-  userId: string,
-  updates: {
-    email?: string;
-    password?: string;
-    user_metadata?: Record<string, unknown>;
-    [key: string]: unknown;
-  },
+	userId: string,
+	updates: {
+		email?: string;
+		password?: string;
+		user_metadata?: Record<string, unknown>;
+		[key: string]: unknown;
+	},
 ) {
-  try {
-    const {
-      data: { user },
-      error,
-    } = await (supabase.auth as any).admin.updateUserById(userId, updates);
+	try {
+		const {
+			data: { user },
+			error,
+		} = await (supabase.auth as any).admin.updateUserById(userId, updates);
 
-    if (error) {
-      console.error("更新用户失败:", error);
-      throw error;
-    }
+		if (error) {
+			console.error("更新用户失败:", error);
+			throw error;
+		}
 
-    // 如果更新了 is_admin 字段，同时更新 user_profiles 表
-    const appMetadata = updates.app_metadata as
-      | { is_admin?: boolean }
-      | undefined;
-    if (appMetadata?.is_admin !== undefined) {
-      const { error: profileError } = await supabase
-        .from("user_profiles")
-        .upsert({
-          id: userId,
-          is_admin: appMetadata.is_admin,
-        });
+		// 如果更新了 is_admin 字段，同时更新 user_profiles 表
+		const appMetadata = updates.app_metadata as { is_admin?: boolean } | undefined;
+		if (appMetadata?.is_admin !== undefined) {
+			const { error: profileError } = await supabase.from("user_profiles").upsert({
+				id: userId,
+				is_admin: appMetadata.is_admin,
+			});
 
-      if (profileError) {
-        console.error("更新用户 profile 失败:", profileError);
-      }
-    }
+			if (profileError) {
+				console.error("更新用户 profile 失败:", profileError);
+			}
+		}
 
-    return { success: true, user, message: "用户信息更新成功" };
-  } catch (error) {
-    console.error("更新用户异常:", error);
-    throw error;
-  }
+		return { success: true, user, message: "用户信息更新成功" };
+	} catch (error) {
+		console.error("更新用户异常:", error);
+		throw error;
+	}
 }
 
 /**
@@ -485,28 +471,28 @@ export async function updateUser(
  * @returns {Promise<Object>} 重置结果
  */
 export async function resetUserPassword(userId: string, newPassword: string) {
-  try {
-    if (!newPassword || newPassword.length < 6) {
-      throw new Error("密码长度至少为 6 位");
-    }
+	try {
+		if (!newPassword || newPassword.length < 6) {
+			throw new Error("密码长度至少为 6 位");
+		}
 
-    const {
-      data: { user },
-      error,
-    } = await (supabase.auth as any).admin.updateUserById(userId, {
-      password: newPassword,
-    });
+		const {
+			data: { user },
+			error,
+		} = await (supabase.auth as any).admin.updateUserById(userId, {
+			password: newPassword,
+		});
 
-    if (error) {
-      console.error("重置密码失败:", error);
-      throw error;
-    }
+		if (error) {
+			console.error("重置密码失败:", error);
+			throw error;
+		}
 
-    return { success: true, user, message: "密码重置成功" };
-  } catch (error) {
-    console.error("重置密码异常:", error);
-    throw error;
-  }
+		return { success: true, user, message: "密码重置成功" };
+	} catch (error) {
+		console.error("重置密码异常:", error);
+		throw error;
+	}
 }
 
 /**
@@ -516,30 +502,28 @@ export async function resetUserPassword(userId: string, newPassword: string) {
  * @returns {Promise<Object>} 操作结果
  */
 export async function toggleUserStatus(userId: string, banned: boolean) {
-  try {
-    const {
-      data: { user },
-      error,
-    } = await (supabase.auth as any).admin.updateUserById(userId, {
-      ban_duration: banned
-        ? USER_CONFIG.BAN_DURATION_HOURS
-        : USER_CONFIG.BAN_NONE,
-    });
+	try {
+		const {
+			data: { user },
+			error,
+		} = await (supabase.auth as any).admin.updateUserById(userId, {
+			ban_duration: banned ? USER_CONFIG.BAN_DURATION_HOURS : USER_CONFIG.BAN_NONE,
+		});
 
-    if (error) {
-      console.error("切换用户状态失败:", error);
-      throw error;
-    }
+		if (error) {
+			console.error("切换用户状态失败:", error);
+			throw error;
+		}
 
-    return {
-      success: true,
-      user,
-      message: banned ? "用户已禁用" : "用户已启用",
-    };
-  } catch (error) {
-    console.error("切换用户状态异常:", error);
-    throw error;
-  }
+		return {
+			success: true,
+			user,
+			message: banned ? "用户已禁用" : "用户已启用",
+		};
+	} catch (error) {
+		console.error("切换用户状态异常:", error);
+		throw error;
+	}
 }
 
 /**
@@ -548,51 +532,50 @@ export async function toggleUserStatus(userId: string, banned: boolean) {
  * @returns {Promise<Object>} 用户详细信息
  */
 export async function getUserDetails(userId: string) {
-  try {
-    // 获取 Auth 用户信息
-    const {
-      data: { user },
-      error: authError,
-    } = await (supabase.auth as any).admin.getUserById(userId);
+	try {
+		// 获取 Auth 用户信息
+		const {
+			data: { user },
+			error: authError,
+		} = await (supabase.auth as any).admin.getUserById(userId);
 
-    if (authError) {
-      throw authError;
-    }
+		if (authError) {
+			throw authError;
+		}
 
-    // 获取 Profile 信息
-    const { data: profile } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+		// 获取 Profile 信息
+		const { data: profile } = await supabase
+			.from("user_profiles")
+			.select("*")
+			.eq("id", userId)
+			.single();
 
-    // 获取用户的链接统计
-    const { count: linksCount } = await supabase
-      .from("links")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId);
+		// 获取用户的链接统计
+		const { count: linksCount } = await supabase
+			.from("links")
+			.select("*", { count: "exact", head: true })
+			.eq("user_id", userId);
 
-    // 获取总点击次数
-    const { data: clickStats } = await supabase
-      .from("links")
-      .select("click_count")
-      .eq("user_id", userId);
+		// 获取总点击次数
+		const { data: clickStats } = await supabase
+			.from("links")
+			.select("click_count")
+			.eq("user_id", userId);
 
-    const totalClicks =
-      clickStats?.reduce((sum, link) => sum + (link.click_count || 0), 0) || 0;
+		const totalClicks = clickStats?.reduce((sum, link) => sum + (link.click_count || 0), 0) || 0;
 
-    return {
-      ...user,
-      profile,
-      stats: {
-        linksCount: linksCount || 0,
-        totalClicks,
-      },
-    };
-  } catch (error) {
-    console.error("获取用户详情失败:", error);
-    throw error;
-  }
+		return {
+			...user,
+			profile,
+			stats: {
+				linksCount: linksCount || 0,
+				totalClicks,
+			},
+		};
+	} catch (error) {
+		console.error("获取用户详情失败:", error);
+		throw error;
+	}
 }
 
 /**
@@ -602,22 +585,21 @@ export async function getUserDetails(userId: string) {
  * @returns {Promise<Object>} 绑定结果
  */
 export async function bindUserIdentity(
-  userId: string,
-  identityData: {
-    provider: string;
-    provider_user_id: string;
-    provider_email?: string;
-    provider_metadata?: Record<string, unknown>;
-  },
+	userId: string,
+	identityData: {
+		provider: string;
+		provider_user_id: string;
+		provider_email?: string;
+		provider_metadata?: Record<string, unknown>;
+	},
 ) {
-  const { provider, provider_user_id, provider_email, provider_metadata } =
-    identityData;
-  return linkIdentity(userId, provider, {
-    provider,
-    provider_user_id,
-    provider_email,
-    provider_metadata,
-  });
+	const { provider, provider_user_id, provider_email, provider_metadata } = identityData;
+	return linkIdentity(userId, provider, {
+		provider,
+		provider_user_id,
+		provider_email,
+		provider_metadata,
+	});
 }
 
 /**
@@ -627,5 +609,5 @@ export async function bindUserIdentity(
  * @returns {Promise<Object>} 解绑结果
  */
 export async function unbindUserIdentity(userId: string, provider: string) {
-  return unlinkIdentity(userId, provider);
+	return unlinkIdentity(userId, provider);
 }

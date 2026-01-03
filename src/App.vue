@@ -5,10 +5,10 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from "vue";
 import { Message } from "@arco-design/web-vue";
+import { onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
-import { recordLoginAttempt, onAuthStateChange } from "@/services/auth";
+import { onAuthStateChange, recordLoginAttempt } from "@/services/auth";
 import { supabase } from "@/services/supabase";
 
 const router = useRouter();
@@ -18,120 +18,102 @@ let authListener = null;
 
 // 监听认证错误事件
 const handleAuthError = async (event) => {
-    const { user, error } = event.detail || {};
-    if (error) {
-        if (error.code === "USER_BANNED") {
-            Message.error({
-                content:
-                    error.message || "您的账号已被管理员禁用，请联系管理员",
-                duration: 5000,
-            });
-            // 跳转到登录页
-            setTimeout(() => {
-                router.push("/login");
-            }, 1000);
-        }
-    }
+	const { user, error } = event.detail || {};
+	if (error) {
+		if (error.code === "USER_BANNED") {
+			Message.error({
+				content: error.message || "您的账号已被管理员禁用，请联系管理员",
+				duration: 5000,
+			});
+			// 跳转到登录页
+			setTimeout(() => {
+				router.push("/login");
+			}, 1000);
+		}
+	}
 };
 
 // 检查 OAuth 回调中的错误（在 URL hash 或 query 中）
 async function checkOAuthCallback() {
-    // Supabase 可能会把错误放在 URL hash 或 query 中
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const queryParams = new URLSearchParams(window.location.search);
+	// Supabase 可能会把错误放在 URL hash 或 query 中
+	const hashParams = new URLSearchParams(window.location.hash.substring(1));
+	const queryParams = new URLSearchParams(window.location.search);
 
-    const error = hashParams.get("error") || queryParams.get("error");
-    const errorCode =
-        hashParams.get("error_code") || queryParams.get("error_code");
-    const errorDescription =
-        hashParams.get("error_description") ||
-        queryParams.get("error_description");
+	const error = hashParams.get("error") || queryParams.get("error");
+	const errorCode = hashParams.get("error_code") || queryParams.get("error_code");
+	const errorDescription =
+		hashParams.get("error_description") || queryParams.get("error_description");
 
-    if (error) {
-        let errorMessage = "登录失败";
-        let shouldRecordLog = false;
-        let loginMethod = "oauth";
+	if (error) {
+		let errorMessage = "登录失败";
+		let shouldRecordLog = false;
+		const loginMethod = "oauth";
 
-        // 判断是否是用户被禁用
-        if (
-            errorCode === "user_banned" ||
-            errorDescription?.toLowerCase().includes("banned")
-        ) {
-            errorMessage = "您的账号已被管理员禁用，请联系管理员";
-            shouldRecordLog = true;
-        } else if (error === "access_denied") {
-            // 用户拒绝授权，不是被禁用
-            if (!errorDescription?.toLowerCase().includes("banned")) {
-                errorMessage = "您拒绝了授权请求";
-                shouldRecordLog = false;
-            } else {
-                errorMessage = "您的账号已被管理员禁用，请联系管理员";
-                shouldRecordLog = true;
-            }
-        } else {
-            errorMessage = errorDescription || `登录失败: ${error}`;
-        }
+		// 判断是否是用户被禁用
+		if (errorCode === "user_banned" || errorDescription?.toLowerCase().includes("banned")) {
+			errorMessage = "您的账号已被管理员禁用，请联系管理员";
+			shouldRecordLog = true;
+		} else if (error === "access_denied") {
+			// 用户拒绝授权，不是被禁用
+			if (!errorDescription?.toLowerCase().includes("banned")) {
+				errorMessage = "您拒绝了授权请求";
+				shouldRecordLog = false;
+			} else {
+				errorMessage = "您的账号已被管理员禁用，请联系管理员";
+				shouldRecordLog = true;
+			}
+		} else {
+			errorMessage = errorDescription || `登录失败: ${error}`;
+		}
 
-        // 尝试获取用户邮箱来记录日志
-        if (shouldRecordLog) {
-            try {
-                // 尝试从 Supabase session 中获取用户信息
-                const {
-                    data: { session },
-                } = await supabase.auth.getSession();
-                const email =
-                    session?.user?.email ||
-                    sessionStorage.getItem("oauth_email") ||
-                    "unknown";
+		// 尝试获取用户邮箱来记录日志
+		if (shouldRecordLog) {
+			try {
+				// 尝试从 Supabase session 中获取用户信息
+				const {
+					data: { session },
+				} = await supabase.auth.getSession();
+				const email = session?.user?.email || sessionStorage.getItem("oauth_email") || "unknown";
 
-                // 记录失败日志
-                await recordLoginAttempt(
-                    email,
-                    false,
-                    "用户已被禁用",
-                    loginMethod,
-                );
-            } catch (err) {
-                console.error("记录登录日志失败:", err);
-            }
-        }
+				// 记录失败日志
+				await recordLoginAttempt(email, false, "用户已被禁用", loginMethod);
+			} catch (err) {
+				console.error("记录登录日志失败:", err);
+			}
+		}
 
-        // 显示错误提示
-        Message.error({
-            content: errorMessage,
-            duration: 5000,
-        });
+		// 显示错误提示
+		Message.error({
+			content: errorMessage,
+			duration: 5000,
+		});
 
-        // 清理 URL 中的错误参数并跳转到登录页
-        setTimeout(() => {
-            router.push("/login");
-        }, 1000);
-    }
+		// 清理 URL 中的错误参数并跳转到登录页
+		setTimeout(() => {
+			router.push("/login");
+		}, 1000);
+	}
 }
 
 onMounted(() => {
-    // 设置认证状态监听器（用于记录第三方登录）
-    authListener = onAuthStateChange((event, session) => {
-        console.log(
-            "App.vue - Auth state changed:",
-            event,
-            session?.user?.email,
-        );
-        // onAuthStateChange 内部已经处理了登录记录逻辑
-        // 这里不需要额外处理，只是确保监听器被设置
-    });
+	// 设置认证状态监听器（用于记录第三方登录）
+	authListener = onAuthStateChange((event, session) => {
+		console.log("App.vue - Auth state changed:", event, session?.user?.email);
+		// onAuthStateChange 内部已经处理了登录记录逻辑
+		// 这里不需要额外处理，只是确保监听器被设置
+	});
 
-    window.addEventListener("auth-error", handleAuthError);
-    checkOAuthCallback();
+	window.addEventListener("auth-error", handleAuthError);
+	checkOAuthCallback();
 });
 
 onUnmounted(() => {
-    window.removeEventListener("auth-error", handleAuthError);
+	window.removeEventListener("auth-error", handleAuthError);
 
-    // 清理认证监听器
-    if (authListener && authListener.data && authListener.data.subscription) {
-        authListener.data.subscription.unsubscribe();
-    }
+	// 清理认证监听器
+	if (authListener && authListener.data && authListener.data.subscription) {
+		authListener.data.subscription.unsubscribe();
+	}
 });
 </script>
 

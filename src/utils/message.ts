@@ -16,25 +16,25 @@ import { Message } from "@arco-design/web-vue";
  * @param {number} duration - 显示时长(毫秒)
  */
 export function showMessage(message, type = "info", duration = 3000) {
-  const content = typeof message === "string" ? message : String(message);
+	const content = typeof message === "string" ? message : String(message);
 
-  const normalizedType = type === "warn" ? "warning" : type;
+	const normalizedType = type === "warn" ? "warning" : type;
 
-  switch (normalizedType) {
-    case "success":
-      Message.success({ content, duration });
-      break;
-    case "error":
-      Message.error({ content, duration });
-      break;
-    case "warning":
-      Message.warning({ content, duration });
-      break;
-    case "info":
-    default:
-      Message.info({ content, duration });
-      break;
-  }
+	switch (normalizedType) {
+		case "success":
+			Message.success({ content, duration });
+			break;
+		case "error":
+			Message.error({ content, duration });
+			break;
+		case "warning":
+			Message.warning({ content, duration });
+			break;
+		case "info":
+		default:
+			Message.info({ content, duration });
+			break;
+	}
 }
 
 /**
@@ -43,7 +43,7 @@ export function showMessage(message, type = "info", duration = 3000) {
  * @param {number} duration - 显示时长(毫秒)
  */
 export function showSuccess(message, duration = 3000) {
-  showMessage(message, "success", duration);
+	showMessage(message, "success", duration);
 }
 
 /**
@@ -52,7 +52,7 @@ export function showSuccess(message, duration = 3000) {
  * @param {number} duration - 显示时长(毫秒)
  */
 export function showError(message, duration = 3000) {
-  showMessage(message, "error", duration);
+	showMessage(message, "error", duration);
 }
 
 /**
@@ -61,7 +61,7 @@ export function showError(message, duration = 3000) {
  * @param {number} duration - 显示时长(毫秒)
  */
 export function showInfo(message, duration = 3000) {
-  showMessage(message, "info", duration);
+	showMessage(message, "info", duration);
 }
 
 /**
@@ -70,13 +70,13 @@ export function showInfo(message, duration = 3000) {
  * @param {number} duration - 显示时长(毫秒)
  */
 export function showWarning(message, duration = 3000) {
-  showMessage(message, "warning", duration);
+	showMessage(message, "warning", duration);
 }
 
 export default {
-  showMessage,
-  showSuccess,
-  showError,
-  showInfo,
-  showWarning,
+	showMessage,
+	showSuccess,
+	showError,
+	showInfo,
+	showWarning,
 };

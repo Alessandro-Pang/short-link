@@ -154,91 +154,84 @@
 </template>
 
 <script setup lang="ts">
+import { Message } from "@arco-design/web-vue";
+import { IconEmail, IconLeft, IconLock, IconUser } from "@arco-design/web-vue/es/icon";
 import { computed, reactive } from "vue";
 import { useRouter } from "vue-router";
-import { Message } from "@arco-design/web-vue";
-import {
-    IconUser,
-    IconEmail,
-    IconLock,
-    IconLeft,
-} from "@arco-design/web-vue/es/icon";
-import { useUserStore } from "@/stores";
-import { makePasswordRules } from "@/utils/validator";
 import AuthLayout from "@/components/AuthLayout.vue";
 import SocialAuthButtons from "@/components/base/SocialAuthButtons.vue";
+import { useUserStore } from "@/stores";
+import { makePasswordRules } from "@/utils/validator";
 
 const router = useRouter();
 const userStore = useUserStore();
 
 const form = reactive({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+	username: "",
+	email: "",
+	password: "",
+	confirmPassword: "",
 });
 
 const passwordRules = computed(() =>
-    makePasswordRules({
-        getUsername: () => form.username,
-        getEmail: () => form.email,
-        requiredMessage: "请输入密码",
-    }),
+	makePasswordRules({
+		getUsername: () => form.username,
+		getEmail: () => form.email,
+		requiredMessage: "请输入密码",
+	}),
 );
 
 // 处理 GitHub 注册
 async function handleGithubRegister() {
-    if (userStore.isLoading) return;
-    try {
-        await userStore.loginWithGithub();
-    } catch (error: any) {
-        Message.error(error.message || "GitHub 注册失败，请稍后再试");
-    }
+	if (userStore.isLoading) return;
+	try {
+		await userStore.loginWithGithub();
+	} catch (error: any) {
+		Message.error(error.message || "GitHub 注册失败，请稍后再试");
+	}
 }
 
 // 处理 Google 注册
 async function handleGoogleRegister() {
-    if (userStore.isLoading) return;
-    try {
-        await userStore.loginWithGoogle();
-    } catch (error: any) {
-        Message.error(error.message || "Google 注册失败，请稍后再试");
-    }
+	if (userStore.isLoading) return;
+	try {
+		await userStore.loginWithGoogle();
+	} catch (error: any) {
+		Message.error(error.message || "Google 注册失败，请稍后再试");
+	}
 }
 
 // 处理邮箱注册
 async function handleEmailRegister({ errors }: any) {
-    if (errors) return;
+	if (errors) return;
 
-    try {
-        await userStore.registerWithEmail(form.email, form.password, {
-            username: form.username,
-        });
+	try {
+		await userStore.registerWithEmail(form.email, form.password, {
+			username: form.username,
+		});
 
-        Message.success("注册成功！请查收邮箱验证邮件");
+		Message.success("注册成功！请查收邮箱验证邮件");
 
-        setTimeout(() => {
-            router.push("/login");
-        }, 2000);
-    } catch (error: any) {
-        if (error.message.includes("User already registered")) {
-            Message.error("该邮箱已被注册");
-        } else if (
-            error.message.includes("Password should be at least 6 characters")
-        ) {
-            Message.error("密码长度至少 6 个字符");
-        } else {
-            Message.error(error.message || "注册失败，请稍后再试");
-        }
-    }
+		setTimeout(() => {
+			router.push("/login");
+		}, 2000);
+	} catch (error: any) {
+		if (error.message.includes("User already registered")) {
+			Message.error("该邮箱已被注册");
+		} else if (error.message.includes("Password should be at least 6 characters")) {
+			Message.error("密码长度至少 6 个字符");
+		} else {
+			Message.error(error.message || "注册失败，请稍后再试");
+		}
+	}
 }
 
 function goToLogin() {
-    router.push("/login");
+	router.push("/login");
 }
 
 function goToHome() {
-    router.push("/");
+	router.push("/");
 }
 </script>
 

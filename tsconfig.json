@@ -1,45 +1,39 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true,
+	"compilerOptions": {
+		"target": "ES2020",
+		"useDefineForClassFields": true,
+		"module": "ESNext",
+		"lib": ["ES2020", "DOM", "DOM.Iterable"],
+		"skipLibCheck": true,
 
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "declaration": false,
-    "composite": false,
-    "jsx": "preserve",
+		/* Bundler mode */
+		"moduleResolution": "bundler",
+		"allowImportingTsExtensions": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"noEmit": true,
+		"declaration": false,
+		"composite": false,
+		"jsx": "preserve",
 
-    /* Linting - 暂时放宽限制以便部署 */
-    "strict": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitAny": false,
+		/* Linting - 暂时放宽限制以便部署 */
+		"strict": false,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitAny": false,
 
-    /* Path mapping */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@types/*": ["./types/*"],
-    },
+		/* Path mapping */
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"],
+			"@types/*": ["./types/*"]
+		},
 
-    /* Type declarations */
-    "types": ["node", "vite/client"],
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "types/**/*",
-  ],
-  "exclude": ["node_modules", "dist"],
-  "references": [{ "path": "./tsconfig.node.json" }],
+		/* Type declarations */
+		"types": ["node", "vite/client"]
+	},
+	"include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "types/**/*"],
+	"exclude": ["node_modules", "dist"],
+	"references": [{ "path": "./tsconfig.node.json" }]
 }

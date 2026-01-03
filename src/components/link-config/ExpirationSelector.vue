@@ -64,44 +64,44 @@ import { computed } from "vue";
 import { formatDate } from "@/utils/date";
 
 const props = defineProps<{
-    expirationMode: "preset" | "custom" | "none";
-    expirationOptionId: number | null;
-    expirationDate: string | null;
-    expirationOptions: any[];
-    isNew: boolean;
-    isExpired: boolean;
+	expirationMode: "preset" | "custom" | "none";
+	expirationOptionId: number | null;
+	expirationDate: string | null;
+	expirationOptions: any[];
+	isNew: boolean;
+	isExpired: boolean;
 }>();
 
 const emit = defineEmits<{
-    (e: "update:expirationMode", value: "preset" | "custom" | "none"): void;
-    (e: "update:expirationOptionId", value: number | null): void;
-    (e: "update:expirationDate", value: string | null): void;
+	(e: "update:expirationMode", value: "preset" | "custom" | "none"): void;
+	(e: "update:expirationOptionId", value: number | null): void;
+	(e: "update:expirationDate", value: string | null): void;
 }>();
 
 // 使用计算属性实现 v-model
 const localMode = computed({
-    get: () => props.expirationMode,
-    set: (val) => {
-        emit("update:expirationMode", val);
-        // 切换模式时清空对应字段
-        if (val === "preset") {
-            emit("update:expirationDate", null);
-        } else if (val === "custom") {
-            emit("update:expirationOptionId", null);
-        } else {
-            emit("update:expirationOptionId", null);
-            emit("update:expirationDate", null);
-        }
-    },
+	get: () => props.expirationMode,
+	set: (val) => {
+		emit("update:expirationMode", val);
+		// 切换模式时清空对应字段
+		if (val === "preset") {
+			emit("update:expirationDate", null);
+		} else if (val === "custom") {
+			emit("update:expirationOptionId", null);
+		} else {
+			emit("update:expirationOptionId", null);
+			emit("update:expirationDate", null);
+		}
+	},
 });
 
 const localOptionId = computed({
-    get: () => props.expirationOptionId,
-    set: (val) => emit("update:expirationOptionId", val),
+	get: () => props.expirationOptionId,
+	set: (val) => emit("update:expirationOptionId", val),
 });
 
 const localDate = computed({
-    get: () => props.expirationDate,
-    set: (val) => emit("update:expirationDate", val),
+	get: () => props.expirationDate,
+	set: (val) => emit("update:expirationDate", val),
 });
 </script>

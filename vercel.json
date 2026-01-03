@@ -1,15 +1,15 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "functions": {
-    "api/index.ts": {
-      "includeFiles": "server/**"
-    }
-  },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api" },
-    { "source": "/u/(.*)", "destination": "/api" },
-    { "source": "/health", "destination": "/api" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+	"buildCommand": "npm run build",
+	"outputDirectory": "dist",
+	"functions": {
+		"api/index.ts": {
+			"includeFiles": "server/**"
+		}
+	},
+	"rewrites": [
+		{ "source": "/api/(.*)", "destination": "/api" },
+		{ "source": "/u/(.*)", "destination": "/api" },
+		{ "source": "/health", "destination": "/api" },
+		{ "source": "/(.*)", "destination": "/index.html" }
+	]
 }

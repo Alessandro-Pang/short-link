@@ -8,11 +8,11 @@
  */
 
 import type {
-  FastifyReply,
-  SuccessResponse,
-  ErrorResponse,
-  ServiceResult,
-  HandleServiceResultOptions,
+	ErrorResponse,
+	FastifyReply,
+	HandleServiceResultOptions,
+	ServiceResult,
+	SuccessResponse,
 } from "../types/index.js";
 
 /**
@@ -24,16 +24,16 @@ import type {
  * @returns {Object}
  */
 export function success<T = unknown>(
-  reply: FastifyReply,
-  data: T | null = null,
-  msg: string = "success",
-  statusCode: number = 200,
+	reply: FastifyReply,
+	data: T | null = null,
+	msg: string = "success",
+	statusCode: number = 200,
 ) {
-  return reply.status(statusCode).send({
-    code: 200,
-    msg,
-    data,
-  });
+	return reply.status(statusCode).send({
+		code: 200,
+		msg,
+		data,
+	});
 }
 
 /**
@@ -45,21 +45,21 @@ export function success<T = unknown>(
  * @returns {Object}
  */
 export function error(
-  reply: FastifyReply,
-  msg: string,
-  statusCode: number = 400,
-  data: unknown = null,
+	reply: FastifyReply,
+	msg: string,
+	statusCode: number = 400,
+	data: unknown = null,
 ) {
-  const response: { code: number; msg: string; data?: unknown } = {
-    code: statusCode,
-    msg,
-  };
+	const response: { code: number; msg: string; data?: unknown } = {
+		code: statusCode,
+		msg,
+	};
 
-  if (data !== null) {
-    response.data = data;
-  }
+	if (data !== null) {
+		response.data = data;
+	}
 
-  return reply.status(statusCode).send(response);
+	return reply.status(statusCode).send(response);
 }
 
 /**
@@ -71,21 +71,21 @@ export function error(
  * @returns {Object}
  */
 export function errorWithCode(
-  reply: FastifyReply,
-  errorCode: { code: number; msg: string },
-  data: unknown = null,
-  customMsg: string | null = null,
+	reply: FastifyReply,
+	errorCode: { code: number; msg: string },
+	data: unknown = null,
+	customMsg: string | null = null,
 ) {
-  const response: { code: number; msg: string; data?: unknown } = {
-    code: errorCode.code,
-    msg: customMsg || errorCode.msg,
-  };
+	const response: { code: number; msg: string; data?: unknown } = {
+		code: errorCode.code,
+		msg: customMsg || errorCode.msg,
+	};
 
-  if (data !== null) {
-    response.data = data;
-  }
+	if (data !== null) {
+		response.data = data;
+	}
 
-  return reply.status(errorCode.code).send(response);
+	return reply.status(errorCode.code).send(response);
 }
 
 /**
@@ -95,12 +95,8 @@ export function errorWithCode(
  * @param {unknown} [data] - 附加数据
  * @returns {Object}
  */
-export function badRequest(
-  reply: FastifyReply,
-  msg = "请求参数错误",
-  data: unknown = null,
-) {
-  return error(reply, msg, 400, data);
+export function badRequest(reply: FastifyReply, msg = "请求参数错误", data: unknown = null) {
+	return error(reply, msg, 400, data);
 }
 
 /**
@@ -110,7 +106,7 @@ export function badRequest(
  * @returns {Object}
  */
 export function unauthorized(reply: FastifyReply, msg = "未授权访问") {
-  return error(reply, msg, 401);
+	return error(reply, msg, 401);
 }
 
 /**
@@ -120,7 +116,7 @@ export function unauthorized(reply: FastifyReply, msg = "未授权访问") {
  * @returns {Object}
  */
 export function forbidden(reply: FastifyReply, msg = "禁止访问") {
-  return error(reply, msg, 403);
+	return error(reply, msg, 403);
 }
 
 /**
@@ -130,7 +126,7 @@ export function forbidden(reply: FastifyReply, msg = "禁止访问") {
  * @returns {Object}
  */
 export function notFound(reply: FastifyReply, msg = "资源不存在") {
-  return error(reply, msg, 404);
+	return error(reply, msg, 404);
 }
 
 /**
@@ -140,12 +136,8 @@ export function notFound(reply: FastifyReply, msg = "资源不存在") {
  * @param {unknown} [data] - 附加数据（如冲突的资源信息）
  * @returns {Object}
  */
-export function conflict(
-  reply: FastifyReply,
-  msg = "资源冲突",
-  data: unknown = null,
-) {
-  return error(reply, msg, 409, data);
+export function conflict(reply: FastifyReply, msg = "资源冲突", data: unknown = null) {
+	return error(reply, msg, 409, data);
 }
 
 /**
@@ -155,13 +147,9 @@ export function conflict(
  * @param {number} [retryAfter] - 重试等待时间（秒）
  * @returns {Object}
  */
-export function tooManyRequests(
-  reply: FastifyReply,
-  msg = "请求过于频繁",
-  retryAfter = 60,
-) {
-  reply.header("Retry-After", retryAfter);
-  return error(reply, msg, 429, { retryAfter });
+export function tooManyRequests(reply: FastifyReply, msg = "请求过于频繁", retryAfter = 60) {
+	reply.header("Retry-After", retryAfter);
+	return error(reply, msg, 429, { retryAfter });
 }
 
 /**
@@ -171,7 +159,7 @@ export function tooManyRequests(
  * @returns {Object}
  */
 export function serverError(reply: FastifyReply, msg = "服务器内部错误") {
-  return error(reply, msg, 500);
+	return error(reply, msg, 500);
 }
 
 /**
@@ -180,11 +168,8 @@ export function serverError(reply: FastifyReply, msg = "服务器内部错误") 
  * @param {string} [msg] - 错误消息
  * @returns {Object}
  */
-export function serviceUnavailable(
-  reply: FastifyReply,
-  msg = "服务暂时不可用",
-) {
-  return error(reply, msg, 503);
+export function serviceUnavailable(reply: FastifyReply, msg = "服务暂时不可用") {
+	return error(reply, msg, 503);
 }
 
 /**
@@ -199,27 +184,27 @@ export function serviceUnavailable(
  * @returns {Object}
  */
 export function paginated<T>(
-  reply: FastifyReply,
-  options: { list: T[]; total: number; page: number; pageSize: number },
-  msg = "success",
+	reply: FastifyReply,
+	options: { list: T[]; total: number; page: number; pageSize: number },
+	msg = "success",
 ) {
-  const { list, total, page, pageSize } = options;
-  const totalPages = Math.ceil(total / pageSize);
+	const { list, total, page, pageSize } = options;
+	const totalPages = Math.ceil(total / pageSize);
 
-  return reply.status(200).send({
-    code: 200,
-    msg,
-    data: {
-      list,
-      pagination: {
-        total,
-        page,
-        pageSize,
-        totalPages,
-        hasMore: page < totalPages,
-      },
-    },
-  });
+	return reply.status(200).send({
+		code: 200,
+		msg,
+		data: {
+			list,
+			pagination: {
+				total,
+				page,
+				pageSize,
+				totalPages,
+				hasMore: page < totalPages,
+			},
+		},
+	});
 }
 
 /**
@@ -229,12 +214,8 @@ export function paginated<T>(
  * @param {string} [msg] - 响应消息
  * @returns {Object}
  */
-export function created<T = unknown>(
-  reply: FastifyReply,
-  data: T | null = null,
-  msg = "创建成功",
-) {
-  return success(reply, data, msg, 201);
+export function created<T = unknown>(reply: FastifyReply, data: T | null = null, msg = "创建成功") {
+	return success(reply, data, msg, 201);
 }
 
 /**
@@ -243,7 +224,7 @@ export function created<T = unknown>(
  * @returns {Object}
  */
 export function noContent(reply: FastifyReply) {
-  return reply.status(204).send();
+	return reply.status(204).send();
 }
 
 /**
@@ -253,13 +234,13 @@ export function noContent(reply: FastifyReply) {
  * @returns {Object|null} 如果验证失败返回错误响应，否则返回 null
  */
 export function validationError(
-  reply: FastifyReply,
-  validationResult: { valid: boolean; error?: string },
+	reply: FastifyReply,
+	validationResult: { valid: boolean; error?: string },
 ) {
-  if (!validationResult.valid) {
-    return badRequest(reply, validationResult.error);
-  }
-  return null;
+	if (!validationResult.valid) {
+		return badRequest(reply, validationResult.error);
+	}
+	return null;
 }
 
 /**
@@ -273,69 +254,65 @@ export function validationError(
  * @returns {Object}
  */
 export function handleServiceResult<T>(
-  reply: FastifyReply,
-  result: ServiceResult<T>,
-  options: Partial<HandleServiceResultOptions> = {},
+	reply: FastifyReply,
+	result: ServiceResult<T>,
+	options: Partial<HandleServiceResultOptions> = {},
 ) {
-  const {
-    successMsg = "success",
-    notFoundCode = 404,
-    notFoundMsg = "资源不存在",
-  } = options;
+	const { successMsg = "success", notFoundCode = 404, notFoundMsg = "资源不存在" } = options;
 
-  if (result.error) {
-    const errorMsg =
-      typeof result.error === "string"
-        ? result.error
-        : result.error.message || String(result.error);
+	if (result.error) {
+		const errorMsg =
+			typeof result.error === "string"
+				? result.error
+				: result.error.message || String(result.error);
 
-    // 根据错误类型返回不同状态码
-    if (
-      result.error.code === "PGRST116" ||
-      errorMsg.includes("不存在") ||
-      errorMsg.includes("not found")
-    ) {
-      return error(reply, notFoundMsg, notFoundCode);
-    }
+		// 根据错误类型返回不同状态码
+		if (
+			result.error.code === "PGRST116" ||
+			errorMsg.includes("不存在") ||
+			errorMsg.includes("not found")
+		) {
+			return error(reply, notFoundMsg, notFoundCode);
+		}
 
-    if (result.error.code === "DUPLICATE_LINK") {
-      return conflict(reply, errorMsg, result.error.existingLink);
-    }
+		if (result.error.code === "DUPLICATE_LINK") {
+			return conflict(reply, errorMsg, result.error.existingLink);
+		}
 
-    if (errorMsg.includes("无权") || errorMsg.includes("access denied")) {
-      return forbidden(reply, errorMsg);
-    }
+		if (errorMsg.includes("无权") || errorMsg.includes("access denied")) {
+			return forbidden(reply, errorMsg);
+		}
 
-    return badRequest(reply, errorMsg);
-  }
+		return badRequest(reply, errorMsg);
+	}
 
-  if (result.data === null || result.data === undefined) {
-    return notFound(reply, notFoundMsg);
-  }
+	if (result.data === null || result.data === undefined) {
+		return notFound(reply, notFoundMsg);
+	}
 
-  return success(reply, result.data, successMsg);
+	return success(reply, result.data, successMsg);
 }
 
 /**
  * 响应工具对象（便于统一导入）
  */
 export const Response = {
-  success,
-  error,
-  errorWithCode,
-  badRequest,
-  unauthorized,
-  forbidden,
-  notFound,
-  conflict,
-  tooManyRequests,
-  serverError,
-  serviceUnavailable,
-  paginated,
-  created,
-  noContent,
-  validationError,
-  handleServiceResult,
+	success,
+	error,
+	errorWithCode,
+	badRequest,
+	unauthorized,
+	forbidden,
+	notFound,
+	conflict,
+	tooManyRequests,
+	serverError,
+	serviceUnavailable,
+	paginated,
+	created,
+	noContent,
+	validationError,
+	handleServiceResult,
 };
 
 export default Response;

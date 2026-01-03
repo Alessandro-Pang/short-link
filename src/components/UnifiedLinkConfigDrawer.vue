@@ -1,3 +1,187 @@
+<script setup lang="ts">
+import { Message } from "@arco-design/web-vue";
+import {
+	IconCopy,
+	IconDelete,
+	IconEyeInvisible,
+	IconLink,
+	IconLock,
+	IconUser,
+} from "@arco-design/web-vue/es/icon";
+import { computed, ref, watch } from "vue";
+import FormSection from "@/components/base/FormSection.vue";
+import SwitchRow from "@/components/base/SwitchRow.vue";
+import AccessRestrictions from "@/components/link-config/AccessRestrictions.vue";
+import ExpirationSelector from "@/components/link-config/ExpirationSelector.vue";
+import { useLinkForm } from "@/composables/useLinkForm";
+import * as adminApi from "@/services/admin";
+import * as userApi from "@/services/api";
+import { REDIRECT_TYPE_OPTIONS } from "@/services/api";
+
+const props = withDefaults(
+	defineProps<{
+		visible: boolean;
+		linkId?: number | string | null;
+		mode?: "user" | "admin" | "home";
+		initialLink?: string;
+	}>(),
+	{
+		mode: "user",
+		linkId: null,
+		initialLink: "",
+	},
+);
+
+const emit = defineEmits<{
+	(e: "update:visible", value: boolean): void;
+	(e: "success"): void;
+	(e: "delete", id: number | string): void;
+	(e: "confirm", data: any): void;
+}>();
+
+const origin = window.location.origin;
+
+// Computed
+const visible = computed({
+	get: () => props.visible,
+	set: (val) => emit("update:visible", val),
+});
+
+const isNew = computed(() => !props.linkId);
+
+const drawerTitle = computed(() => {
+	if (props.mode === "home") return "高级配置";
+	if (isNew.value) return "创建链接";
+	return props.mode === "admin" ? "编辑链接（管理员）" : "编辑链接";
+});
+
+// 根据模式选择 API
+const apiService = computed(() => (props.mode === "admin" ? adminApi : userApi));
+
+// 使用 composable
+const {
+	isLoading,
+	isSubmitting,
+	isDeleting,
+	linkData,
+	expirationOptions,
+	expirationMode,
+	formData,
+	accessRestrictions,
+	isExpired,
+	formatDate,
+	loadExpirationOptions,
+	loadLinkDetail,
+	resetForm,
+	buildSubmitData,
+	submitForm,
+	deleteFormLink,
+} = useLinkForm(
+	computed(() => props.linkId),
+	apiService.value,
+	isNew,
+);
+
+// 表单引用
+const formRef = ref(null);
+
+// 重定向类型选项
+const redirectTypeOptions = REDIRECT_TYPE_OPTIONS;
+
+// 表单验证规则
+const rules = {
+	link: [
+		{ required: true, message: "请输入原始链接" },
+		{
+			validator: (value: string, cb: (msg?: string) => void) => {
+				if (value && !/^(https?:\/\/|#小程序:\/\/)/.test(value)) {
+					cb("链接必须以 http://、https:// 或 #小程序:// 开头");
+				} else {
+					cb();
+				}
+			},
+		},
+	],
+};
+
+// 复制短链接
+const copyShortLink = async () => {
+	if (!linkData.value?.short) return;
+	const url = `${origin}/u/${linkData.value.short}`;
+	try {
+		await navigator.clipboard.writeText(url);
+		Message.success("链接已复制到剪贴板");
+	} catch (error) {
+		Message.error("复制失败，请手动复制");
+	}
+};
+
+// 提交表单
+const handleSubmit = async () => {
+	try {
+		const valid = await (formRef.value as any)?.validate();
+		if (valid) return;
+
+		// 首页模式：返回配置数据，不直接创建
+		if (props.mode === "home") {
+			const configData = buildSubmitData();
+			emit("confirm", configData);
+			handleClose();
+			return;
+		}
+
+		// 正常创建/更新流程
+		await submitForm();
+
+		Message.success(isNew.value ? "链接创建成功" : "链接更新成功");
+		emit("success");
+		handleClose();
+	} catch (error: any) {
+		console.error("提交失败:", error);
+		Message.error(error.message || "操作失败");
+	}
+};
+
+// 删除链接
+const handleDelete = async () => {
+	try {
+		await deleteFormLink();
+		Message.success("链接已删除");
+		emit("delete", props.linkId!);
+		handleClose();
+	} catch (error: any) {
+		console.error("删除失败:", error);
+		Message.error(error.message || "删除失败");
+	}
+};
+
+// 关闭抽屉
+const handleClose = () => {
+	visible.value = false;
+	resetForm();
+};
+
+// 监听 visible 变化
+watch(
+	() => props.visible,
+	(val) => {
+		if (val) {
+			loadExpirationOptions();
+			if (props.linkId) {
+				loadLinkDetail();
+			} else {
+				resetForm();
+				// 如果是首页模式且有初始链接，则填充
+				if (props.mode === "home" && props.initialLink) {
+					formData.link = props.initialLink;
+				}
+			}
+		}
+	},
+	{ immediate: true },
+);
+</script>
+
 <template>
     <a-drawer
         v-model:visible="visible"
@@ -398,192 +582,6 @@
         </template>
     </a-drawer>
 </template>
-
-<script setup lang="ts">
-import { ref, computed, watch } from "vue";
-import { Message } from "@arco-design/web-vue";
-import {
-    IconLink,
-    IconLock,
-    IconUser,
-    IconEyeInvisible,
-    IconCopy,
-    IconDelete,
-} from "@arco-design/web-vue/es/icon";
-import { REDIRECT_TYPE_OPTIONS } from "@/services/api";
-import * as userApi from "@/services/api";
-import * as adminApi from "@/services/admin";
-import { useLinkForm } from "@/composables/useLinkForm";
-import FormSection from "@/components/base/FormSection.vue";
-import SwitchRow from "@/components/base/SwitchRow.vue";
-import ExpirationSelector from "@/components/link-config/ExpirationSelector.vue";
-import AccessRestrictions from "@/components/link-config/AccessRestrictions.vue";
-
-const props = withDefaults(
-    defineProps<{
-        visible: boolean;
-        linkId?: number | string | null;
-        mode?: "user" | "admin" | "home";
-        initialLink?: string;
-    }>(),
-    {
-        mode: "user",
-        linkId: null,
-        initialLink: "",
-    },
-);
-
-const emit = defineEmits<{
-    (e: "update:visible", value: boolean): void;
-    (e: "success"): void;
-    (e: "delete", id: number | string): void;
-    (e: "confirm", data: any): void;
-}>();
-
-const origin = window.location.origin;
-
-// Computed
-const visible = computed({
-    get: () => props.visible,
-    set: (val) => emit("update:visible", val),
-});
-
-const isNew = computed(() => !props.linkId);
-
-const drawerTitle = computed(() => {
-    if (props.mode === "home") return "高级配置";
-    if (isNew.value) return "创建链接";
-    return props.mode === "admin" ? "编辑链接（管理员）" : "编辑链接";
-});
-
-// 根据模式选择 API
-const apiService = computed(() =>
-    props.mode === "admin" ? adminApi : userApi,
-);
-
-// 使用 composable
-const {
-    isLoading,
-    isSubmitting,
-    isDeleting,
-    linkData,
-    expirationOptions,
-    expirationMode,
-    formData,
-    accessRestrictions,
-    isExpired,
-    formatDate,
-    loadExpirationOptions,
-    loadLinkDetail,
-    resetForm,
-    buildSubmitData,
-    submitForm,
-    deleteFormLink,
-} = useLinkForm(
-    computed(() => props.linkId),
-    apiService.value,
-    isNew,
-);
-
-// 表单引用
-const formRef = ref(null);
-
-// 重定向类型选项
-const redirectTypeOptions = REDIRECT_TYPE_OPTIONS;
-
-// 表单验证规则
-const rules = {
-    link: [
-        { required: true, message: "请输入原始链接" },
-        {
-            validator: (value: string, cb: (msg?: string) => void) => {
-                if (value && !/^(https?:\/\/|#小程序:\/\/)/.test(value)) {
-                    cb("链接必须以 http://、https:// 或 #小程序:// 开头");
-                } else {
-                    cb();
-                }
-            },
-        },
-    ],
-};
-
-// 复制短链接
-const copyShortLink = async () => {
-    if (!linkData.value?.link?.short) return;
-    const url = `${origin}/u/${linkData.value.link.short}`;
-    try {
-        await navigator.clipboard.writeText(url);
-        Message.success("链接已复制到剪贴板");
-    } catch (error) {
-        Message.error("复制失败，请手动复制");
-    }
-};
-
-// 提交表单
-const handleSubmit = async () => {
-    try {
-        const valid = await (formRef.value as any)?.validate();
-        if (valid) return;
-
-        // 首页模式：返回配置数据，不直接创建
-        if (props.mode === "home") {
-            const configData = buildSubmitData();
-            emit("confirm", configData);
-            handleClose();
-            return;
-        }
-
-        // 正常创建/更新流程
-        await submitForm();
-
-        Message.success(isNew.value ? "链接创建成功" : "链接更新成功");
-        emit("success");
-        handleClose();
-    } catch (error: any) {
-        console.error("提交失败:", error);
-        Message.error(error.message || "操作失败");
-    }
-};
-
-// 删除链接
-const handleDelete = async () => {
-    try {
-        await deleteFormLink();
-        Message.success("链接已删除");
-        emit("delete", props.linkId!);
-        handleClose();
-    } catch (error: any) {
-        console.error("删除失败:", error);
-        Message.error(error.message || "删除失败");
-    }
-};
-
-// 关闭抽屉
-const handleClose = () => {
-    visible.value = false;
-    resetForm();
-};
-
-// 监听 visible 变化
-watch(
-    () => props.visible,
-    (val) => {
-        if (val) {
-            loadExpirationOptions();
-            if (props.linkId) {
-                loadLinkDetail();
-            } else {
-                resetForm();
-                // 如果是首页模式且有初始链接，则填充
-                if (props.mode === "home" && props.initialLink) {
-                    formData.link = props.initialLink;
-                }
-            }
-        }
-    },
-    { immediate: true },
-);
-</script>
 
 <style scoped>
 :deep(.arco-drawer-body) {

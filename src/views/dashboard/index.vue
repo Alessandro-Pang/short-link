@@ -140,21 +140,21 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
-    IconRefresh,
-    IconDown,
-    IconHome,
-    IconExport,
-    IconLock,
-    IconUser,
+	IconDown,
+	IconExport,
+	IconHome,
+	IconLock,
+	IconRefresh,
+	IconUser,
 } from "@arco-design/web-vue/es/icon";
-import { useUserStore, useUiStore } from "@/stores";
-import { getRouteTitle } from "@/router";
-import SidebarMenu from "./components/SidebarMenu.vue";
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import ThemeToggle from "@/components/ThemeToggle.vue";
+import { getRouteTitle } from "@/router";
+import { useUiStore, useUserStore } from "@/stores";
+import SidebarMenu from "./components/SidebarMenu.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -168,50 +168,50 @@ const childViewRef = ref(null);
 
 // Computed
 const isAdminRoute = computed(() => {
-    return route.path.includes("/admin");
+	return route.path.includes("/admin");
 });
 
 const currentTitle = computed(() => {
-    return getRouteTitle(route.name);
+	return getRouteTitle(route.name);
 });
 
 // Methods
 const goToHome = () => {
-    router.push("/");
+	router.push("/");
 };
 
 const handleUserDropdown = async (value) => {
-    if (value === "profile") {
-        router.push("/dashboard/profile");
-    } else if (value === "home") {
-        goToHome();
-    } else if (value === "logout") {
-        try {
-            await userStore.logout();
-            Message.success("已退出登录");
-            router.push("/login");
-        } catch (error) {
-            Message.error("退出登录失败");
-        }
-    }
+	if (value === "profile") {
+		router.push("/dashboard/profile");
+	} else if (value === "home") {
+		goToHome();
+	} else if (value === "logout") {
+		try {
+			await userStore.logout();
+			Message.success("已退出登录");
+			router.push("/login");
+		} catch (error) {
+			Message.error("退出登录失败");
+		}
+	}
 };
 
 const handleRefresh = () => {
-    // 如果在 profile 页面，也刷新用户信息
-    if (route.name === "dashboard-profile") {
-        userStore.refreshUser();
-    }
-    // 调用子组件的刷新方法
-    if (childViewRef.value?.refresh) {
-        childViewRef.value.refresh();
-    }
+	// 如果在 profile 页面，也刷新用户信息
+	if (route.name === "dashboard-profile") {
+		userStore.refreshUser();
+	}
+	// 调用子组件的刷新方法
+	if (childViewRef.value?.refresh) {
+		childViewRef.value.refresh();
+	}
 };
 
 onMounted(async () => {
-    // 初始化用户状态（会自动使用缓存，避免重复请求）
-    await userStore.initialize();
-    if (!userStore.isAuthenticated) {
-        router.push("/login");
-    }
+	// 初始化用户状态（会自动使用缓存，避免重复请求）
+	await userStore.initialize();
+	if (!userStore.isAuthenticated) {
+		router.push("/login");
+	}
 });
 </script>

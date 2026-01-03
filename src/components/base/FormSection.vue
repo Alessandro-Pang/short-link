@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 defineProps<{
-    title?: string;
+	title?: string;
 }>();
 </script>
 
