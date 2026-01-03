@@ -118,7 +118,7 @@ export const useUserStore = defineStore("user", () => {
   async function initialize(force = false) {
     // 如果已经在初始化中，等待完成
     if (isInitializing.value) {
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
         const checkInterval = setInterval(() => {
           if (!isInitializing.value) {
             clearInterval(checkInterval);

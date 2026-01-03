@@ -59,7 +59,7 @@ export function useLinkForm(
   const isLoading = ref(false);
   const isSubmitting = ref(false);
   const isDeleting = ref(false);
-  const linkData = ref<Link | null>(null);
+  const linkData = ref<LinkDetailResponse | null>(null);
   const expirationOptions = ref<ExpirationOption[]>([]);
   const expirationMode = ref<"preset" | "custom" | "none">("none");
 
@@ -119,25 +119,31 @@ export function useLinkForm(
     isLoading.value = true;
     try {
       const result = await apiService.getLinkDetail(linkId.value);
-      // 兼容不同 API 返回格式
-      linkData.value = result.data || result;
+      // Store the entire response
+      linkData.value = result.data || null;
 
+      // Extract the link data for form population
       const data = linkData.value;
+      if (!data) return;
 
-      // 填充表单数据
-      Object.assign(formData, {
-        link: data.link || "",
-        title: data.title || "",
-        description: data.description || "",
-        is_active: data.is_active !== false,
-        redirect_type: data.redirect_type || 302,
-        pass_query_params: data.pass_query_params || false,
-        forward_headers: data.forward_headers || false,
-        forward_header_list: data.forward_header_list || [],
-        expiration_date: data.expiration_date || null,
-        max_clicks: data.max_clicks || null,
-        password: "", // 密码不从服务器加载，始终为空
-      });
+      // 填充表单数据 - avoiding destructuring to prevent deep type recursion
+      formData.link = data.link || "";
+      formData.title = data.title || "";
+      formData.description = data.description || "";
+      formData.is_active = data.is_active !== false;
+      formData.redirect_type = data.redirect_type || 302;
+      formData.pass_query_params = data.pass_query_params || false;
+      formData.forward_headers = data.forward_headers || false;
+      formData.expiration_date = data.expiration_date || null;
+      formData.max_clicks = data.max_clicks || null;
+      formData.password = ""; // 密码不从服务器加载，始终为空
+
+      // Handle forward_header_list separately to avoid type recursion
+      // Use bracket notation to avoid type inference issues
+      const fwdHeaders = (data as any)["forward_header_list"];
+      formData.forward_header_list = Array.isArray(fwdHeaders)
+        ? fwdHeaders
+        : [];
 
       // 设置过期模式
       if (data.expiration_date) {
@@ -146,16 +152,17 @@ export function useLinkForm(
         expirationMode.value = "none";
       }
 
-      // 填充访问限制
-      if (data.access_restrictions) {
+      // 填充访问限制 - use bracket notation to avoid type recursion
+      const restrictions = (data as any)["access_restrictions"];
+      if (restrictions) {
         Object.assign(accessRestrictions, {
-          ip_whitelist: data.access_restrictions.ip_whitelist || [],
-          ip_blacklist: data.access_restrictions.ip_blacklist || [],
-          allowed_countries: data.access_restrictions.allowed_countries || [],
-          blocked_countries: data.access_restrictions.blocked_countries || [],
-          allowed_devices: data.access_restrictions.allowed_devices || [],
-          allowed_referrers: data.access_restrictions.allowed_referrers || [],
-          blocked_referrers: data.access_restrictions.blocked_referrers || [],
+          ip_whitelist: restrictions.ip_whitelist || [],
+          ip_blacklist: restrictions.ip_blacklist || [],
+          allowed_countries: restrictions.allowed_countries || [],
+          blocked_countries: restrictions.blocked_countries || [],
+          allowed_devices: restrictions.allowed_devices || [],
+          allowed_referrers: restrictions.allowed_referrers || [],
+          blocked_referrers: restrictions.blocked_referrers || [],
         });
       }
     } catch (error) {

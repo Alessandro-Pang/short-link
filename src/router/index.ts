@@ -6,7 +6,11 @@
  * @Description: 路由配置和认证守卫
  * @FilePath: /short-link/src/router/index
  */
-import { createRouter, createWebHistory } from "vue-router";
+import {
+  createRouter,
+  createWebHistory,
+  type RouteRecordRaw,
+} from "vue-router";
 import { getSession } from "@/services/auth";
 
 import DashboardPage from "@/views/dashboard/index.vue";
@@ -26,7 +30,7 @@ import RegisterPage from "@/views/register/index.vue";
  * - menuOrder: 菜单排序（数字越小越靠前）
  */
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: "/",
     name: "home",
@@ -211,21 +215,24 @@ export function getDashboardMenuRoutes(isAdmin = false) {
     }));
 
   // 按组分类并排序
-  const grouped = {
+  const grouped: Record<string, typeof menuRoutes> = {
     main: [],
     user: [],
     admin: [],
   };
 
   for (const route of menuRoutes) {
-    if (grouped[route.menuGroup]) {
-      grouped[route.menuGroup].push(route);
+    const group = route.menuGroup as string;
+    if (grouped[group]) {
+      grouped[group].push(route);
     }
   }
 
   // 每个组内按 menuOrder 排序
   for (const group of Object.keys(grouped)) {
-    grouped[group].sort((a, b) => a.menuOrder - b.menuOrder);
+    grouped[group].sort(
+      (a, b) => (a.menuOrder as number) - (b.menuOrder as number),
+    );
   }
 
   return grouped;

@@ -73,7 +73,7 @@
 
                     <!-- 原始链接展示（编辑时且非首页模式） -->
                     <a-form-item
-                        v-else-if="!isNew && mode !== 'home'"
+                        v-else-if="!isNew && (mode as string) !== 'home'"
                         label="原始链接"
                     >
                         <div
@@ -327,7 +327,7 @@
 
                     <!-- 编辑时显示密码状态 -->
                     <a-form-item
-                        v-else-if="!isNew && mode !== 'home'"
+                        v-else-if="!isNew && (mode as string) !== 'home'"
                         label="访问密码"
                     >
                         <div class="flex items-center gap-2">
@@ -509,8 +509,8 @@ const rules = {
 
 // 复制短链接
 const copyShortLink = async () => {
-    if (!linkData.value?.short) return;
-    const url = `${origin}/u/${linkData.value.short}`;
+    if (!linkData.value?.link?.short) return;
+    const url = `${origin}/u/${linkData.value.link.short}`;
     try {
         await navigator.clipboard.writeText(url);
         Message.success("链接已复制到剪贴板");

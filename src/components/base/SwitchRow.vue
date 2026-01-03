@@ -5,7 +5,12 @@
             <div v-if="description" class="switch-desc">{{ description }}</div>
         </div>
         <div class="switch-action">
-            <a-switch :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" />
+            <a-switch
+                :model-value="modelValue"
+                @update:model-value="
+                    (val: boolean) => $emit('update:modelValue', val)
+                "
+            />
         </div>
     </div>
 </template>
@@ -18,7 +23,7 @@ defineProps<{
 }>();
 
 defineEmits<{
-    (e: 'update:modelValue', value: boolean): void;
+    (e: "update:modelValue", value: boolean): void;
 }>();
 </script>
 

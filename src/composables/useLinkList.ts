@@ -3,11 +3,9 @@
  * 用于用户和管理员的链接列表页面
  */
 import { ref, computed } from "vue";
-import type { Ref } from "vue";
 import type { Link } from "../../types/shared";
 import type {
   ApiResponse,
-  DashboardLinksQuery,
   DashboardLinksResponse,
   BatchOperationResponse,
 } from "../../types/api";

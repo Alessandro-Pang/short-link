@@ -11,12 +11,23 @@ import {
   batchDeleteLinks,
   batchToggleLinks,
 } from "@/services/admin";
+import type { Link } from "../../types/shared";
+
+interface FetchLinksOptions {
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  ascending?: boolean;
+  linkId?: number | null;
+  keyword?: string | null;
+  userId?: string | null;
+}
 
 export const useAdminLinksStore = defineStore("adminLinks", () => {
   // ==================== State ====================
 
   // 链接列表
-  const links = ref([]);
+  const links = ref<Link[]>([]);
   const total = ref(0);
 
   // 加载状态
@@ -56,7 +67,7 @@ export const useAdminLinksStore = defineStore("adminLinks", () => {
    * 加载所有链接列表（管理员权限）
    * @param {Object} options - 查询选项
    */
-  async function fetchLinks(options = {}) {
+  async function fetchLinks(options: FetchLinksOptions = {}) {
     isLoading.value = true;
     try {
       const result = await getAllLinks({
@@ -117,7 +128,11 @@ export const useAdminLinksStore = defineStore("adminLinks", () => {
       await deleteLink(linkId);
 
       // 从列表中移除
-      links.value = links.value.filter((link) => link.id !== linkId);
+      const currentLinks: any[] = links.value as any;
+      const filteredLinks = currentLinks.filter(
+        (link: any) => link.id !== linkId,
+      );
+      links.value = filteredLinks as any;
       total.value = Math.max(0, total.value - 1);
 
       // 从选中列表中移除
@@ -142,7 +157,11 @@ export const useAdminLinksStore = defineStore("adminLinks", () => {
       await batchDeleteLinks(linkIds);
 
       // 从列表中移除
-      links.value = links.value.filter((link) => !linkIds.includes(link.id));
+      const currentLinks: any[] = links.value as any;
+      const filteredLinks = currentLinks.filter(
+        (link: any) => !linkIds.includes(link.id),
+      );
+      links.value = filteredLinks as any;
       total.value = Math.max(0, total.value - linkIds.length);
 
       // 清空选中
@@ -167,12 +186,14 @@ export const useAdminLinksStore = defineStore("adminLinks", () => {
       await batchToggleLinks(linkIds, true);
 
       // 更新列表中的链接状态
-      links.value = links.value.map((link) => {
+      const currentLinks: any[] = links.value as any;
+      const updatedLinks = currentLinks.map((link: any) => {
         if (linkIds.includes(link.id)) {
           return { ...link, is_active: true };
         }
         return link;
       });
+      links.value = updatedLinks as any;
 
       return true;
     } catch (error) {
@@ -193,12 +214,14 @@ export const useAdminLinksStore = defineStore("adminLinks", () => {
       await batchToggleLinks(linkIds, false);
 
       // 更新列表中的链接状态
-      links.value = links.value.map((link) => {
+      const currentLinks: any[] = links.value as any;
+      const updatedLinks = currentLinks.map((link: any) => {
         if (linkIds.includes(link.id)) {
           return { ...link, is_active: false };
         }
         return link;
       });
+      links.value = updatedLinks as any;
 
       return true;
     } catch (error) {

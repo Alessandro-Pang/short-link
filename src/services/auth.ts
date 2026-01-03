@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "./supabase";
+import { ApiError } from "./request";
 import dayjs from "dayjs";
 
 /**
@@ -73,9 +74,7 @@ export async function signInWithEmail(email, password) {
         await supabase.auth.signOut();
         // 记录失败日志
         await recordLoginAttempt(email, false, "用户已被禁用", "email");
-        const bannedError = new Error("您的账号已被禁用，请联系管理员");
-        bannedError.code = "USER_BANNED";
-        throw bannedError;
+        throw new ApiError("您的账号已被禁用，请联系管理员", "USER_BANNED");
       }
 
       // 记录登录成功日志
@@ -224,9 +223,7 @@ export async function signUpWithEmail(email, password, metadata = {}) {
     (!data?.user && !data?.session);
 
   if (looksLikeAlreadyRegistered) {
-    const err = new Error("User already registered");
-    err.code = "USER_ALREADY_REGISTERED";
-    throw err;
+    throw new ApiError("User already registered", "USER_ALREADY_REGISTERED");
   }
 
   return data;

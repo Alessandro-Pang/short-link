@@ -77,6 +77,10 @@ export function makePasswordRules({
   getUsername,
   getEmail,
   requiredMessage = "请输入密码",
+}: {
+  getUsername?: () => string;
+  getEmail?: () => string;
+  requiredMessage?: string;
 } = {}) {
   return [
     { required: true, message: requiredMessage },

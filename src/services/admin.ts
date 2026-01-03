@@ -4,16 +4,117 @@
  */
 
 import { fetchApi, buildUrl, ApiError } from "./request";
+import type { ApiResponse, LinkDetailResponse } from "../../types/api";
+import type {
+  Link,
+  LoginLog,
+  LinkAccessLog,
+  UserProfile,
+} from "../../types/shared";
 
 // 导出 ApiError 供外部使用
 export { ApiError };
+
+// Admin API 查询选项类型
+interface AdminLinksQuery {
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  ascending?: boolean;
+  linkId?: number | null;
+  keyword?: string | null;
+  userId?: string | null;
+}
+
+interface AccessLogsQuery {
+  limit?: number;
+  offset?: number;
+}
+
+interface AllLoginLogsQuery {
+  limit?: number;
+  offset?: number;
+  userId?: string | null;
+  success?: boolean | null;
+  startDate?: string | null;
+  endDate?: string | null;
+}
+
+interface UsersQuery {
+  page?: number;
+  perPage?: number;
+}
+
+interface AdminAccessLogsQuery {
+  limit?: number;
+  offset?: number;
+  linkId?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+}
+
+// Admin API 响应类型
+interface GlobalStatsResponse {
+  total_links: number;
+  total_users: number;
+  total_clicks: number;
+  active_links: number;
+  clicks_today: number;
+  [key: string]: unknown;
+}
+
+interface AllLinksResponse {
+  links: Link[];
+  total: number;
+}
+
+interface LinkAccessLogsResponse {
+  logs: LinkAccessLog[];
+  total: number;
+}
+
+interface AllUsersResponse {
+  users: UserProfile[];
+  total: number;
+}
+
+interface LoginLogsResponse {
+  logs: LoginLog[];
+  total: number;
+}
+
+interface LoginStatsResponse {
+  total: number;
+  success: number;
+  failed: number;
+  [key: string]: unknown;
+}
+
+interface UserInfoResponse {
+  id: string;
+  email: string;
+  isAdmin: boolean;
+  [key: string]: unknown;
+}
+
+interface BatchOperationResponse {
+  success: boolean;
+  updated: number;
+  failed: number;
+}
+
+interface TopLinksResponse {
+  links: Array<Link & { click_count: number }>;
+}
 
 /**
  * 获取全局统计数据（管理员专用）
  * @returns {Promise} - 返回全局统计数据
  */
-export async function getGlobalStats() {
-  const response = await fetchApi("/api/admin/stats");
+export async function getGlobalStats(): Promise<
+  GlobalStatsResponse | undefined
+> {
+  const response = await fetchApi<GlobalStatsResponse>("/api/admin/stats");
   return response.data;
 }
 
@@ -22,7 +123,9 @@ export async function getGlobalStats() {
  * @param {Object} options - 查询选项
  * @returns {Promise} - 返回链接列表
  */
-export async function getAllLinks(options = {}) {
+export async function getAllLinks(
+  options: AdminLinksQuery = {},
+): Promise<AllLinksResponse | undefined> {
   const {
     limit = 50,
     offset = 0,
@@ -43,7 +146,7 @@ export async function getAllLinks(options = {}) {
     userId,
   });
 
-  const response = await fetchApi(url);
+  const response = await fetchApi<AllLinksResponse>(url);
   return response.data;
 }
 
@@ -52,9 +155,10 @@ export async function getAllLinks(options = {}) {
  * @param {number} linkId - 链接 ID
  * @returns {Promise} - 返回链接详情
  */
-export async function getLinkDetail(linkId) {
-  const response = await fetchApi(`/api/admin/links/${linkId}`);
-  return response.data;
+export async function getLinkDetail(
+  linkId: number,
+): Promise<ApiResponse<LinkDetailResponse>> {
+  return fetchApi<LinkDetailResponse>(`/api/admin/links/${linkId}`);
 }
 
 /**
@@ -63,7 +167,10 @@ export async function getLinkDetail(linkId) {
  * @param {Object} options - 查询选项
  * @returns {Promise} - 返回访问日志
  */
-export async function getLinkAccessLogs(linkId, options = {}) {
+export async function getLinkAccessLogs(
+  linkId: number,
+  options: AccessLogsQuery = {},
+): Promise<LinkAccessLogsResponse | undefined> {
   const { limit = 50, offset = 0 } = options;
 
   const url = buildUrl(`/api/admin/links/${linkId}/access-logs`, {
@@ -71,7 +178,7 @@ export async function getLinkAccessLogs(linkId, options = {}) {
     offset,
   });
 
-  const response = await fetchApi(url);
+  const response = await fetchApi<LinkAccessLogsResponse>(url);
   return response.data;
 }
 
@@ -81,12 +188,14 @@ export async function getLinkAccessLogs(linkId, options = {}) {
  * @param {Object} updates - 更新数据
  * @returns {Promise} - 返回更新后的链接
  */
-export async function updateLink(linkId, updates) {
-  const response = await fetchApi(`/api/admin/links/${linkId}`, {
+export async function updateLink(
+  linkId: number,
+  updates: Record<string, unknown>,
+): Promise<ApiResponse<Link>> {
+  return fetchApi<Link>(`/api/admin/links/${linkId}`, {
     method: "PUT",
     body: updates,
   });
-  return response.data;
 }
 
 /**
@@ -95,12 +204,14 @@ export async function updateLink(linkId, updates) {
  * @param {boolean} isActive - 是否启用
  * @returns {Promise} - 返回更新结果
  */
-export async function toggleLinkStatus(linkId, isActive) {
-  const response = await fetchApi(`/api/admin/links/${linkId}/status`, {
+export async function toggleLinkStatus(
+  linkId: number,
+  isActive: boolean,
+): Promise<ApiResponse<Link>> {
+  return fetchApi<Link>(`/api/admin/links/${linkId}/status`, {
     method: "PATCH",
     body: { is_active: isActive },
   });
-  return response.data;
 }
 
 /**
@@ -108,8 +219,8 @@ export async function toggleLinkStatus(linkId, isActive) {
  * @param {number} linkId - 链接 ID
  * @returns {Promise}
  */
-export async function deleteLink(linkId) {
-  return fetchApi(`/api/admin/links/${linkId}`, {
+export async function deleteLink(linkId: number): Promise<ApiResponse<void>> {
+  return fetchApi<void>(`/api/admin/links/${linkId}`, {
     method: "DELETE",
   });
 }
@@ -119,8 +230,10 @@ export async function deleteLink(linkId) {
  * @param {Array<number>} linkIds - 链接 ID 数组
  * @returns {Promise} - 返回删除结果
  */
-export async function batchDeleteLinks(linkIds) {
-  return fetchApi("/api/admin/links/batch-delete", {
+export async function batchDeleteLinks(
+  linkIds: number[],
+): Promise<ApiResponse<BatchOperationResponse>> {
+  return fetchApi<BatchOperationResponse>("/api/admin/links/batch-delete", {
     method: "POST",
     body: { linkIds },
   });
@@ -132,8 +245,11 @@ export async function batchDeleteLinks(linkIds) {
  * @param {boolean} isActive - 是否启用
  * @returns {Promise} - 返回操作结果
  */
-export async function batchToggleLinks(linkIds, isActive) {
-  return fetchApi("/api/admin/links/batch-status", {
+export async function batchToggleLinks(
+  linkIds: number[],
+  isActive: boolean,
+): Promise<ApiResponse<BatchOperationResponse>> {
+  return fetchApi<BatchOperationResponse>("/api/admin/links/batch-status", {
     method: "POST",
     body: { linkIds, is_active: isActive },
   });
@@ -145,8 +261,11 @@ export async function batchToggleLinks(linkIds, isActive) {
  * @param {string|null} password - 新密码，null 表示删除密码
  * @returns {Promise} - 返回操作结果
  */
-export async function updateLinkPassword(linkId, password) {
-  return fetchApi(`/api/admin/links/${linkId}`, {
+export async function updateLinkPassword(
+  linkId: number,
+  password: string | null,
+): Promise<ApiResponse<Link>> {
+  return fetchApi<Link>(`/api/admin/links/${linkId}`, {
     method: "PUT",
     body: { password },
   });
@@ -157,7 +276,9 @@ export async function updateLinkPassword(linkId, password) {
  * @param {Object} options - 查询选项
  * @returns {Promise} - 返回用户列表
  */
-export async function getAllUsers(options = {}) {
+export async function getAllUsers(
+  options: UsersQuery = {},
+): Promise<AllUsersResponse | undefined> {
   const { page = 1, perPage = 50 } = options;
 
   const url = buildUrl("/api/admin/users", {
@@ -165,7 +286,7 @@ export async function getAllUsers(options = {}) {
     perPage,
   });
 
-  const response = await fetchApi(url);
+  const response = await fetchApi<AllUsersResponse>(url);
   return response.data;
 }
 
@@ -174,8 +295,10 @@ export async function getAllUsers(options = {}) {
  * @param {string} userId - 用户 ID
  * @returns {Promise} - 返回用户详情
  */
-export async function getUserDetails(userId) {
-  const response = await fetchApi(`/api/admin/users/${userId}`);
+export async function getUserDetails(
+  userId: string,
+): Promise<UserProfile | undefined> {
+  const response = await fetchApi<UserProfile>(`/api/admin/users/${userId}`);
   return response.data;
 }
 
@@ -184,8 +307,10 @@ export async function getUserDetails(userId) {
  * @param {Object} userData - 用户数据
  * @returns {Promise} - 返回创建结果
  */
-export async function createUser(userData) {
-  return fetchApi("/api/admin/users", {
+export async function createUser(
+  userData: Record<string, unknown>,
+): Promise<ApiResponse<UserProfile>> {
+  return fetchApi<UserProfile>("/api/admin/users", {
     method: "POST",
     body: userData,
   });
@@ -197,8 +322,11 @@ export async function createUser(userData) {
  * @param {Object} updates - 更新数据
  * @returns {Promise} - 返回更新结果
  */
-export async function updateUser(userId, updates) {
-  return fetchApi(`/api/admin/users/${userId}`, {
+export async function updateUser(
+  userId: string,
+  updates: Record<string, unknown>,
+): Promise<ApiResponse<UserProfile>> {
+  return fetchApi<UserProfile>(`/api/admin/users/${userId}`, {
     method: "PUT",
     body: updates,
   });
@@ -209,8 +337,8 @@ export async function updateUser(userId, updates) {
  * @param {string} userId - 用户 ID
  * @returns {Promise}
  */
-export async function deleteUser(userId) {
-  return fetchApi(`/api/admin/users/${userId}`, {
+export async function deleteUser(userId: string): Promise<ApiResponse<void>> {
+  return fetchApi<void>(`/api/admin/users/${userId}`, {
     method: "DELETE",
   });
 }
@@ -221,8 +349,11 @@ export async function deleteUser(userId) {
  * @param {string} password - 新密码
  * @returns {Promise}
  */
-export async function resetUserPassword(userId, password) {
-  return fetchApi(`/api/admin/users/${userId}/reset-password`, {
+export async function resetUserPassword(
+  userId: string,
+  password: string,
+): Promise<ApiResponse<void>> {
+  return fetchApi<void>(`/api/admin/users/${userId}/reset-password`, {
     method: "POST",
     body: { password },
   });
@@ -234,8 +365,11 @@ export async function resetUserPassword(userId, password) {
  * @param {boolean} banned - 是否禁用
  * @returns {Promise}
  */
-export async function toggleUserStatus(userId, banned) {
-  return fetchApi(`/api/admin/users/${userId}/ban-status`, {
+export async function toggleUserStatus(
+  userId: string,
+  banned: boolean,
+): Promise<ApiResponse<void>> {
+  return fetchApi<void>(`/api/admin/users/${userId}/ban-status`, {
     method: "PATCH",
     body: { banned },
   });
@@ -246,7 +380,9 @@ export async function toggleUserStatus(userId, banned) {
  * @param {Object} options - 查询选项
  * @returns {Promise} - 返回登录日志列表
  */
-export async function getAllLoginLogs(options = {}) {
+export async function getAllLoginLogs(
+  options: AllLoginLogsQuery = {},
+): Promise<LoginLogsResponse | undefined> {
   const {
     limit = 50,
     offset = 0,
@@ -265,7 +401,7 @@ export async function getAllLoginLogs(options = {}) {
     endDate,
   });
 
-  const response = await fetchApi(url);
+  const response = await fetchApi<LoginLogsResponse>(url);
   return response.data;
 }
 
@@ -274,9 +410,11 @@ export async function getAllLoginLogs(options = {}) {
  * @param {string} userId - 用户 ID（可选）
  * @returns {Promise} - 返回登录统计
  */
-export async function getLoginStats(userId = null) {
+export async function getLoginStats(
+  userId: string | null = null,
+): Promise<LoginStatsResponse | undefined> {
   const url = buildUrl("/api/admin/login/stats", { userId });
-  const response = await fetchApi(url);
+  const response = await fetchApi<LoginStatsResponse>(url);
   return response.data;
 }
 
@@ -284,9 +422,9 @@ export async function getLoginStats(userId = null) {
  * 检查当前用户是否为管理员
  * @returns {Promise<boolean>} - 返回是否为管理员
  */
-export async function checkIsAdmin() {
+export async function checkIsAdmin(): Promise<boolean> {
   try {
-    const response = await fetchApi("/api/dashboard/user", {
+    const response = await fetchApi<UserInfoResponse>("/api/dashboard/user", {
       throwOnError: false,
     });
     return response.data?.isAdmin === true;
@@ -300,8 +438,10 @@ export async function checkIsAdmin() {
  * 获取用户信息（包含管理员状态）
  * @returns {Promise<Object>} - 返回用户信息
  */
-export async function getCurrentUserWithAdminStatus() {
-  const response = await fetchApi("/api/dashboard/user");
+export async function getCurrentUserWithAdminStatus(): Promise<
+  UserInfoResponse | undefined
+> {
+  const response = await fetchApi<UserInfoResponse>("/api/dashboard/user");
   return response.data;
 }
 
@@ -310,7 +450,9 @@ export async function getCurrentUserWithAdminStatus() {
  * @param {Object} options - 查询选项
  * @returns {Promise} - 返回访问日志列表
  */
-export async function getAccessLogs(options = {}) {
+export async function getAccessLogs(
+  options: AdminAccessLogsQuery = {},
+): Promise<LinkAccessLogsResponse | undefined> {
   const {
     limit = 50,
     offset = 0,
@@ -327,7 +469,7 @@ export async function getAccessLogs(options = {}) {
     endDate,
   });
 
-  const response = await fetchApi(url);
+  const response = await fetchApi<LinkAccessLogsResponse>(url);
   return response.data;
 }
 
@@ -335,8 +477,10 @@ export async function getAccessLogs(options = {}) {
  * 获取管理员仪表盘统计（管理员专用）
  * @returns {Promise} - 返回统计数据
  */
-export async function getAdminStats() {
-  const response = await fetchApi("/api/admin/stats");
+export async function getAdminStats(): Promise<
+  GlobalStatsResponse | undefined
+> {
+  const response = await fetchApi<GlobalStatsResponse>("/api/admin/stats");
   return response.data;
 }
 
@@ -346,12 +490,15 @@ export async function getAdminStats() {
  * @param {number} limit - 返回条数，默认 20
  * @returns {Promise} - 返回排行榜数据
  */
-export async function getGlobalTopLinks(period = "daily", limit = 20) {
+export async function getGlobalTopLinks(
+  period: string = "daily",
+  limit: number = 20,
+): Promise<TopLinksResponse> {
   try {
-    const response = await fetchApi(
+    const response = await fetchApi<TopLinksResponse>(
       `/api/admin/top-links?period=${period}&limit=${limit}`,
     );
-    return response.data;
+    return response.data || { links: [] };
   } catch (error) {
     console.error("获取全局排行榜数据失败:", error);
     return { links: [] };

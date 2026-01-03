@@ -167,7 +167,9 @@ export async function handleOAuthLinkCallback(provider) {
       body: {
         provider,
         provider_user_id: targetIdentity.id,
-        provider_email: targetIdentity.email || user.email,
+        provider_email:
+          (targetIdentity.identity_data as { email?: string })?.email ||
+          user.email,
         provider_metadata: targetIdentity.identity_data || {},
       },
     });

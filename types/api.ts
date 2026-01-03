@@ -104,11 +104,10 @@ export interface ToggleLinkStatusRequest {
 /**
  * Response containing a single link with additional details
  */
-export interface LinkDetailResponse {
-  link?: Link;
+export type LinkDetailResponse = {
   click_count?: number;
   last_clicked_at?: string | null;
-}
+} & Link;
 
 /**
  * Response containing dashboard statistics
@@ -118,6 +117,8 @@ export interface DashboardStatsResponse {
   active_links: number;
   total_clicks: number;
   clicks_today: number;
+  weekly_new_links?: number;
+  avg_clicks_per_link?: number;
 }
 
 /**
