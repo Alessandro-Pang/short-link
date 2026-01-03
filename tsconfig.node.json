@@ -9,13 +9,5 @@
     "noImplicitAny": false,
     "types": ["node"],
   },
-  "include": [
-    "vite.config.ts",
-    "server/**/*.ts",
-    "service/**/*.ts",
-    "api/**/*.ts",
-    "service/**/*.d.ts",
-    "types/**/*.ts",
-    "types/**/*.d.ts",
-  ],
+  "include": ["vite.config.ts", "server/**/*.ts"],
 }

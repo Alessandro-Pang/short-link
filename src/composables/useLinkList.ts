@@ -4,20 +4,46 @@
  */
 import { ref, computed } from "vue";
 import type { Ref } from "vue";
+import type { Link } from "../../types/shared";
+import type {
+  ApiResponse,
+  DashboardLinksQuery,
+  DashboardLinksResponse,
+  BatchOperationResponse,
+} from "../../types/api";
+
+// 链接列表查询选项
+interface LinkListQueryOptions {
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  ascending?: boolean;
+  linkId?: number | string | null;
+  keyword?: string;
+  userId?: number | string | null;
+}
 
 // API 服务接口
 interface LinkListApiService {
-  getLinks: (options: any) => Promise<any>;
-  toggleLinkStatus: (id: number | string, isActive: boolean) => Promise<any>;
-  deleteLink: (id: number | string) => Promise<any>;
-  batchDeleteLinks: (ids: (number | string)[]) => Promise<any>;
-  batchToggleLinks: (ids: (number | string)[], isActive: boolean) => Promise<any>;
+  getLinks: (options: LinkListQueryOptions) => Promise<DashboardLinksResponse>;
+  toggleLinkStatus: (
+    id: number | string,
+    isActive: boolean,
+  ) => Promise<ApiResponse<Link>>;
+  deleteLink: (id: number | string) => Promise<ApiResponse<void>>;
+  batchDeleteLinks: (
+    ids: (number | string)[],
+  ) => Promise<ApiResponse<BatchOperationResponse>>;
+  batchToggleLinks: (
+    ids: (number | string)[],
+    isActive: boolean,
+  ) => Promise<ApiResponse<BatchOperationResponse>>;
 }
 
 export function useLinkList(apiService: LinkListApiService) {
   // State
   const isLoading = ref(false);
-  const links = ref<any[]>([]);
+  const links = ref<Link[]>([]);
   const total = ref(0);
   const searchKeyword = ref("");
   const searchInput = ref(""); // 用于输入框的临时值
@@ -40,7 +66,9 @@ export function useLinkList(apiService: LinkListApiService) {
   const selectedCount = computed(() => selectedRowKeys.value.length);
 
   // 加载数据
-  const loadData = async (options: any = {}) => {
+  const loadData = async (
+    options: Partial<LinkListQueryOptions> = {},
+  ): Promise<DashboardLinksResponse> => {
     isLoading.value = true;
     try {
       const result = await apiService.getLinks({
@@ -109,7 +137,10 @@ export function useLinkList(apiService: LinkListApiService) {
   };
 
   // 切换链接状态
-  const handleToggleStatus = async (record: any, newValue: boolean) => {
+  const handleToggleStatus = async (
+    record: Link,
+    newValue: boolean,
+  ): Promise<boolean> => {
     togglingIds.value.add(record.id);
     try {
       await apiService.toggleLinkStatus(record.id, newValue);

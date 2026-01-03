@@ -6,13 +6,32 @@ import { ref, reactive, computed } from "vue";
 import type { Ref } from "vue";
 import dayjs from "dayjs";
 import { getExpirationOptions } from "@/services/api";
+import type {
+  Link,
+  ExpirationOption,
+  LinkCreateOptions,
+  AccessRestrictions,
+} from "../../types/shared";
+import type {
+  ApiResponse,
+  LinkDetailResponse,
+  UpdateLinkRequest,
+} from "../../types/api";
 
 // 定义 API 服务接口
 interface ApiService {
-  getLinkDetail: (id: number | string) => Promise<any>;
-  updateLink: (id: number | string, data: any) => Promise<any>;
-  deleteLink: (id: number | string) => Promise<any>;
-  addUrl?: (url: string, options: any) => Promise<any>;
+  getLinkDetail: (
+    id: number | string,
+  ) => Promise<ApiResponse<LinkDetailResponse>>;
+  updateLink: (
+    id: number | string,
+    data: UpdateLinkRequest,
+  ) => Promise<ApiResponse<Link>>;
+  deleteLink: (id: number | string) => Promise<ApiResponse<void>>;
+  addUrl?: (
+    url: string,
+    options: LinkCreateOptions,
+  ) => Promise<ApiResponse<{ link: Link; short_url: string }>>;
 }
 
 // 表单数据类型
@@ -31,17 +50,6 @@ interface LinkFormData {
   password: string;
 }
 
-// 访问限制类型
-interface AccessRestrictions {
-  ip_whitelist: string[];
-  ip_blacklist: string[];
-  allowed_countries: string[];
-  blocked_countries: string[];
-  allowed_devices: string[];
-  allowed_referrers: string[];
-  blocked_referrers: string[];
-}
-
 export function useLinkForm(
   linkId: Ref<number | string | null>,
   apiService: ApiService,
@@ -51,8 +59,8 @@ export function useLinkForm(
   const isLoading = ref(false);
   const isSubmitting = ref(false);
   const isDeleting = ref(false);
-  const linkData = ref<any>(null);
-  const expirationOptions = ref<any[]>([]);
+  const linkData = ref<Link | null>(null);
+  const expirationOptions = ref<ExpirationOption[]>([]);
   const expirationMode = ref<"preset" | "custom" | "none">("none");
 
   // 表单数据
@@ -190,8 +198,8 @@ export function useLinkForm(
   };
 
   // 构建提交数据
-  const buildSubmitData = () => {
-    const data: any = {
+  const buildSubmitData = (): UpdateLinkRequest => {
+    const data: UpdateLinkRequest = {
       title: formData.title || null,
       description: formData.description || null,
       is_active: formData.is_active,
@@ -215,13 +223,15 @@ export function useLinkForm(
     }
 
     // 构建访问限制
-    const restrictions: any = {};
-
-    for (const [key, value] of Object.entries(accessRestrictions)) {
-      if (Array.isArray(value)) {
-        restrictions[key] = value;
-      }
-    }
+    const restrictions: AccessRestrictions = {
+      ip_whitelist: accessRestrictions.ip_whitelist,
+      ip_blacklist: accessRestrictions.ip_blacklist,
+      allowed_countries: accessRestrictions.allowed_countries,
+      blocked_countries: accessRestrictions.blocked_countries,
+      allowed_devices: accessRestrictions.allowed_devices,
+      allowed_referrers: accessRestrictions.allowed_referrers,
+      blocked_referrers: accessRestrictions.blocked_referrers,
+    };
 
     // 只要有任何访问限制配置（即使是空数组），也发送完整对象
     data.access_restrictions = restrictions;

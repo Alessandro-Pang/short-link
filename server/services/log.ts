@@ -12,7 +12,7 @@ import type { LoginLogQueryOptions } from "../types/index.js";
 import type {
   LoginLog,
   LoginLogInsert,
-} from "../../types/database.schema.types.js";
+} from "../../types/database.schema.js";
 
 /**
  * 记录登录日志

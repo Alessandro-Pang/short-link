@@ -4,6 +4,7 @@
  */
 
 import { getSession } from "./auth";
+import type { ApiResponse } from "../../types/api";
 
 /**
  * 错误码映射
@@ -23,10 +24,12 @@ const ERROR_CODE_MAP: Record<number, string> = {
  * 自定义 API 错误类
  */
 export class ApiError extends Error {
-  code: number;
-  data: any;
+  code: number | string;
+  data: unknown;
+  existingLink?: unknown;
+  retryAfter?: number;
 
-  constructor(message: string, code: number, data: any = null) {
+  constructor(message: string, code: number | string, data: unknown = null) {
     super(message);
     this.name = "ApiError";
     this.code = code;
@@ -36,7 +39,7 @@ export class ApiError extends Error {
 
 export interface FetchApiOptions {
   method?: string;
-  body?: any;
+  body?: unknown;
   headers?: Record<string, string>;
   auth?: boolean;
   throwOnError?: boolean;
@@ -45,7 +48,7 @@ export interface FetchApiOptions {
 /**
  * 通用 API 请求函数
  */
-export async function fetchApi(
+export async function fetchApi<T = unknown>(
   url: string,
   {
     method = "GET",
@@ -54,7 +57,7 @@ export async function fetchApi(
     auth = true,
     throwOnError = true,
   }: FetchApiOptions = {},
-): Promise<any> {
+): Promise<ApiResponse<T>> {
   try {
     // 准备请求头
     const requestHeaders = { ...headers };
@@ -68,7 +71,7 @@ export async function fetchApi(
     }
 
     // 构建请求选项
-    const fetchOptions = {
+    const fetchOptions: RequestInit = {
       method,
       headers: requestHeaders,
     };
@@ -84,7 +87,7 @@ export async function fetchApi(
     const response = await fetch(url, fetchOptions);
 
     // 解析响应
-    let data;
+    let data: ApiResponse<T>;
     const contentType = response.headers.get("content-type");
     if (contentType?.includes("application/json")) {
       data = await response.json();
@@ -114,7 +117,8 @@ export async function fetchApi(
         error.code = "UNAUTHORIZED";
       } else if (data.code === 429) {
         error.code = "RATE_LIMITED";
-        error.retryAfter = data.retryAfter || data.data?.retryAfter;
+        error.retryAfter =
+          (data as any).retryAfter || (data.data as any)?.retryAfter;
       }
 
       throw error;
@@ -128,21 +132,17 @@ export async function fetchApi(
     }
 
     // 网络错误或其他错误
-    console.error("API 请求失败:", error);
+    const err = error as Error;
+    console.error("API 请求失败:", err);
 
     if (throwOnError) {
-      throw new ApiError(
-        error.message || "网络请求失败",
-        "NETWORK_ERROR",
-        null,
-      );
+      throw new ApiError(err.message || "网络请求失败", "NETWORK_ERROR", null);
     }
 
     return {
-      code: "NETWORK_ERROR",
-      msg: error.message || "网络请求失败",
-      data: null,
-    };
+      code: 0,
+      msg: err.message || "网络请求失败",
+    } as ApiResponse<T>;
   }
 }
 
@@ -152,8 +152,11 @@ export async function fetchApi(
  * @param {Object} options - 请求选项
  * @returns {Promise<Object>}
  */
-export function get(url, options = {}) {
-  return fetchApi(url, { ...options, method: "GET" });
+export function get<T = unknown>(
+  url: string,
+  options: FetchApiOptions = {},
+): Promise<ApiResponse<T>> {
+  return fetchApi<T>(url, { ...options, method: "GET" });
 }
 
 /**
@@ -163,8 +166,12 @@ export function get(url, options = {}) {
  * @param {Object} options - 请求选项
  * @returns {Promise<Object>}
  */
-export function post(url, body, options = {}) {
-  return fetchApi(url, { ...options, method: "POST", body });
+export function post<T = unknown>(
+  url: string,
+  body: unknown,
+  options: FetchApiOptions = {},
+): Promise<ApiResponse<T>> {
+  return fetchApi<T>(url, { ...options, method: "POST", body });
 }
 
 /**
@@ -174,8 +181,12 @@ export function post(url, body, options = {}) {
  * @param {Object} options - 请求选项
  * @returns {Promise<Object>}
  */
-export function put(url, body, options = {}) {
-  return fetchApi(url, { ...options, method: "PUT", body });
+export function put<T = unknown>(
+  url: string,
+  body: unknown,
+  options: FetchApiOptions = {},
+): Promise<ApiResponse<T>> {
+  return fetchApi<T>(url, { ...options, method: "PUT", body });
 }
 
 /**
@@ -185,8 +196,12 @@ export function put(url, body, options = {}) {
  * @param {Object} options - 请求选项
  * @returns {Promise<Object>}
  */
-export function patch(url, body, options = {}) {
-  return fetchApi(url, { ...options, method: "PATCH", body });
+export function patch<T = unknown>(
+  url: string,
+  body: unknown,
+  options: FetchApiOptions = {},
+): Promise<ApiResponse<T>> {
+  return fetchApi<T>(url, { ...options, method: "PATCH", body });
 }
 
 /**
@@ -195,8 +210,11 @@ export function patch(url, body, options = {}) {
  * @param {Object} options - 请求选项
  * @returns {Promise<Object>}
  */
-export function del(url, options = {}) {
-  return fetchApi(url, { ...options, method: "DELETE" });
+export function del<T = unknown>(
+  url: string,
+  options: FetchApiOptions = {},
+): Promise<ApiResponse<T>> {
+  return fetchApi<T>(url, { ...options, method: "DELETE" });
 }
 
 /**
@@ -205,7 +223,10 @@ export function del(url, options = {}) {
  * @param {Object} params - 查询参数对象
  * @returns {string} 完整 URL
  */
-export function buildUrl(baseUrl, params = {}) {
+export function buildUrl(
+  baseUrl: string,
+  params: Record<string, unknown> = {},
+): string {
   const searchParams = new URLSearchParams();
 
   for (const [key, value] of Object.entries(params)) {

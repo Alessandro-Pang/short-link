@@ -78,7 +78,7 @@ class MemoryCache {
    * @param {string} key - 缓存键
    * @returns {any} 缓存值，不存在或已过期返回 undefined
    */
-  get(key) {
+  get(key: string): unknown {
     const item = this.store.get(key);
 
     if (!item) {
@@ -104,7 +104,7 @@ class MemoryCache {
    * @param {number} [ttl] - 过期时间（秒），默认使用 defaultTTL
    * @returns {boolean} 是否设置成功
    */
-  set(key, value, ttl = this.defaultTTL) {
+  set(key: string, value: unknown, ttl: number = this.defaultTTL): boolean {
     // 检查是否需要清理（超过最大容量）
     if (this.store.size >= this.maxSize && !this.store.has(key)) {
       this._evictOldest();
@@ -126,7 +126,7 @@ class MemoryCache {
    * @param {string} key - 缓存键
    * @returns {boolean} 是否删除成功
    */
-  delete(key) {
+  delete(key: string): boolean {
     const result = this.store.delete(key);
     if (result) {
       this.stats.deletes++;
@@ -139,7 +139,7 @@ class MemoryCache {
    * @param {string} key - 缓存键
    * @returns {boolean}
    */
-  has(key) {
+  has(key: string): boolean {
     const item = this.store.get(key);
     if (!item) return false;
     if (Date.now() > item.expireAt) {
@@ -196,7 +196,11 @@ class MemoryCache {
    * @param {number} [ttl] - 过期时间（秒）
    * @returns {Promise<any>}
    */
-  async getOrSet(key, fetchFn, ttl = this.defaultTTL) {
+  async getOrSet(
+    key: string,
+    fetchFn: () => Promise<unknown>,
+    ttl: number = this.defaultTTL,
+  ): Promise<unknown> {
     const cached = this.get(key);
     if (cached !== undefined) {
       return cached;
@@ -214,8 +218,8 @@ class MemoryCache {
    * @param {string[]} keys - 缓存键数组
    * @returns {Map<string, any>}
    */
-  mget(keys) {
-    const result = new Map();
+  mget(keys: string[]): Map<string, unknown> {
+    const result = new Map<string, unknown>();
     for (const key of keys) {
       const value = this.get(key);
       if (value !== undefined) {
@@ -230,7 +234,10 @@ class MemoryCache {
    * @param {Map<string, any>|Object} entries - 键值对
    * @param {number} [ttl] - 过期时间（秒）
    */
-  mset(entries, ttl = this.defaultTTL) {
+  mset(
+    entries: Map<string, unknown> | Record<string, unknown>,
+    ttl: number = this.defaultTTL,
+  ): void {
     const items = entries instanceof Map ? entries : Object.entries(entries);
     for (const [key, value] of items) {
       this.set(key, value, ttl);
@@ -242,7 +249,7 @@ class MemoryCache {
    * @param {string} prefix - 键前缀
    * @returns {number} 删除的数量
    */
-  deleteByPrefix(prefix) {
+  deleteByPrefix(prefix: string): number {
     let count = 0;
     for (const key of this.store.keys()) {
       if (key.startsWith(prefix)) {
@@ -361,7 +368,7 @@ export const CACHE_KEYS = {
  * @param {string|number} id - 标识符
  * @returns {string}
  */
-export function buildCacheKey(prefix, id) {
+export function buildCacheKey(prefix: string, id: string | number): string {
   return `${prefix}${id}`;
 }
 
@@ -370,7 +377,7 @@ export function buildCacheKey(prefix, id) {
  * @param {Object} options - 配置选项
  * @returns {MemoryCache}
  */
-export function createCache(options = {}) {
+export function createCache(options: Partial<CacheOptions> = {}): MemoryCache {
   return new MemoryCache(options);
 }
 

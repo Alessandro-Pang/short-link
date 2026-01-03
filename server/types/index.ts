@@ -4,6 +4,13 @@
 
 import type { FastifyRequest, FastifyReply } from "fastify";
 
+// Import shared types instead of duplicating
+export type {
+  AccessRestrictions,
+  LinkCreateOptions,
+  VisitorInfo,
+} from "../../types/shared.js";
+
 /**
  * Fastify Request with user context
  */
@@ -166,48 +173,6 @@ export interface UserUpdateData {
   is_admin?: boolean;
   banned?: boolean;
   [key: string]: unknown;
-}
-
-/**
- * Link creation options
- */
-export interface LinkCreateOptions {
-  expiration_option_id?: number;
-  expiration_date?: string;
-  is_active?: boolean;
-  title?: string;
-  description?: string;
-  redirect_type?: number;
-  pass_query_params?: boolean;
-  forward_headers?: boolean;
-  forward_header_list?: string[];
-  max_clicks?: number;
-  password?: string;
-  access_restrictions?: AccessRestrictions;
-}
-
-/**
- * Access restrictions configuration
- */
-export interface AccessRestrictions {
-  ip_whitelist?: string[];
-  ip_blacklist?: string[];
-  allowed_countries?: string[];
-  blocked_countries?: string[];
-  allowed_devices?: string[];
-  allowed_referrers?: string[];
-  blocked_referrers?: string[];
-}
-
-/**
- * Visitor information
- */
-export interface VisitorInfo {
-  userAgent?: string;
-  ip?: string;
-  referrer?: string;
-  country?: string;
-  device?: string;
 }
 
 /**

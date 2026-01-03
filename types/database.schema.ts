@@ -1,20 +1,10 @@
-/**
- * ⚠️ 此文件由脚本自动生成，请勿手动修改
- *
- * @generated
- * @command supabase gen types typescript --linked
- * @script scripts/generate-db-types
- *
- * 如需更新类型定义，请运行: npm run gen:types
- */
-
 import type {
   Database,
   Tables,
   TablesInsert,
   TablesUpdate,
   Enums,
-} from "./database.types";
+} from "./database";
 
 // 重新导出数据库类型
 export type { Database, Tables, TablesInsert, TablesUpdate, Enums };
@@ -43,7 +33,3 @@ export type UserIdentityUpdate = TablesUpdate<"user_identities">;
 export type ExpirationOption = Tables<"expiration_options">;
 export type ExpirationOptionInsert = TablesInsert<"expiration_options">;
 export type ExpirationOptionUpdate = TablesUpdate<"expiration_options">;
-
-// 视图类型
-export type LinkStats = Tables<"link_stats">;
-export type UserLinkStats = Tables<"user_link_stats">;

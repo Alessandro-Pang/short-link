@@ -18,7 +18,7 @@ import type {
   Link,
   LinkAccessLog,
   UserLinkStats,
-} from "../../types/database.schema.types.js";
+} from "../../types/database.schema.js";
 
 /**
  * 获取用户统计数据（使用数据库聚合查询优化）

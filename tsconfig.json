@@ -12,6 +12,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "declaration": false,
+    "composite": false,
     "jsx": "preserve",
 
     /* Linting - 暂时放宽限制以便部署 */
@@ -25,6 +27,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@types/*": ["./types/*"],
     },
 
     /* Type declarations */
@@ -35,8 +38,8 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "types/**/*.ts",
-    "types/**/*.d.ts",
+    "types/**/*",
   ],
+  "exclude": ["node_modules", "dist"],
   "references": [{ "path": "./tsconfig.node.json" }],
 }

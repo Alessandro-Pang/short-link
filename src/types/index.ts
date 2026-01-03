@@ -1,9 +1,8 @@
-// 通用响应类型
-export interface ApiResponse<T = any> {
-  code: number;
-  msg: string;
-  data?: T;
-}
+// Re-export database types for convenience
+export type { Link, LoginLog } from "../../types/database.schema";
+
+// Re-export API types for convenience
+export type { ApiResponse } from "../../types/api";
 
 // 用户相关类型
 export interface User {
@@ -21,11 +20,7 @@ export interface AuthUser extends User {
   refresh_token?: string;
 }
 
-// 短链接相关类型（使用 database.types.d.ts 中的类型）
-import type { Link as DbLink } from "../../types/database.schema.types";
-
-export type Link = DbLink;
-
+// 短链接相关类型 - 已移至 shared.types.ts，这里保留用于向后兼容
 export interface CreateLinkPayload {
   original_url: string;
   short_code?: string;
@@ -34,7 +29,7 @@ export interface CreateLinkPayload {
   tags?: string[];
   expires_at?: string;
   password?: string;
-  custom_params?: Record<string, any>;
+  custom_params?: Record<string, unknown>;
 }
 
 export interface UpdateLinkPayload {
@@ -45,7 +40,7 @@ export interface UpdateLinkPayload {
   is_active?: boolean;
   expires_at?: string;
   password?: string;
-  custom_params?: Record<string, any>;
+  custom_params?: Record<string, unknown>;
 }
 
 // 统计相关类型
@@ -66,11 +61,6 @@ export interface ClickLog {
   country?: string;
   city?: string;
 }
-
-// 登录日志类型（使用 database.types.d.ts 中的类型）
-import type { LoginLog as DbLoginLog } from "../../types/database.schema.types";
-
-export type LoginLog = DbLoginLog;
 
 // 分页相关类型
 export interface PaginationParams {
