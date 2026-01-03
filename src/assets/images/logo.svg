@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <!-- Requested Background: Blue 500 to Purple 600 -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/> <!-- Blue 500 -->
+      <stop offset="100%" stop-color="#9333ea"/> <!-- Purple 600 -->
+    </linearGradient>
+
+    <!-- S Shape Gradient: Cyan to Pink -->
+    <linearGradient id="sGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/> <!-- Cyan 400 -->
+      <stop offset="100%" stop-color="#f472b6"/> <!-- Pink 400 -->
+    </linearGradient>
+
+    <!-- Glow Effect -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <!-- Shadow for the white circle -->
+    <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Background Squircle -->
+  <rect x="10" y="10" width="100" height="100" rx="30" fill="url(#bgGrad)"/>
+
+  <!-- The Abstract S Path (from v3) -->
+  <path
+    d="M 80 36
+       C 50 36, 42 52, 60 60
+       C 78 68, 70 84, 40 84"
+    fill="none"
+    stroke="url(#sGrad)"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    filter="url(#glow)"
+  />
+
+  <!-- End Point (Bottom Left) -->
+  <circle cx="40" cy="84" r="6" fill="#f472b6" filter="url(#glow)"/>
+
+</svg>

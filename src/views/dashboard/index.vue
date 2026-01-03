@@ -11,20 +11,21 @@
                 class="h-16 flex items-center justify-center border-b border-gray-50 dark:border-gray-700"
             >
                 <div
-                    class="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 cursor-pointer flex items-center gap-2 transition-all duration-300 hover:opacity-80"
+                    class="cursor-pointer flex items-center gap-2 transition-all duration-300 hover:opacity-80 px-2"
                     @click="goToHome"
                 >
-                    <div
-                        class="w-8 h-8 bg-linear-to-br from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500 rounded-lg flex items-center justify-center text-white shadow-md shrink-0"
-                    >
-                        <icon-link v-if="uiStore.sidebarCollapsed" />
-                        <icon-dashboard v-else />
-                    </div>
-                    <span
-                        v-if="!uiStore.sidebarCollapsed"
-                        class="tracking-tight text-gray-800! dark:text-gray-200! font-bold"
-                        >Short Link</span
-                    >
+                    <img
+                        v-if="uiStore.sidebarCollapsed"
+                        src="@/assets/images/logo-simple.svg"
+                        alt="Short Link Logo"
+                        class="h-8 w-8"
+                    />
+                    <img
+                        v-else
+                        src="@/assets/images/logo.svg"
+                        alt="Short Link Logo"
+                        class="h-10 w-auto"
+                    />
                 </div>
             </div>
 
@@ -143,12 +144,10 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
-    IconLink,
     IconRefresh,
     IconDown,
     IconHome,
     IconExport,
-    IconDashboard,
     IconLock,
     IconUser,
 } from "@arco-design/web-vue/es/icon";

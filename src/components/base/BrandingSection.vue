@@ -15,17 +15,19 @@
         <div class="relative z-10 text-center px-12">
             <div class="mb-8 flex justify-center">
                 <div
-                    class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center"
+                    class="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center p-4"
                 >
-                    <icon-link class="text-5xl text-white" />
+                    <img
+                        src="@/assets/images/logo-simple.svg"
+                        alt="Short Link Logo"
+                        class="w-full h-full"
+                    />
                 </div>
             </div>
             <h1 class="text-4xl font-bold text-white mb-6 tracking-tight">
                 {{ title }}
             </h1>
-            <p
-                class="text-blue-100 text-lg max-w-md mx-auto leading-relaxed"
-            >
+            <p class="text-blue-100 text-lg max-w-md mx-auto leading-relaxed">
                 {{ description }}
             </p>
         </div>

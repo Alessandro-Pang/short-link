@@ -9,10 +9,14 @@
             >
                 <div class="flex items-center gap-3 min-w-0">
                     <div
-                        class="text-xl font-semibold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 cursor-pointer truncate"
+                        class="cursor-pointer flex items-center"
                         @click="$router.push('/')"
                     >
-                        Short Link
+                        <img
+                            src="@/assets/images/logo-simple.svg"
+                            alt="Short Link Logo"
+                            class="h-8 w-8"
+                        />
                     </div>
                     <span
                         class="hidden sm:inline-flex items-center rounded-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-500 dark:text-gray-400"

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <!-- S Shape Gradient: Cyan to Pink -->
+    <linearGradient id="sGradSimple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/> <!-- Cyan 400 -->
+      <stop offset="100%" stop-color="#f472b6"/> <!-- Pink 400 -->
+    </linearGradient>
+  </defs>
+
+  <!-- The Abstract S Path -->
+  <path
+    d="M 80 36
+       C 50 36, 42 52, 60 60
+       C 78 68, 70 84, 40 84"
+    fill="none"
+    stroke="url(#sGradSimple)"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- End Point (Bottom Left) -->
+  <circle cx="40" cy="84" r="6" fill="#f472b6"/>
+</svg>
