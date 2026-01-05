@@ -586,12 +586,10 @@ watch(
 <style scoped>
 :deep(.arco-drawer-body) {
     padding: 16px 24px;
-    background-color: #fafafa;
 }
 
 :deep(.arco-drawer-footer) {
     padding: 12px 24px;
-    border-top: 1px solid #e5e6eb;
 }
 
 :deep(.arco-form-item) {
@@ -600,6 +598,31 @@ watch(
 
 :deep(.arco-form-item-label) {
     font-weight: 500;
+}
+
+/* 亮色模式样式 */
+:deep(.arco-drawer-body) {
+    background-color: #fafafa;
+}
+
+:deep(.arco-drawer-footer) {
+    border-top: 1px solid #e5e6eb;
+}
+
+:deep(.arco-form-item-label) {
     color: #4e5969;
+}
+
+/* 暗色模式样式 */
+.dark :deep(.arco-drawer-body) {
+    background-color: #1f2937;
+}
+
+.dark :deep(.arco-drawer-footer) {
+    border-top: 1px solid #374151;
+}
+
+.dark :deep(.arco-form-item-label) {
+    color: #d1d5db;
 }
 </style>
