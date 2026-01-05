@@ -9,11 +9,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 import { getSession } from "@/services/auth";
 
-import DashboardPage from "@/views/dashboard/index.vue";
-import HomePage from "@/views/home/index.vue";
-import LoginPage from "@/views/login/index.vue";
-import RegisterPage from "@/views/register/index.vue";
-
 /**
  * 路由元数据说明：
  * - requiresAuth: 是否需要登录
@@ -30,19 +25,19 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: "/",
 		name: "home",
-		component: HomePage,
+		component: () => import("@/views/home/index.vue"),
 		meta: { requiresAuth: false },
 	},
 	{
 		path: "/login",
 		name: "login",
-		component: LoginPage,
+		component: () => import("@/views/login/index.vue"),
 		meta: { requiresAuth: false, redirectIfAuthenticated: true },
 	},
 	{
 		path: "/register",
 		name: "register",
-		component: RegisterPage,
+		component: () => import("@/views/register/index.vue"),
 		meta: { requiresAuth: false, redirectIfAuthenticated: true },
 	},
 	{
@@ -72,7 +67,7 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: "/dashboard",
 		name: "dashboard",
-		component: DashboardPage,
+		component: () => import("@/views/dashboard/index.vue"),
 		meta: { requiresAuth: true },
 		redirect: "/dashboard/stats",
 		children: [
