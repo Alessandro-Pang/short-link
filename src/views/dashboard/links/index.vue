@@ -294,6 +294,11 @@ const handleBatchDisable = async () => {
 	}
 };
 
+const hasAccessRestrictions = (record) => {
+    const accessRestrictions = record.access_restrictions;
+    return accessRestrictions && Object.keys(accessRestrictions).some((key) => accessRestrictions[key].length);
+};
+
 // 暴露刷新方法给父组件
 defineExpose({
 	refresh: loadData,
@@ -541,12 +546,7 @@ defineExpose({
                                             参数透传
                                         </a-tag>
                                         <a-tag
-                                            v-if="
-                                                record.access_restrictions &&
-                                                Object.keys(
-                                                    record.access_restrictions,
-                                                ).length > 0
-                                            "
+                                            v-if="hasAccessRestrictions(record)"
                                             size="small"
                                             color="red"
                                         >
