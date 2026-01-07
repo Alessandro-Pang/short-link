@@ -47,8 +47,6 @@
    ========================= */
 
 body[arco-theme="dark"] {
-    /* Arco Design 的 RGB 格式灰度变量 - 使用 Tailwind 的灰度色值 */
-    --primary-6: 59, 130, 246; /* blue-500 as RGB */
 
     --gray-1: 17, 24, 39; /* gray-900: #111827 */
     --gray-2: 31, 41, 55; /* gray-800: #1f2937 */
@@ -201,4 +199,14 @@ a:hover {
     outline: 2px solid rgba(59, 130, 246, 0.55);
     outline-offset: 2px;
     border-radius: 6px;
+}
+.dark .arco-pagination-item:hover {
+    background-color: rgba(var(--gray-3), 0.20) !important; 
+}
+
+/* 覆盖暗色模式下分页激活项的强烈蓝色填充，改为边框+文字高亮 */
+.dark .arco-pagination-item-active,
+.dark .arco-pagination-item-active:hover {
+    background-color: rgba(var(--gray-3), 0.20) !important; 
+    color: rgb(var(--primary-6)) !important;
 }
