@@ -5,17 +5,17 @@
             class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none"
         >
             <div
-                class="absolute top-[-10%] left-[-10%] w-96 h-96 rounded-full bg-white blur-3xl"
+                class="absolute top-[-10%] left-[-10%] w-96 h-96 rounded-full bg-white blur-3xl dark:bg-white/20"
             ></div>
             <div
-                class="absolute bottom-[-10%] right-[-10%] w-96 h-96 rounded-full bg-white blur-3xl"
+                class="absolute bottom-[-10%] right-[-10%] w-96 h-96 rounded-full bg-white blur-3xl dark:bg-white/20"
             ></div>
         </div>
 
         <div class="relative z-10 text-center px-12">
             <div class="mb-8 flex justify-center">
                 <div
-                    class="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center p-4"
+                    class="w-24 h-24 bg-white/10 dark:bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center p-4"
                 >
                     <img
                         src="@/assets/images/logo-simple.svg"
@@ -35,8 +35,6 @@
 </template>
 
 <script setup lang="ts">
-import { IconLink } from "@arco-design/web-vue/es/icon";
-
 defineProps<{
 	title: string;
 	description: string;
@@ -52,6 +50,44 @@ defineProps<{
     position: relative;
     overflow: hidden;
     min-height: 100vh;
+}
+
+/* Dark mode: distinct layered slate base with indigo/violet accents */
+.dark .branding-section {
+    background: linear-gradient(160deg, #0f172a 0%, #1f2937 40%, #111827 100%);
+}
+
+.dark .branding-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(800px circle at 20% 30%, rgba(99, 102, 241, 0.25), transparent 60%),
+        radial-gradient(600px circle at 80% 70%, rgba(139, 92, 246, 0.20), transparent 60%);
+}
+
+.dark .branding-section::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    background-image:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 24px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 24px);
+}
+
+/* Tint existing blur circles without changing template */
+.dark .branding-section > .absolute > div:first-child {
+    background-color: rgba(99, 102, 241, 0.20);
+}
+
+.dark .branding-section > .absolute > div:nth-child(2) {
+    background-color: rgba(139, 92, 246, 0.20);
+}
+
+/* Slightly stronger logo tile background for dark */
+.dark .branding-section .rounded-2xl {
+    background-color: rgba(255, 255, 255, 0.20) !important;
 }
 
 .absolute {

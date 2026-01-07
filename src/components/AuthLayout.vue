@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen flex bg-white">
+    <div class="min-h-screen flex bg-white dark:bg-gray-900">
         <!-- Left Side - Branding -->
         <div class="hidden lg:flex lg:w-1/2">
             <BrandingSection :title="brandingTitle" :description="brandingDescription" />
@@ -44,9 +44,6 @@ defineProps<{
     justify-content: center;
 }
 
-.bg-white {
-    background-color: white;
-}
 
 .hidden {
     display: none;

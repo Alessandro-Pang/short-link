@@ -29,7 +29,7 @@ const handleGoogleLogin = () => {
                 :disabled="loading"
             >
                 <icon-github class="text-xl" />
-                <span class="text-gray-700 font-medium">GitHub</span>
+                <span class="text-gray-700 dark:text-gray-300 font-medium">GitHub</span>
             </button>
             <button
                 type="button"
@@ -38,7 +38,7 @@ const handleGoogleLogin = () => {
                 :disabled="loading"
             >
                 <icon-google class="text-xl" />
-                <span class="text-gray-700 font-medium">Google</span>
+                <span class="text-gray-700 dark:text-gray-300 font-medium">Google</span>
             </button>
         </div>
     </div>
@@ -67,15 +67,19 @@ const handleGoogleLogin = () => {
     justify-content: center;
     gap: 8px;
     padding: 12px 16px;
-    border: 1px solid #e5e6eb;
+    border: 1px solid var(--app-border);
     border-radius: 8px;
-    background-color: white;
+    background-color: var(--app-surface);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .social-button:hover:not(:disabled) {
-    background-color: #f7f8fa;
+    background-color: #f7f8fa; /* light hover */
+}
+
+.dark .social-button:hover:not(:disabled) {
+    background-color: #374151; /* gray-700 - dark hover */
 }
 
 .social-button:focus {
@@ -92,9 +96,6 @@ const handleGoogleLogin = () => {
     font-size: 20px;
 }
 
-.text-gray-700 {
-    color: #4e5969;
-}
 
 .font-medium {
     font-weight: 500;

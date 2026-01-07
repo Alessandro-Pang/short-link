@@ -4,10 +4,10 @@
         branding-description="立即注册，开始体验高效的短链接管理服务，让分享变得更简单。"
     >
         <div class="text-center lg:text-left">
-            <h2 class="text-3xl font-bold text-gray-900 tracking-tight">
+            <h2 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
                 创建账号
             </h2>
-            <p class="mt-2 text-gray-500">填写以下信息以开始使用</p>
+            <p class="mt-2 text-gray-500 dark:text-gray-400">填写以下信息以开始使用</p>
         </div>
 
         <a-form
@@ -36,7 +36,7 @@
                     class="rounded-lg!"
                 >
                     <template #prefix>
-                        <icon-user class="text-gray-400" />
+                        <icon-user class="text-gray-400 dark:text-gray-500" />
                     </template>
                 </a-input>
             </a-form-item>
@@ -57,7 +57,7 @@
                     class="rounded-lg!"
                 >
                     <template #prefix>
-                        <icon-email class="text-gray-400" />
+                        <icon-email class="text-gray-400 dark:text-gray-500" />
                     </template>
                 </a-input>
             </a-form-item>
@@ -71,7 +71,7 @@
                     class="rounded-lg!"
                 >
                     <template #prefix>
-                        <icon-lock class="text-gray-400" />
+                        <icon-lock class="text-gray-400 dark:text-gray-500" />
                     </template>
                 </a-input-password>
             </a-form-item>
@@ -100,7 +100,7 @@
                     class="rounded-lg!"
                 >
                     <template #prefix>
-                        <icon-lock class="text-gray-400" />
+                        <icon-lock class="text-gray-400 dark:text-gray-500" />
                     </template>
                 </a-input-password>
             </a-form-item>
@@ -119,10 +119,10 @@
 
         <div class="relative my-8">
             <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-gray-200"></div>
+                <div class="w-full border-t border-gray-200 dark:border-gray-700"></div>
             </div>
             <div class="relative flex justify-center text-sm">
-                <span class="px-4 bg-white text-gray-500">
+                <span class="px-4 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">
                     或者使用以下方式注册
                 </span>
             </div>
@@ -135,7 +135,7 @@
         />
 
         <div class="text-center mt-8">
-            <p class="text-gray-600">
+            <p class="text-gray-600 dark:text-gray-400">
                 已有账号？
                 <a-link @click="goToLogin" class="font-bold! cursor-pointer"
                     >立即登录</a-link
@@ -144,7 +144,7 @@
             <div class="mt-4">
                 <a-link
                     @click="goToHome"
-                    class="text-gray-400! hover:text-gray-600! text-sm"
+                    class="text-gray-400! hover:text-gray-600! dark:text-gray-500! dark:hover:text-gray-300! text-sm"
                 >
                     <icon-left /> 返回首页
                 </a-link>
@@ -234,124 +234,3 @@ function goToHome() {
 	router.push("/");
 }
 </script>
-
-<style scoped>
-.text-3xl {
-    font-size: 30px;
-}
-
-.font-bold {
-    font-weight: 700;
-}
-
-.text-gray-900 {
-    color: #1d2129;
-}
-
-.tracking-tight {
-    letter-spacing: -0.025em;
-}
-
-.mt-2 {
-    margin-top: 8px;
-}
-
-.mt-4 {
-    margin-top: 16px;
-}
-
-.mt-8 {
-    margin-top: 32px;
-}
-
-.my-8 {
-    margin-top: 32px;
-    margin-bottom: 32px;
-}
-
-.text-gray-500 {
-    color: #86909c;
-}
-
-.text-gray-600 {
-    color: #4e5969;
-}
-
-.text-gray-400 {
-    color: #86909c;
-}
-
-.text-sm {
-    font-size: 14px;
-}
-
-.text-base {
-    font-size: 16px;
-}
-
-.font-medium {
-    font-weight: 500;
-}
-
-.text-center {
-    text-align: center;
-}
-
-.flex {
-    display: flex;
-}
-
-.items-center {
-    align-items: center;
-}
-
-.justify-center {
-    justify-content: center;
-}
-
-.relative {
-    position: relative;
-}
-
-.absolute {
-    position: absolute;
-}
-
-.inset-0 {
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-}
-
-.w-full {
-    width: 100%;
-}
-
-.border-t {
-    border-top-width: 1px;
-}
-
-.border-gray-200 {
-    border-color: #e5e6eb;
-}
-
-.px-4 {
-    padding-left: 16px;
-    padding-right: 16px;
-}
-
-.bg-white {
-    background-color: white;
-}
-
-.cursor-pointer {
-    cursor: pointer;
-}
-
-@media (min-width: 1024px) {
-    .lg\:text-left {
-        text-align: left;
-    }
-}
-</style>
