@@ -474,7 +474,7 @@
 
         <!-- Footer -->
         <footer
-            class="mt-10 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800"
+            class="border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800"
         >
             <div
                 class="mx-auto w-full max-w-7xl px-4 sm:px-6 py-8 text-sm text-gray-500 dark:text-gray-400"
@@ -487,7 +487,14 @@
                         All rights reserved.
                     </div>
                     <div class="text-gray-400">
-                        Powered by Vue 3, Arco Design & Tailwind CSS
+                        <a
+                            href="https://blog.pangcy.cn"
+                            target="_blank"
+                            rel="noopener"
+                            class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        >
+                            ziYang | 子洋 · blog
+                        </a>
                     </div>
                 </div>
             </div>
