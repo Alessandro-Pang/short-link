@@ -67,6 +67,10 @@
                                     /></template>
                                     控制台
                                 </a-doption>
+                                <a-doption value="profile">
+                                    <template #icon><icon-user /></template>
+                                    个人信息
+                                </a-doption>
                                 <a-doption value="logout">
                                     <template #icon><icon-export /></template>
                                     退出登录
@@ -544,9 +548,10 @@ import {
 	IconLink,
 	IconQrcode,
 	IconSettings,
+    IconUser
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
-import { computed, nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import ThemeToggle from "@/components/ThemeToggle.vue";
 import UnifiedLinkConfigDrawer from "@/components/UnifiedLinkConfigDrawer.vue";
@@ -602,7 +607,9 @@ const handleDropdownSelect = async (value) => {
 		}
 	} else if (value === "dashboard") {
 		router.push("/dashboard");
-	}
+	} else if (value === 'profile') {
+        router.push("/dashboard/profile")
+    }
 };
 
 const generateShortLink = async () => {

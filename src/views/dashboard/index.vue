@@ -53,17 +53,6 @@
                 </div>
                 <div class="flex items-center gap-4">
                     <ThemeToggle />
-                    <a-tooltip content="刷新数据">
-                        <a-button
-                            shape="circle"
-                            type="text"
-                            size="small"
-                            @click="handleRefresh"
-                            class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                            <template #icon><icon-refresh /></template>
-                        </a-button>
-                    </a-tooltip>
                     <div
                         class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"
                     ></div>
@@ -193,17 +182,6 @@ const handleUserDropdown = async (value) => {
 		} catch (error) {
 			Message.error("退出登录失败");
 		}
-	}
-};
-
-const handleRefresh = () => {
-	// 如果在 profile 页面，也刷新用户信息
-	if (route.name === "dashboard-profile") {
-		userStore.refreshUser();
-	}
-	// 调用子组件的刷新方法
-	if (childViewRef.value?.refresh) {
-		childViewRef.value.refresh();
 	}
 };
 
