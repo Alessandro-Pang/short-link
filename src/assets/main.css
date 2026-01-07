@@ -48,7 +48,7 @@
 
 body[arco-theme="dark"] {
     /* Arco Design 的 RGB 格式灰度变量 - 使用 Tailwind 的灰度色值 */
-    --primary-6: #6b7280; /* gray-500 */
+    --primary-6: 59, 130, 246; /* blue-500 as RGB */
 
     --gray-1: 17, 24, 39; /* gray-900: #111827 */
     --gray-2: 31, 41, 55; /* gray-800: #1f2937 */
@@ -112,6 +112,24 @@ body[arco-theme="dark"] {
     --color-neutral-2: #1f2937; /* gray-800 - 表头背景 */
     --color-neutral-3: #374151; /* gray-700 - hover 背景 */
     --color-neutral-4: #4b5563; /* gray-600 - 边框 */
+}
+
+/* 强化暗色模式下的主按钮对比度（与背景区分开） */
+.dark .arco-btn-primary {
+    background-color: #3b82f6 !important; /* blue-500 */
+    border-color: #3b82f6 !important;
+    color: #ffffff !important;
+}
+
+.dark .arco-btn-primary:hover,
+.dark .arco-btn-primary:focus {
+    background-color: #60a5fa !important; /* blue-400 */
+    border-color: #60a5fa !important;
+}
+
+.dark .arco-btn-primary:active {
+    background-color: #2563eb !important; /* blue-600 */
+    border-color: #2563eb !important;
 }
 
 html,
