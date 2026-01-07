@@ -7,6 +7,7 @@
  * @FilePath: /short-link/src/router/index
  */
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
+import { updateSEO } from "@/utils/seo";
 import { getSession } from "@/services/auth";
 
 /**
@@ -26,43 +27,66 @@ const routes: RouteRecordRaw[] = [
 		path: "/",
 		name: "home",
 		component: () => import("@/views/home/index.vue"),
-		meta: { requiresAuth: false },
+		meta: {
+			requiresAuth: false,
+			title: "首页",
+			description:
+				"免费开源的短链接平台，轻松生成可跟踪、可管理的短网址。",
+		},
 	},
 	{
 		path: "/login",
 		name: "login",
 		component: () => import("@/views/login/index.vue"),
-		meta: { requiresAuth: false, redirectIfAuthenticated: true },
+		meta: {
+			requiresAuth: false,
+			redirectIfAuthenticated: true,
+			title: "登录",
+			noindex: true,
+			description: "登录 Short Link 控制台，管理你的短链接。",
+		},
 	},
 	{
 		path: "/register",
 		name: "register",
 		component: () => import("@/views/register/index.vue"),
-		meta: { requiresAuth: false, redirectIfAuthenticated: true },
+		meta: {
+			requiresAuth: false,
+			redirectIfAuthenticated: true,
+			title: "注册",
+			description: "注册 Short Link 账号，开始创建短链接。",
+			noindex: true,
+		},
 	},
 	{
 		path: "/forgot-password",
 		name: "forgot-password",
 		component: () => import("@/views/forgot-password/index.vue"),
-		meta: { requiresAuth: false, redirectIfAuthenticated: true },
+		meta: {
+			requiresAuth: false,
+			redirectIfAuthenticated: true,
+			title: "找回密码",
+			description: "找回 Short Link 账号密码。",
+			noindex: true,
+		},
 	},
 	{
 		path: "/reset-password",
 		name: "reset-password",
 		component: () => import("@/views/reset-password/index.vue"),
-		meta: { requiresAuth: false },
+		meta: { requiresAuth: false, title: "重置密码", noindex: true },
 	},
 	{
 		path: "/error",
 		name: "error",
 		component: () => import("@/views/error/index.vue"),
-		meta: { requiresAuth: false },
+		meta: { requiresAuth: false, title: "错误", noindex: true },
 	},
 	{
 		path: "/password-verify/:hash",
 		name: "password-verify",
 		component: () => import("@/views/password/index.vue"),
-		meta: { requiresAuth: false },
+		meta: { requiresAuth: false, title: "验证密码", noindex: true },
 	},
 	{
 		path: "/dashboard",
@@ -278,3 +302,12 @@ router.beforeEach(async (to, from, next) => {
 });
 
 export default router;
+
+// afterEach 钩子 - 更新 SEO 元信息
+router.afterEach((to) => {
+	try {
+		updateSEO(to);
+	} catch (e) {
+		console.error("更新 SEO 失败", e);
+	}
+});

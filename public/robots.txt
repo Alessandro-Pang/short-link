@@ -1,0 +1,15 @@
+User-agent: *
+# Allow public pages
+Allow: /
+
+# Disallow private/auth pages
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /error
+
+# Sitemap
+Sitemap: https://short.pangcy.cn/sitemap.xml
