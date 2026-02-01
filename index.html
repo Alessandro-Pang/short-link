@@ -224,6 +224,14 @@
             pointer-events: none;
         }
     </style>
+    <script>
+        // 立即检测主题，在任何渲染之前
+        (function () {
+            var saved = localStorage.getItem('theme');
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            window.__APP_THEME__ = saved === 'dark' || (saved === null && prefersDark) ? 'dark' : 'light';
+        })();
+    </script>
 </head>
 
 <body>
