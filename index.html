@@ -44,7 +44,244 @@
         Power By
         <a href="https://blog.pangcy.cn/">ZiYang Blog</a>
     </footer>
-    <script type="module" src="/src/main.ts"></script>
-</body>
+    =======
+
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>短链接服务</title>
+        <link rel="icon" href="/favicon.ico" />
+        <style>
+            /* ========== Loading Screen Styles ========== */
+            #app-loading {
+                position: fixed;
+                inset: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+                z-index: 9999;
+                opacity: 1;
+                transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            /* 暗色主题 */
+            #app-loading.dark-mode {
+                background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            }
+
+            /* 系统主题 fallback */
+            @media (prefers-color-scheme: dark) {
+                #app-loading:not(.light-mode) {
+                    background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+                }
+
+                #app-loading:not(.light-mode) .loading-text {
+                    color: #94a3b8;
+                }
+            }
+
+            /* Logo 容器 - 带旋转光环 */
+            #app-loading .logo-container {
+                position: relative;
+                width: 100px;
+                height: 100px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* 外圈旋转光环 */
+            #app-loading .spinner-ring {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                border: 2px solid transparent;
+                border-top-color: #22d3ee;
+                border-right-color: #a78bfa;
+                border-bottom-color: #f472b6;
+                animation: spin 1.5s linear infinite;
+            }
+
+            /* 内圈光晕 */
+            #app-loading .glow-ring {
+                position: absolute;
+                width: 88%;
+                height: 88%;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(34, 211, 238, 0.08) 0%, transparent 70%);
+                animation: glow-pulse 2s ease-in-out infinite;
+            }
+
+            #app-loading.dark-mode .glow-ring {
+                background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%);
+            }
+
+            @media (prefers-color-scheme: dark) {
+                #app-loading:not(.light-mode) .glow-ring {
+                    background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%);
+                }
+            }
+
+            /* Logo SVG */
+            #app-loading .logo-svg {
+                width: 56px;
+                height: 56px;
+                filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.35));
+                animation: logo-float 3s ease-in-out infinite;
+            }
+
+            /* 加载文字区域 */
+            #app-loading .loading-content {
+                margin-top: 28px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+
+            /* 加载文字 */
+            #app-loading .loading-text {
+                font-family: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+                font-size: 15px;
+                font-weight: 500;
+                color: #64748b;
+                letter-spacing: 0.05em;
+            }
+
+            #app-loading.dark-mode .loading-text {
+                color: #94a3b8;
+            }
+
+            /* 进度条容器 */
+            #app-loading .progress-bar {
+                width: 120px;
+                height: 3px;
+                background: rgba(148, 163, 184, 0.2);
+                border-radius: 3px;
+                overflow: hidden;
+            }
+
+            #app-loading.dark-mode .progress-bar {
+                background: rgba(148, 163, 184, 0.15);
+            }
+
+            @media (prefers-color-scheme: dark) {
+                #app-loading:not(.light-mode) .progress-bar {
+                    background: rgba(148, 163, 184, 0.15);
+                }
+            }
+
+            /* 进度条滑块 */
+            #app-loading .progress-bar::after {
+                content: '';
+                display: block;
+                width: 40%;
+                height: 100%;
+                background: linear-gradient(90deg, #22d3ee, #a78bfa, #f472b6);
+                border-radius: 3px;
+                animation: progress-slide 1.5s ease-in-out infinite;
+            }
+
+            /* ========== 动画定义 ========== */
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes glow-pulse {
+
+                0%,
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+
+                50% {
+                    transform: scale(1.08);
+                    opacity: 0.7;
+                }
+            }
+
+            @keyframes logo-float {
+
+                0%,
+                100% {
+                    transform: translateY(0);
+                }
+
+                50% {
+                    transform: translateY(-4px);
+                }
+            }
+
+            @keyframes progress-slide {
+                0% {
+                    transform: translateX(-100%);
+                }
+
+                50% {
+                    transform: translateX(150%);
+                }
+
+                100% {
+                    transform: translateX(350%);
+                }
+            }
+
+            /* 淡出 */
+            #app-loading.fade-out {
+                opacity: 0;
+                pointer-events: none;
+            }
+        </style>
+        <script>
+            // 立即检测主题，在任何渲染之前
+            (function () {
+                var saved = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                window.__APP_THEME__ = saved === 'dark' || (saved === null && prefersDark) ? 'dark' : 'light';
+            })();
+        </script>
+    </head>
+
+    <body>
+        <!-- Loading Screen - 放在 #app 外部，避免被 Vue 清空 -->
+        <div id="app-loading">
+            <div class="logo-container">
+                <div class="spinner-ring"></div>
+                <div class="glow-ring"></div>
+                <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+                    <defs>
+                        <linearGradient id="loadingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#22d3ee" />
+                            <stop offset="50%" stop-color="#a78bfa" />
+                            <stop offset="100%" stop-color="#f472b6" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M 80 36 C 50 36, 42 52, 60 60 C 78 68, 70 84, 40 84" fill="none"
+                        stroke="url(#loadingGrad)" stroke-width="10" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <circle cx="40" cy="84" r="6" fill="#f472b6" />
+                </svg>
+            </div>
+            <div class="loading-content">
+                <span class="loading-text">正在加载</span>
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+        <script>
+            // 立即应用主题类
+            document.getElementById('app-loading').classList.add(
+                window.__APP_THEME__ === 'dark' ? 'dark-mode' : 'light-mode'
+            );
+        </script>
+
+        <div id="app"></div>
+        <script type="module" src="/src/main.ts"></script>
+    </body>
 
 </html>
