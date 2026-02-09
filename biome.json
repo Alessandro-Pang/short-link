@@ -46,6 +46,9 @@
 			}
 		}
 	},
+	"html": {
+		"experimentalFullSupportEnabled": true
+	},
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double",

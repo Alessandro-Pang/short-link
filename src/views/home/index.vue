@@ -632,9 +632,9 @@ const generateShortLink = async () => {
 		const config = advancedConfig.value || {};
 
 		const { data } = await addUrl(inputUrl, config);
-		if (data && data.short) {
+		if (data?.short) {
 			currentShortUrl.value = `${window.location.origin}/u/${data.short}`;
-		} else if (data && data.url) {
+		} else if (data?.url) {
 			currentShortUrl.value = window.location.origin + data.url;
 		} else {
 			throw new Error("生成短链接失败，返回数据格式错误");

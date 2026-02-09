@@ -144,10 +144,11 @@ const handleSubmit = async () => {
 
 // 删除链接
 const handleDelete = async () => {
+	if (!props.linkId) return;
 	try {
 		await deleteFormLink();
 		Message.success("链接已删除");
-		emit("delete", props.linkId!);
+		emit("delete", props.linkId);
 		handleClose();
 	} catch (error: any) {
 		console.error("删除失败:", error);

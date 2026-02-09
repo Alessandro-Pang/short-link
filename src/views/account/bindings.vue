@@ -332,7 +332,7 @@ export default {
 				bindings.value = formatIdentities(identities.value);
 			} catch (error) {
 				console.error("加载身份绑定失败:", error);
-				alert("加载失败: " + error.message);
+				alert(`加载失败: ${error.message}`);
 			} finally {
 				loading.value = false;
 			}
@@ -359,7 +359,7 @@ export default {
 				await loadIdentities();
 			} catch (error) {
 				console.error("绑定邮箱失败:", error);
-				alert("绑定失败: " + error.message);
+				alert(`绑定失败: ${error.message}`);
 			} finally {
 				linking.value = null;
 			}

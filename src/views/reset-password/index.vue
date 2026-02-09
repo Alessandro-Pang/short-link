@@ -1,3 +1,105 @@
+<script setup>
+import { Message } from "@arco-design/web-vue";
+import { IconLeft, IconLock } from "@arco-design/web-vue/es/icon";
+import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { updatePassword } from "@/services/auth";
+import { supabase } from "@/services/supabase";
+import { makePasswordRules } from "@/utils/validator";
+
+const router = useRouter();
+const isLoading = ref(false);
+
+const form = reactive({
+    password: "",
+    confirmPassword: "",
+});
+
+const hint = ref("");
+const hintType = ref("info");
+
+const passwordRules = computed(() =>
+    makePasswordRules({
+        requiredMessage: "请输入新密码",
+    }),
+);
+
+/**
+ * Supabase 重置密码流程说明（email link）：
+ * - 用户点击 resetPasswordForEmail 发送的链接后，会回到站点（redirectTo）
+ * - Supabase 会把 token 信息放在 URL hash 中，并由客户端解析建立临时 session
+ * - 在该页面里调用 supabase.auth.getSession() / updateUser({password}) 完成重置
+ *
+ * 注意：本项目使用的是 supabase-js v2。
+ */
+onMounted(async () => {
+    try {
+        // 尝试恢复 session（如果用户是从邮件链接进来的，hash 里会包含 token）
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        if (!data?.session) {
+            hintType.value = "warning";
+            hint.value =
+                "未检测到有效的重置会话。请通过“忘记密码”重新发送重置邮件后再尝试。";
+        } else {
+            hintType.value = "info";
+            hint.value = "已验证重置链接，请设置你的新密码。";
+        }
+    } catch (e) {
+        hintType.value = "warning";
+        hint.value =
+            e?.message ||
+            "无法验证重置链接。请通过“忘记密码”重新发送重置邮件后再尝试。";
+    }
+});
+
+async function handleResetPassword({ errors }) {
+    if (errors) return;
+
+    isLoading.value = true;
+    try {
+        // 二次兜底：确认两次输入一致
+        if (form.password !== form.confirmPassword) {
+            Message.error("两次输入的密码不一致");
+            isLoading.value = false;
+            return;
+        }
+
+        // 若未建立 session，则 updatePassword 大概率会失败；这里提前提示
+        const { data } = await supabase.auth.getSession();
+        if (!data?.session) {
+            Message.error(
+                "重置链接无效或已过期，请返回登录页重新发起找回密码。",
+            );
+            isLoading.value = false;
+            return;
+        }
+
+        await updatePassword(form.password);
+
+        Message.success("密码已更新，请使用新密码登录");
+        setTimeout(() => {
+            router.push("/login");
+        }, 500);
+    } catch (error) {
+        // 常见错误：Auth session missing / expired
+        const msg = String(error?.message || "");
+        if (msg.toLowerCase().includes("auth session missing")) {
+            Message.error("重置链接已失效，请重新发送重置邮件");
+        } else {
+            Message.error(error?.message || "重置密码失败，请稍后重试");
+        }
+    } finally {
+        isLoading.value = false;
+    }
+}
+
+function goToLogin() {
+    router.push("/login");
+}
+</script>
+
 <template>
     <div class="min-h-screen flex bg-white">
         <!-- Left Side - Branding -->
@@ -145,100 +247,3 @@
         </div>
     </div>
 </template>
-
-<script setup>
-import { Message } from "@arco-design/web-vue";
-import { IconLeft, IconLock } from "@arco-design/web-vue/es/icon";
-import { computed, onMounted, reactive, ref } from "vue";
-import { useRouter } from "vue-router";
-import { updatePassword } from "@/services/auth";
-import { supabase } from "@/services/supabase";
-import { makePasswordRules } from "@/utils/validator";
-
-const router = useRouter();
-const isLoading = ref(false);
-
-const form = reactive({
-	password: "",
-	confirmPassword: "",
-});
-
-const hint = ref("");
-const hintType = ref("info");
-
-const passwordRules = computed(() =>
-	makePasswordRules({
-		requiredMessage: "请输入新密码",
-	}),
-);
-
-/**
- * Supabase 重置密码流程说明（email link）：
- * - 用户点击 resetPasswordForEmail 发送的链接后，会回到站点（redirectTo）
- * - Supabase 会把 token 信息放在 URL hash 中，并由客户端解析建立临时 session
- * - 在该页面里调用 supabase.auth.getSession() / updateUser({password}) 完成重置
- *
- * 注意：本项目使用的是 supabase-js v2。
- */
-onMounted(async () => {
-	try {
-		// 尝试恢复 session（如果用户是从邮件链接进来的，hash 里会包含 token）
-		const { data, error } = await supabase.auth.getSession();
-		if (error) throw error;
-
-		if (!data?.session) {
-			hintType.value = "warning";
-			hint.value = "未检测到有效的重置会话。请通过“忘记密码”重新发送重置邮件后再尝试。";
-		} else {
-			hintType.value = "info";
-			hint.value = "已验证重置链接，请设置你的新密码。";
-		}
-	} catch (e) {
-		hintType.value = "warning";
-		hint.value = e?.message || "无法验证重置链接。请通过“忘记密码”重新发送重置邮件后再尝试。";
-	}
-});
-
-async function handleResetPassword({ errors }) {
-	if (errors) return;
-
-	isLoading.value = true;
-	try {
-		// 二次兜底：确认两次输入一致
-		if (form.password !== form.confirmPassword) {
-			Message.error("两次输入的密码不一致");
-			isLoading.value = false;
-			return;
-		}
-
-		// 若未建立 session，则 updatePassword 大概率会失败；这里提前提示
-		const { data } = await supabase.auth.getSession();
-		if (!data?.session) {
-			Message.error("重置链接无效或已过期，请返回登录页重新发起找回密码。");
-			isLoading.value = false;
-			return;
-		}
-
-		await updatePassword(form.password);
-
-		Message.success("密码已更新，请使用新密码登录");
-		setTimeout(() => {
-			router.push("/login");
-		}, 500);
-	} catch (error) {
-		// 常见错误：Auth session missing / expired
-		const msg = String(error?.message || "");
-		if (msg.toLowerCase().includes("auth session missing")) {
-			Message.error("重置链接已失效，请重新发送重置邮件");
-		} else {
-			Message.error(error?.message || "重置密码失败，请稍后重试");
-		}
-	} finally {
-		isLoading.value = false;
-	}
-}
-
-function goToLogin() {
-	router.push("/login");
-}
-</script>

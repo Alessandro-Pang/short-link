@@ -60,7 +60,7 @@ export async function fetchApi<T = unknown>(
 		if (auth) {
 			const session = await getSession();
 			if (session?.access_token) {
-				requestHeaders["Authorization"] = `Bearer ${session.access_token}`;
+				requestHeaders.Authorization = `Bearer ${session.access_token}`;
 			}
 		}
 

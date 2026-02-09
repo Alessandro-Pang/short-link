@@ -142,14 +142,10 @@ export function useLinkList(apiService: LinkListApiService) {
 
 	// 删除链接
 	const handleDeleteLink = async (linkId: number | string) => {
-		try {
-			await apiService.deleteLink(linkId);
-			// 重新加载数据
-			await loadData();
-			return true;
-		} catch (error) {
-			throw error;
-		}
+		await apiService.deleteLink(linkId);
+		// 重新加载数据
+		await loadData();
+		return true;
 	};
 
 	// 批量操作
@@ -167,8 +163,6 @@ export function useLinkList(apiService: LinkListApiService) {
 			await apiService.batchDeleteLinks(selectedRowKeys.value);
 			await loadData();
 			return true;
-		} catch (error) {
-			throw error;
 		} finally {
 			isBatchOperating.value = false;
 		}
@@ -184,8 +178,6 @@ export function useLinkList(apiService: LinkListApiService) {
 			await apiService.batchToggleLinks(selectedRowKeys.value, true);
 			await loadData();
 			return true;
-		} catch (error) {
-			throw error;
 		} finally {
 			isBatchOperating.value = false;
 		}
@@ -201,8 +193,6 @@ export function useLinkList(apiService: LinkListApiService) {
 			await apiService.batchToggleLinks(selectedRowKeys.value, false);
 			await loadData();
 			return true;
-		} catch (error) {
-			throw error;
 		} finally {
 			isBatchOperating.value = false;
 		}

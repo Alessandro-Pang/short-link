@@ -30,7 +30,6 @@ export function showMessage(message, type = "info", duration = 3000) {
 		case "warning":
 			Message.warning({ content, duration });
 			break;
-		case "info":
 		default:
 			Message.info({ content, duration });
 			break;

@@ -73,7 +73,7 @@ async function copyLink() {
 		setTimeout(() => {
 			copyBtnText.value = "复制链接";
 		}, 2000);
-	} catch (error) {
+	} catch {
 		fallbackLegacyCopy(props.shortUrl);
 	}
 }

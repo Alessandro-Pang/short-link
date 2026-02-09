@@ -132,8 +132,7 @@ export function useLinkForm(
 			formData.password = ""; // 密码不从服务器加载，始终为空
 
 			// Handle forward_header_list separately to avoid type recursion
-			// Use bracket notation to avoid type inference issues
-			const fwdHeaders = (data as any)["forward_header_list"];
+			const fwdHeaders = (data as any).forward_header_list;
 			formData.forward_header_list = Array.isArray(fwdHeaders) ? fwdHeaders : [];
 
 			// 设置过期模式
@@ -145,8 +144,8 @@ export function useLinkForm(
 				expirationMode.value = "none";
 			}
 
-			// 填充访问限制 - use bracket notation to avoid type recursion
-			const restrictions = (data as any)["access_restrictions"];
+			// 填充访问限制
+			const restrictions = (data as any).access_restrictions;
 			if (restrictions) {
 				Object.assign(accessRestrictions, {
 					ip_whitelist: restrictions.ip_whitelist || [],

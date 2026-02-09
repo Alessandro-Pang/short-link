@@ -7,8 +7,8 @@
  * @FilePath: /short-link/src/router/index
  */
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
-import { updateSEO } from "@/utils/seo";
 import { getSession } from "@/services/auth";
+import { updateSEO } from "@/utils/seo";
 
 /**
  * 路由元数据说明：
@@ -262,7 +262,7 @@ export function getRouteTitle(routeName) {
 }
 
 // 全局路由守卫 - 认证保护
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
 	// 检查路由是否需要认证
 	const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
 

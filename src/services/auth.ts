@@ -12,19 +12,15 @@ import { supabase } from "./supabase";
  * @returns {Promise} 登录结果
  */
 export async function signInWithGithub() {
-	try {
-		const { data, error } = await supabase.auth.signInWithOAuth({
-			provider: "github",
-			options: {
-				redirectTo: `${window.location.origin}/dashboard`,
-			},
-		});
+	const { data, error } = await supabase.auth.signInWithOAuth({
+		provider: "github",
+		options: {
+			redirectTo: `${window.location.origin}/dashboard`,
+		},
+	});
 
-		if (error) throw error;
-		return data;
-	} catch (error) {
-		throw error;
-	}
+	if (error) throw error;
+	return data;
 }
 
 /**
@@ -32,19 +28,15 @@ export async function signInWithGithub() {
  * @returns {Promise} 登录结果
  */
 export async function signInWithGoogle() {
-	try {
-		const { data, error } = await supabase.auth.signInWithOAuth({
-			provider: "google",
-			options: {
-				redirectTo: `${window.location.origin}/dashboard`,
-			},
-		});
+	const { data, error } = await supabase.auth.signInWithOAuth({
+		provider: "google",
+		options: {
+			redirectTo: `${window.location.origin}/dashboard`,
+		},
+	});
 
-		if (error) throw error;
-		return data;
-	} catch (error) {
-		throw error;
-	}
+	if (error) throw error;
+	return data;
 }
 
 /**
@@ -54,37 +46,33 @@ export async function signInWithGoogle() {
  * @returns {Promise} 登录结果
  */
 export async function signInWithEmail(email, password) {
-	try {
-		const { data, error } = await supabase.auth.signInWithPassword({
-			email,
-			password,
-		});
+	const { data, error } = await supabase.auth.signInWithPassword({
+		email,
+		password,
+	});
 
-		if (error) {
-			// 记录登录失败日志
-			await recordLoginAttempt(email, false, error.message, "email");
-			throw error;
-		}
-
-		// 检查用户是否被禁用
-		if (data.user) {
-			const isBanned = await checkUserBanned(data.user.id);
-			if (isBanned) {
-				// 退出登录
-				await supabase.auth.signOut();
-				// 记录失败日志
-				await recordLoginAttempt(email, false, "用户已被禁用", "email");
-				throw new ApiError("您的账号已被禁用，请联系管理员", "USER_BANNED");
-			}
-
-			// 记录登录成功日志
-			await recordLoginAttempt(email, true, null, "email");
-		}
-
-		return data;
-	} catch (error) {
+	if (error) {
+		// 记录登录失败日志
+		await recordLoginAttempt(email, false, error.message, "email");
 		throw error;
 	}
+
+	// 检查用户是否被禁用
+	if (data.user) {
+		const isBanned = await checkUserBanned(data.user.id);
+		if (isBanned) {
+			// 退出登录
+			await supabase.auth.signOut();
+			// 记录失败日志
+			await recordLoginAttempt(email, false, "用户已被禁用", "email");
+			throw new ApiError("您的账号已被禁用，请联系管理员", "USER_BANNED");
+		}
+
+		// 记录登录成功日志
+		await recordLoginAttempt(email, true, null, "email");
+	}
+
+	return data;
 }
 
 /**
@@ -92,7 +80,7 @@ export async function signInWithEmail(email, password) {
  * @param {string} userId - 用户 ID
  * @returns {Promise<boolean>} 是否被禁用
  */
-async function checkUserBanned(userId) {
+async function checkUserBanned(_userId) {
 	try {
 		const response = await fetch("/api/dashboard/user", {
 			headers: {
@@ -360,15 +348,13 @@ export function onAuthStateChange(callback) {
 					"Login already logged for:",
 					user.email,
 					"at",
-					dayjs(parseInt(alreadyLogged)).format("YYYY-MM-DD HH:mm:ss"),
+					dayjs(parseInt(alreadyLogged, 10)).format("YYYY-MM-DD HH:mm:ss"),
 				);
 			}
 		}
 
 		// 调用原始回调
-		if (callback) {
-			callback(event, session);
-		}
+		callback?.(event, session);
 	});
 }
 
@@ -383,7 +369,7 @@ function cleanupOldLoginEvents() {
 		// 遍历 localStorage 查找登录事件记录
 		for (let i = 0; i < localStorage.length; i++) {
 			const key = localStorage.key(i);
-			if (key && key.startsWith("login_event_")) {
+			if (key?.startsWith("login_event_")) {
 				const timestamp = parseInt(localStorage.getItem(key) || "0", 10);
 				if (now - timestamp > DAY_IN_MS) {
 					localStorage.removeItem(key);

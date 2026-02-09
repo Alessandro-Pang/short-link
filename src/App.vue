@@ -18,7 +18,7 @@ let authListener = null;
 
 // 监听认证错误事件
 const handleAuthError = async (event) => {
-	const { user, error } = event.detail || {};
+	const { error } = event.detail || {};
 	if (error) {
 		if (error.code === "USER_BANNED") {
 			Message.error({
@@ -111,7 +111,7 @@ onUnmounted(() => {
 	window.removeEventListener("auth-error", handleAuthError);
 
 	// 清理认证监听器
-	if (authListener && authListener.data && authListener.data.subscription) {
+	if (authListener?.data?.subscription) {
 		authListener.data.subscription.unsubscribe();
 	}
 });
