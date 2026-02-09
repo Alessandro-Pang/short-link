@@ -548,7 +548,7 @@ import {
 	IconLink,
 	IconQrcode,
 	IconSettings,
-    IconUser
+	IconUser,
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
 import { nextTick, onMounted, ref } from "vue";
@@ -607,9 +607,9 @@ const handleDropdownSelect = async (value) => {
 		}
 	} else if (value === "dashboard") {
 		router.push("/dashboard");
-	} else if (value === 'profile') {
-        router.push("/dashboard/profile")
-    }
+	} else if (value === "profile") {
+		router.push("/dashboard/profile");
+	}
 };
 
 const generateShortLink = async () => {

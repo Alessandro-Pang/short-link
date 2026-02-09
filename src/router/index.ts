@@ -30,8 +30,7 @@ const routes: RouteRecordRaw[] = [
 		meta: {
 			requiresAuth: false,
 			title: "首页",
-			description:
-				"免费开源的短链接平台，轻松生成可跟踪、可管理的短网址。",
+			description: "免费开源的短链接平台，轻松生成可跟踪、可管理的短网址。",
 		},
 	},
 	{

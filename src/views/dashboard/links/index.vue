@@ -295,8 +295,11 @@ const handleBatchDisable = async () => {
 };
 
 const hasAccessRestrictions = (record) => {
-    const accessRestrictions = record.access_restrictions;
-    return accessRestrictions && Object.keys(accessRestrictions).some((key) => accessRestrictions[key].length);
+	const accessRestrictions = record.access_restrictions;
+	return (
+		accessRestrictions &&
+		Object.keys(accessRestrictions).some((key) => accessRestrictions[key].length)
+	);
 };
 
 // 暴露刷新方法给父组件
