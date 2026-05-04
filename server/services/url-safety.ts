@@ -296,10 +296,17 @@ function decodeVarint(data: Buffer, pos: number): [number, number] {
 
 function decodeFullHashDetail(data: Buffer): { threatType: string } {
 	const THREAT_TYPES: Record<number, string> = {
+		0: "THREAT_TYPE_UNSPECIFIED",
 		1: "MALWARE",
 		2: "SOCIAL_ENGINEERING",
 		3: "UNWANTED_SOFTWARE",
 		4: "POTENTIALLY_HARMFUL_APPLICATION",
+	};
+	const THREAT_MESSAGES: Record<string, string> = {
+		MALWARE: "该网站可能包含恶意软件或病毒",
+		SOCIAL_ENGINEERING: "该网站可能是钓鱼网站，试图窃取您的个人信息",
+		UNWANTED_SOFTWARE: "该网站可能包含垃圾软件",
+		POTENTIALLY_HARMFUL_APPLICATION: "该网站可能包含有害应用程序",
 	};
 	let pos = 0;
 	let threatType = "";
@@ -311,7 +318,14 @@ function decodeFullHashDetail(data: Buffer): { threatType: string } {
 		if (wireType === 0) {
 			const [val, np] = decodeVarint(data, pos);
 			pos = np;
-			if (fieldNum === 1) threatType = THREAT_TYPES[val] || `UNKNOWN(${val})`;
+			if (fieldNum === 1) {
+				const rawType = THREAT_TYPES[val] || `UNKNOWN(${val})`;
+				if (rawType === "THREAT_TYPE_UNSPECIFIED") {
+					threatType = "";
+				} else {
+					threatType = THREAT_MESSAGES[rawType] || rawType;
+				}
+			}
 		} else if (wireType === 2) {
 			const [len, np] = decodeVarint(data, pos);
 			pos = np + len;
@@ -404,7 +418,7 @@ async function googleSafeBrowsingCheck(url: string): Promise<string | null> {
 				if (entry.fullHash.equals(localFullHash)) {
 					const types = entry.details.map((d) => d.threatType).filter(Boolean);
 					if (types.length > 0) {
-						return `Google Safe Browsing: ${types.join(", ")}`;
+						return types[0];
 					}
 				}
 			}
