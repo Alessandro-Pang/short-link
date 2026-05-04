@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { URL_SAFETY_CONFIG } from "../config/url-safety/index.js";
+import { isPrivateIp } from "../utils/validation.js";
 
 interface SafetyCheckResult {
 	safe: boolean;
@@ -11,7 +12,7 @@ const SUSPICIOUS_RE = buildKeywordRegex(URL_SAFETY_CONFIG.SUSPICIOUS_KEYWORDS);
 
 function buildKeywordRegex(keywords: readonly string[]): RegExp {
 	const patterns = keywords.map((kw) => {
-		const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		const escaped = kw.replace(/[.*+?^${}()|[\\\]]/g, "\\$&");
 		if (kw.length <= 3 && /^[\x00-\x7F]+$/.test(kw)) {
 			return `\\b${escaped}\\b`;
 		}
@@ -87,9 +88,20 @@ async function fetchUrlMeta(url: string): Promise<FetchMeta> {
 	};
 
 	try {
-		const controller = new AbortController();
-		const timer = setTimeout(() => controller.abort(), URL_SAFETY_CONFIG.FETCH_TIMEOUT_MS);
+		const parsedUrl = new URL(url);
+		const hostname = parsedUrl.hostname;
 
+		if (isPrivateIp(hostname)) {
+			return empty;
+		}
+	} catch {
+		return empty;
+	}
+
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), URL_SAFETY_CONFIG.FETCH_TIMEOUT_MS);
+
+	try {
 		const resp = await fetch(url, {
 			method: "GET",
 			headers: {
@@ -101,8 +113,6 @@ async function fetchUrlMeta(url: string): Promise<FetchMeta> {
 			redirect: "follow",
 			signal: controller.signal,
 		});
-
-		clearTimeout(timer);
 
 		const ct = resp.headers.get("content-type") || "";
 		if (!ct.includes("text/html") && !ct.includes("text/")) {
@@ -139,8 +149,10 @@ async function fetchUrlMeta(url: string): Promise<FetchMeta> {
 		const bodyText = textContent.slice(0, 2000);
 
 		return { title, description, keywords: kw, bodyText, isSSR };
-	} catch (e) {
+	} catch {
 		return empty;
+	} finally {
+		clearTimeout(timer);
 	}
 }
 
@@ -199,7 +211,7 @@ function canonicalizeUrl(rawUrl: string): string {
 	}
 
 	const parsed = new URL(url.includes("://") ? url : `http://${url}`);
-	let hostname = parsed.hostname
+	const hostname = parsed.hostname
 		.replace(/\.{2,}/g, ".")
 		.replace(/^\.+|\.+$/g, "")
 		.toLowerCase();

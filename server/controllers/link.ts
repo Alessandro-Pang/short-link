@@ -71,9 +71,15 @@ export async function createShortLink(request, reply) {
 	const sanitizedUrl = sanitizeUrl(inputUrl);
 
 	// URL 安全检查（黑白名单 → 爬虫内容检测 → Google Safe Browsing）
-	const safetyResult = await checkUrlSafety(sanitizedUrl);
-	if (!safetyResult.safe) {
-		return forbidden(reply, safetyResult.reason || "该 URL 因安全原因被拒绝");
+	try {
+		const safetyResult = await checkUrlSafety(sanitizedUrl);
+		if (!safetyResult.safe) {
+			return forbidden(reply, safetyResult.reason || "该 URL 因安全原因被拒绝");
+		}
+	} catch (error) {
+		request.log.error("URL 安全检查失败:", error);
+		// Fail-closed: 安全检查失败时拒绝请求
+		return serverError(reply, "URL 安全检查暂时不可用，请稍后重试");
 	}
 
 	try {
