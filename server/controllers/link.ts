@@ -2,9 +2,11 @@ import { URLSearchParams } from "node:url";
 import { getClientIp } from "../middlewares/utils.js";
 import * as dashboardService from "../services/dashboard.js";
 import * as linkService from "../services/link.js";
+import { checkUrlSafety } from "../services/url-safety.js";
 import {
 	badRequest,
 	conflict,
+	forbidden,
 	notFound,
 	serverError,
 	success,
@@ -67,6 +69,18 @@ export async function createShortLink(request, reply) {
 
 	// 清理 URL
 	const sanitizedUrl = sanitizeUrl(inputUrl);
+
+	// URL 安全检查（黑白名单 → 爬虫内容检测 → Google Safe Browsing）
+	try {
+		const safetyResult = await checkUrlSafety(sanitizedUrl);
+		if (!safetyResult.safe) {
+			return forbidden(reply, safetyResult.reason || "该 URL 因安全原因被拒绝");
+		}
+	} catch (error) {
+		request.log.error("URL 安全检查失败:", error);
+		// Fail-closed: 安全检查失败时拒绝请求
+		return serverError(reply, "URL 安全检查暂时不可用，请稍后重试");
+	}
 
 	try {
 		const result = await linkService.addUrl(sanitizedUrl, userId, options);
