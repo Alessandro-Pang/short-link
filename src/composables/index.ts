@@ -6,3 +6,4 @@
 export { useLinkForm } from "./useLinkForm";
 export { useLinkList } from "./useLinkList";
 export { useQRCode } from "./useQRCode";
+export { showSafetyBlockModal } from "./useSafetyModal";
