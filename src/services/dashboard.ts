@@ -4,6 +4,8 @@
  */
 
 import dayjs from "dayjs";
+import type { DashboardLinksQuery, LinkAccessLogsQuery, UpdateLinkRequest } from "../../types/api";
+import type { Link } from "../../types/shared";
 import {
 	batchDeleteLinks,
 	batchToggleLinks,
@@ -42,7 +44,7 @@ export async function getUserLinkStats() {
  * @param {Object} options - 查询选项
  * @returns {Promise} 链接列表
  */
-export async function getUserLinks(options = {}) {
+export async function getUserLinks(options: DashboardLinksQuery = {}) {
 	try {
 		const response = await getDashboardLinks(options);
 		return response.data;
@@ -57,7 +59,7 @@ export async function getUserLinks(options = {}) {
  * @param {number} linkId - 链接 ID
  * @returns {Promise} 链接详情
  */
-export async function getLinkDetailById(linkId) {
+export async function getLinkDetailById(linkId: number) {
 	try {
 		const response = await getLinkDetail(linkId);
 		return response.data;
@@ -73,7 +75,7 @@ export async function getLinkDetailById(linkId) {
  * @param {Object} updates - 更新数据
  * @returns {Promise} 更新结果
  */
-export async function updateLinkConfig(linkId, updates) {
+export async function updateLinkConfig(linkId: number, updates: UpdateLinkRequest) {
 	try {
 		const response = await updateLink(linkId, updates);
 		return response.data;
@@ -88,7 +90,7 @@ export async function updateLinkConfig(linkId, updates) {
  * @param {number} linkId - 链接 ID
  * @returns {Promise}
  */
-export async function removeLinkById(linkId) {
+export async function removeLinkById(linkId: number) {
 	try {
 		await deleteLink(linkId);
 		return true;
@@ -104,7 +106,7 @@ export async function removeLinkById(linkId) {
  * @param {boolean} isActive - 是否启用
  * @returns {Promise} 更新结果
  */
-export async function toggleLink(linkId, isActive) {
+export async function toggleLink(linkId: number, isActive: boolean) {
 	try {
 		const response = await toggleLinkStatus(linkId, isActive);
 		return response.data;
@@ -119,7 +121,7 @@ export async function toggleLink(linkId, isActive) {
  * @param {Array<number>} linkIds - 链接 ID 数组
  * @returns {Promise} 删除结果
  */
-export async function batchRemoveLinks(linkIds) {
+export async function batchRemoveLinks(linkIds: number[]) {
 	try {
 		const response = await batchDeleteLinks(linkIds);
 		return response.data;
@@ -134,7 +136,7 @@ export async function batchRemoveLinks(linkIds) {
  * @param {Array<number>} linkIds - 链接 ID 数组
  * @returns {Promise} 操作结果
  */
-export async function batchEnableLinks(linkIds) {
+export async function batchEnableLinks(linkIds: number[]) {
 	try {
 		const response = await batchToggleLinks(linkIds, true);
 		return response.data;
@@ -149,7 +151,7 @@ export async function batchEnableLinks(linkIds) {
  * @param {Array<number>} linkIds - 链接 ID 数组
  * @returns {Promise} 操作结果
  */
-export async function batchDisableLinks(linkIds) {
+export async function batchDisableLinks(linkIds: number[]) {
 	try {
 		const response = await batchToggleLinks(linkIds, false);
 		return response.data;
@@ -165,7 +167,7 @@ export async function batchDisableLinks(linkIds) {
  * @param {Object} options - 查询选项
  * @returns {Promise} 访问日志列表
  */
-export async function getLinkLogs(linkId, options = {}) {
+export async function getLinkLogs(linkId: number, options: LinkAccessLogsQuery = {}) {
 	try {
 		const response = await getLinkAccessLogs(linkId, options);
 		return response.data;
@@ -196,7 +198,7 @@ export async function getTopLinks(period = "daily", limit = 20) {
  * @param {Object} link - 链接对象
  * @returns {Object} 状态信息
  */
-export function formatLinkStatus(link) {
+export function formatLinkStatus(link: Link) {
 	if (!link.is_active) {
 		return { status: "disabled", label: "已禁用", color: "red" };
 	}
@@ -217,7 +219,7 @@ export function formatLinkStatus(link) {
  * @param {Object} link - 链接对象
  * @returns {boolean}
  */
-export function hasAdvancedConfig(link) {
+export function hasAdvancedConfig(link: Link) {
 	return (
 		(link.redirect_type && link.redirect_type !== 302) ||
 		link.expiration_date ||
@@ -233,8 +235,8 @@ export function hasAdvancedConfig(link) {
  * @param {Object} link - 链接对象
  * @returns {Array} 配置摘要列表
  */
-export function getConfigSummary(link) {
-	const summary = [];
+export function getConfigSummary(link: Link) {
+	const summary: Array<{ type: string; label: string; color: string }> = [];
 
 	if (link.redirect_type && link.redirect_type !== 302) {
 		summary.push({

@@ -2,7 +2,10 @@ import { createPinia } from "pinia";
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
-import "@arco-design/web-vue/dist/arco.css";
+// Arco Design 全局反馈组件样式（Message/Modal/Notification 通过 JS API 调用，unplugin 无法自动检测）
+import "@arco-design/web-vue/es/message/style/css.js";
+import "@arco-design/web-vue/es/modal/style/css.js";
+import "@arco-design/web-vue/es/notification/style/css.js";
 import "./assets/main.css";
 import { useUiStore } from "@/stores/ui";
 

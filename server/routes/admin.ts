@@ -14,14 +14,17 @@ import { authenticateAdmin } from "../middlewares/auth.js";
 /**
  * Admin 路由组 - 需要管理员权限
  */
-export default async function adminRoutes(fastify) {
+export default async function adminRoutes(fastify: import("fastify").FastifyInstance) {
 	// 为所有管理员路由配置速率限制
 	const adminRateLimitConfig = {
 		config: {
 			rateLimit: {
 				max: RATE_LIMIT_CONFIG.ADMIN.MAX,
 				timeWindow: RATE_LIMIT_CONFIG.ADMIN.TIME_WINDOW,
-				errorResponseBuilder: (_request, context) => {
+				errorResponseBuilder: (
+					_request: import("fastify").FastifyRequest,
+					context: { ttl: number; max: number; after: string },
+				) => {
 					return {
 						code: 429,
 						msg: "管理员操作过于频繁，请稍后再试",
@@ -55,7 +58,10 @@ export default async function adminRoutes(fastify) {
 			rateLimit: {
 				max: 20, // 批量操作每分钟最多 20 次
 				timeWindow: "1 minute",
-				errorResponseBuilder: (_request, context) => {
+				errorResponseBuilder: (
+					_request: import("fastify").FastifyRequest,
+					context: { ttl: number; max: number; after: string },
+				) => {
 					return {
 						code: 429,
 						msg: "批量操作过于频繁，请稍后再试",

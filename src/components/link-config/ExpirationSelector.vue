@@ -35,7 +35,7 @@
                 format="YYYY-MM-DD HH:mm:ss"
                 placeholder="选择过期时间"
                 class="w-full mt-2"
-                :disabled-date="(current) => current < new Date()"
+                :disabled-date="(current: Date) => current < new Date()"
             />
 
             <div v-if="localMode === 'none'" class="text-xs text-gray-400 mt-2">

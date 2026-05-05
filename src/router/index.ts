@@ -255,7 +255,7 @@ export function getDashboardMenuRoutes(isAdmin = false) {
  * @param {string} routeName - 路由名称
  * @returns {string} 页面标题
  */
-export function getRouteTitle(routeName) {
+export function getRouteTitle(routeName: string | symbol | null | undefined) {
 	const dashboardRoute = routes.find((r) => r.name === "dashboard");
 	const childRoute = dashboardRoute?.children?.find((r) => r.name === routeName);
 	return childRoute?.meta?.title || "控制台";

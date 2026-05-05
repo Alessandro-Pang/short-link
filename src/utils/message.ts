@@ -15,7 +15,7 @@ import { Message } from "@arco-design/web-vue";
  * @param {string} type - 消息类型 (success, error, info, warning, warn)
  * @param {number} duration - 显示时长(毫秒)
  */
-export function showMessage(message, type = "info", duration = 3000) {
+export function showMessage(message: unknown, type: string = "info", duration: number = 3000) {
 	const content = typeof message === "string" ? message : String(message);
 
 	const normalizedType = type === "warn" ? "warning" : type;
@@ -41,7 +41,7 @@ export function showMessage(message, type = "info", duration = 3000) {
  * @param {string} message - 消息内容
  * @param {number} duration - 显示时长(毫秒)
  */
-export function showSuccess(message, duration = 3000) {
+export function showSuccess(message: unknown, duration: number = 3000) {
 	showMessage(message, "success", duration);
 }
 
@@ -50,7 +50,7 @@ export function showSuccess(message, duration = 3000) {
  * @param {string} message - 消息内容
  * @param {number} duration - 显示时长(毫秒)
  */
-export function showError(message, duration = 3000) {
+export function showError(message: unknown, duration: number = 3000) {
 	showMessage(message, "error", duration);
 }
 
@@ -59,7 +59,7 @@ export function showError(message, duration = 3000) {
  * @param {string} message - 消息内容
  * @param {number} duration - 显示时长(毫秒)
  */
-export function showInfo(message, duration = 3000) {
+export function showInfo(message: unknown, duration: number = 3000) {
 	showMessage(message, "info", duration);
 }
 
@@ -68,7 +68,7 @@ export function showInfo(message, duration = 3000) {
  * @param {string} message - 消息内容
  * @param {number} duration - 显示时长(毫秒)
  */
-export function showWarning(message, duration = 3000) {
+export function showWarning(message: unknown, duration: number = 3000) {
 	showMessage(message, "warning", duration);
 }
 

@@ -158,7 +158,7 @@ export async function getAllLoginLogs(options: Partial<LoginLogQueryOptions> = {
  * @param {string} userId - 用户 ID（可选，不传则获取全局统计）
  * @returns {Promise<Object>} 登录统计
  */
-export async function getLoginStats(userId = null) {
+export async function getLoginStats(userId: string | null = null) {
 	try {
 		// 计算时间范围
 		const last24h = dayjs().subtract(24, "hour").toISOString();
@@ -166,9 +166,9 @@ export async function getLoginStats(userId = null) {
 		const last30d = dayjs().subtract(30, "day").toISOString();
 
 		// 构建基础查询条件
-		const buildQuery = (baseQuery) => {
+		const buildQuery = <T>(baseQuery: T): T => {
 			if (userId) {
-				return baseQuery.eq("user_id", userId);
+				return (baseQuery as unknown as { eq: (c: string, v: string) => T }).eq("user_id", userId);
 			}
 			return baseQuery;
 		};

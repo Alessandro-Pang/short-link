@@ -41,7 +41,7 @@ export async function verifyToken(token: string) {
  * @param {string} userId - 用户 ID
  * @returns {Promise<Object>} 用户信息
  */
-export async function getUserById(userId) {
+export async function getUserById(userId: string) {
 	try {
 		const { data, error } = await supabase
 			.from("user_profiles")
@@ -74,7 +74,7 @@ export async function getUserById(userId) {
  * @param {string} userId - 用户 ID
  * @returns {Promise<boolean>} 是否为管理员
  */
-export async function isAdmin(userId) {
+export async function isAdmin(userId: string) {
 	if (!userId) return false;
 
 	try {
@@ -105,7 +105,7 @@ export async function isAdmin(userId) {
  * @param {string} token - JWT token
  * @returns {Promise<Object>} 包含用户信息和管理员状态的对象
  */
-export async function verifyTokenWithAdminCheck(token) {
+export async function verifyTokenWithAdminCheck(token: string) {
 	const user = await verifyToken(token);
 	const adminStatus = await isAdmin(user.id);
 

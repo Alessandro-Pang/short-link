@@ -4,6 +4,7 @@
  */
 
 import dayjs from "dayjs";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { ApiError } from "./request";
 import { supabase } from "./supabase";
 
@@ -45,7 +46,7 @@ export async function signInWithGoogle() {
  * @param {string} password - 密码
  * @returns {Promise} 登录结果
  */
-export async function signInWithEmail(email, password) {
+export async function signInWithEmail(email: string, password: string) {
 	const { data, error } = await supabase.auth.signInWithPassword({
 		email,
 		password,
@@ -80,7 +81,7 @@ export async function signInWithEmail(email, password) {
  * @param {string} userId - 用户 ID
  * @returns {Promise<boolean>} 是否被禁用
  */
-async function checkUserBanned(_userId) {
+async function checkUserBanned(_userId: string) {
 	try {
 		const response = await fetch("/api/dashboard/user", {
 			headers: {
@@ -124,7 +125,7 @@ const ERROR_MESSAGE_MAP = {
  * @param {string} errorMessage - 英文错误消息
  * @returns {string} 中文错误消息
  */
-function translateErrorMessage(errorMessage) {
+function translateErrorMessage(errorMessage: string | null | undefined): string | null {
 	if (!errorMessage) return null;
 
 	// 检查是否包含关键词
@@ -146,10 +147,10 @@ function translateErrorMessage(errorMessage) {
  * @param {string} loginMethod - 登录方式
  */
 export async function recordLoginAttempt(
-	email,
-	success,
-	failureReason = null,
-	loginMethod = "email",
+	email: string | undefined,
+	success: boolean,
+	failureReason: string | null = null,
+	loginMethod: string = "email",
 ) {
 	try {
 		// 获取客户端信息
@@ -187,7 +188,11 @@ export async function recordLoginAttempt(
  * @param {Object} metadata - 用户元数据 (可选)
  * @returns {Promise} 注册结果
  */
-export async function signUpWithEmail(email, password, metadata = {}) {
+export async function signUpWithEmail(
+	email: string,
+	password: string,
+	metadata: Record<string, unknown> = {},
+) {
 	const { data, error } = await supabase.auth.signUp({
 		email,
 		password,
@@ -255,7 +260,9 @@ export async function getSession() {
  * @param {Function} callback - 状态变化回调函数
  * @returns {Object} 订阅对象
  */
-export function onAuthStateChange(callback) {
+export function onAuthStateChange(
+	callback?: (event: AuthChangeEvent, session: Session | null) => void,
+) {
 	return supabase.auth.onAuthStateChange(async (event, session) => {
 		// 只在真正的登录事件时处理
 		// SIGNED_IN: 用户刚刚登录（包括 OAuth 回调）
@@ -386,7 +393,7 @@ function cleanupOldLoginEvents() {
  * @param {string} email - 邮箱地址
  * @returns {Promise} 发送结果
  */
-export async function resetPassword(email) {
+export async function resetPassword(email: string) {
 	const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
 		redirectTo: `${window.location.origin}/reset-password`,
 	});
@@ -400,7 +407,7 @@ export async function resetPassword(email) {
  * @param {string} newPassword - 新密码
  * @returns {Promise} 更新结果
  */
-export async function updatePassword(newPassword) {
+export async function updatePassword(newPassword: string) {
 	const { data, error } = await supabase.auth.updateUser({
 		password: newPassword,
 	});
@@ -414,7 +421,7 @@ export async function updatePassword(newPassword) {
  * @param {Object} updates - 要更新的用户信息
  * @returns {Promise} 更新结果
  */
-export async function updateUserProfile(updates) {
+export async function updateUserProfile(updates: Record<string, unknown>) {
 	const { data, error } = await supabase.auth.updateUser({
 		data: updates,
 	});

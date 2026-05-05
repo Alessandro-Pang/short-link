@@ -1,15 +1,18 @@
 import { ADULT_KEYWORDS } from "./adult.js";
+import { CONTEXTUAL_RISK_KEYWORDS } from "./contextual.js";
+import { DOMAIN_BLACKLIST, DOMAIN_WHITELIST, TLD_BLACKLIST } from "./domains.js";
 import { DRUGS_KEYWORDS } from "./drugs.js";
 import { FRAUD_KEYWORDS } from "./fraud.js";
 import { GAMBLING_KEYWORDS } from "./gambling.js";
 import { SUSPICIOUS_KEYWORDS } from "./suspicious.js";
-import { DOMAIN_WHITELIST, DOMAIN_BLACKLIST, TLD_BLACKLIST } from "./domains.js";
 
 export const URL_SAFETY_CONFIG = {
 	ENABLED: process.env.URL_SAFETY_ENABLED !== "false",
 	GOOGLE_SAFE_BROWSING_KEY: process.env.GOOGLE_SAFE_BROWSING_KEY || "",
 	FETCH_TIMEOUT_MS: 6000,
 	MAX_BODY_BYTES: 30_000,
+	META_CONTEXTUAL_RISK_THRESHOLD: 3,
+	BODY_CONTEXTUAL_RISK_THRESHOLD: 4,
 	DOMAIN_WHITELIST: DOMAIN_WHITELIST.split(",")
 		.filter(Boolean)
 		.map((keyword) => keyword.trim()),
@@ -25,6 +28,9 @@ export const URL_SAFETY_CONFIG = {
 		${DRUGS_KEYWORDS},
 		${FRAUD_KEYWORDS}`
 		.split(",")
+		.filter(Boolean)
+		.map((keyword) => keyword.trim()),
+	CONTEXTUAL_RISK_KEYWORDS: CONTEXTUAL_RISK_KEYWORDS.split(",")
 		.filter(Boolean)
 		.map((keyword) => keyword.trim()),
 	SUSPICIOUS_KEYWORDS: SUSPICIOUS_KEYWORDS.split(",")

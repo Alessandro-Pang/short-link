@@ -105,7 +105,7 @@ export const useUiStore = defineStore("ui", () => {
 	 * 设置侧边栏折叠状态
 	 * @param {boolean} collapsed - 是否折叠
 	 */
-	function setSidebarCollapsed(collapsed) {
+	function setSidebarCollapsed(collapsed: boolean) {
 		sidebarCollapsed.value = collapsed;
 	}
 
@@ -121,7 +121,7 @@ export const useUiStore = defineStore("ui", () => {
 	 * 设置主题
 	 * @param {string} newTheme - 主题名称 ('light' | 'dark')
 	 */
-	function setTheme(newTheme) {
+	function setTheme(newTheme: string) {
 		theme.value = newTheme;
 		applyTheme();
 	}
@@ -162,7 +162,7 @@ export const useUiStore = defineStore("ui", () => {
 	 * 打开二维码模态框
 	 * @param {string} url - 短链接 URL
 	 */
-	function openQrcodeModal(url) {
+	function openQrcodeModal(url: string) {
 		modals.value.qrcode.visible = true;
 		modals.value.qrcode.url = url;
 	}
@@ -179,7 +179,17 @@ export const useUiStore = defineStore("ui", () => {
 	 * 打开确认模态框
 	 * @param {Object} options - 配置选项
 	 */
-	function openConfirmModal({ title, content, onOk, onCancel }) {
+	function openConfirmModal({
+		title,
+		content,
+		onOk,
+		onCancel,
+	}: {
+		title: string;
+		content: string;
+		onOk?: (() => void) | null;
+		onCancel?: (() => void) | null;
+	}) {
 		modals.value.confirm.visible = true;
 		modals.value.confirm.title = title;
 		modals.value.confirm.content = content;
@@ -218,7 +228,7 @@ export const useUiStore = defineStore("ui", () => {
 	 * 打开链接编辑抽屉
 	 * @param {number} linkId - 链接 ID
 	 */
-	function openLinkEditDrawer(linkId) {
+	function openLinkEditDrawer(linkId: number) {
 		drawers.value.linkEdit.visible = true;
 		drawers.value.linkEdit.linkId = linkId;
 	}

@@ -3,6 +3,7 @@
  * 用于 LinkEditDrawer 和 AdminLinkEditDrawer
  */
 
+import { formatDate } from "@/utils/date";
 import dayjs from "dayjs";
 import type { Ref } from "vue";
 import { computed, reactive, ref } from "vue";
@@ -87,12 +88,6 @@ export function useLinkForm(
 		if (!formData.expiration_date) return false;
 		return dayjs(formData.expiration_date).isBefore(dayjs());
 	});
-
-	// 格式化日期
-	const formatDate = (dateString: string | null): string => {
-		if (!dateString) return "-";
-		return dayjs(dateString).format("YYYY-MM-DD HH:mm:ss");
-	};
 
 	// 加载过期时间选项
 	const loadExpirationOptions = async () => {

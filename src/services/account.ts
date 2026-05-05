@@ -4,8 +4,18 @@
  * @Description: 账号绑定管理服务
  * @FilePath: /short-link/src/services/account
  */
+import type { UserIdentity } from "../../types/shared";
 import { fetchApi } from "./request";
 import { supabase } from "./supabase";
+
+type IdentityProvider = "email" | "github" | "google";
+
+interface FormattedIdentity {
+	linked: boolean;
+	email: string | null;
+	linkedAt: string | null;
+	metadata: unknown;
+}
 
 /**
  * 获取当前用户的所有身份绑定
@@ -34,7 +44,7 @@ export async function getUserIdentities() {
  * @param {string} password - 邮箱密码
  * @returns {Promise<Object>} 绑定结果
  */
-export async function linkEmailAccount(email, password) {
+export async function linkEmailAccount(email: string, password: string) {
 	try {
 		// 使用 Supabase 更新邮箱
 		const {
@@ -134,7 +144,7 @@ export async function linkGoogleAccount() {
  * @param {string} provider - 提供商（github/google）
  * @returns {Promise<Object>} 绑定结果
  */
-export async function handleOAuthLinkCallback(provider) {
+export async function handleOAuthLinkCallback(provider: string) {
 	try {
 		// 获取当前会话（包含新绑定的身份信息）
 		const {
@@ -182,7 +192,7 @@ export async function handleOAuthLinkCallback(provider) {
  * @param {string} provider - 认证提供商（email/github/google）
  * @returns {Promise<Object>} 解绑结果
  */
-export async function unlinkIdentity(provider) {
+export async function unlinkIdentity(provider: string) {
 	try {
 		const response = await fetchApi(`/api/dashboard/user/identities/${provider}`, {
 			method: "DELETE",
@@ -218,7 +228,7 @@ export async function unlinkIdentity(provider) {
  * @param {string} reason - 删除原因（可选）
  * @returns {Promise<Object>} 删除结果
  */
-export async function deleteAccount(reason = null) {
+export async function deleteAccount(reason: string | null = null) {
 	try {
 		const response = await fetchApi("/api/dashboard/user/account", {
 			method: "DELETE",
@@ -244,15 +254,15 @@ export async function deleteAccount(reason = null) {
  * @param {Array} identities - 身份绑定列表
  * @returns {Object} 格式化后的绑定信息
  */
-export function formatIdentities(identities) {
-	const result = {
+export function formatIdentities(identities: UserIdentity[]) {
+	const result: Record<IdentityProvider, FormattedIdentity | null> = {
 		email: null,
 		github: null,
 		google: null,
 	};
 
 	identities.forEach((identity) => {
-		result[identity.provider] = {
+		result[identity.provider as IdentityProvider] = {
 			linked: true,
 			email: identity.provider_email,
 			linkedAt: identity.linked_at,

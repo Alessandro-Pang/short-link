@@ -11,7 +11,7 @@ import { createHash, randomBytes } from "node:crypto";
 /**
  * HTML 实体转义映射表
  */
-const HTML_ENTITIES = {
+const HTML_ENTITIES: Record<string, string> = {
 	"&": "&amp;",
 	"<": "&lt;",
 	">": "&gt;",
@@ -27,7 +27,7 @@ const HTML_ENTITIES = {
  * @param {string} str - 要转义的字符串
  * @returns {string} 转义后的字符串
  */
-export function escapeHtml(str) {
+export function escapeHtml(str: string) {
 	if (typeof str !== "string") {
 		return "";
 	}
@@ -71,7 +71,7 @@ export const MAX_HASH_RETRIES = 10;
  * @param {string} hash - 要验证的哈希
  * @returns {boolean}
  */
-export function isValidHash(hash) {
+export function isValidHash(hash: string) {
 	if (typeof hash !== "string" || hash.length < 4 || hash.length > 16) {
 		return false;
 	}
@@ -84,7 +84,7 @@ export function isValidHash(hash) {
  * @param {string} input - 用户输入
  * @returns {string} 清理后的字符串
  */
-export function sanitizeInput(input) {
+export function sanitizeInput(input: string) {
 	if (typeof input !== "string") {
 		return "";
 	}
@@ -101,7 +101,7 @@ export function sanitizeInput(input) {
  * @param {string} input - 用户输入
  * @returns {boolean} 是否包含可疑模式
  */
-export function hasSqlInjectionPattern(input) {
+export function hasSqlInjectionPattern(input: string) {
 	if (typeof input !== "string") {
 		return false;
 	}
@@ -138,4 +138,18 @@ export function verifyPassword(password: string, hash: string): boolean {
 		return false;
 	}
 	return hashPassword(password) === hash;
+}
+
+/**
+ * 处理密码字段更新：将明文密码转为 hash，空值表示删除密码
+ * @returns password_hash 值（string | null），undefined 表示不需要更新
+ */
+export function processPasswordUpdate(value: unknown): string | null | undefined {
+	if (value === null || value === "") {
+		return null;
+	}
+	if (typeof value === "string") {
+		return hashPassword(value);
+	}
+	return undefined;
 }

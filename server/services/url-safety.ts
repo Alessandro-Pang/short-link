@@ -8,17 +8,26 @@ interface SafetyCheckResult {
 }
 
 const HIGH_RISK_RE = buildKeywordRegex(URL_SAFETY_CONFIG.HIGH_RISK_KEYWORDS);
+const CONTEXTUAL_RISK_RE = buildKeywordRegex(URL_SAFETY_CONFIG.CONTEXTUAL_RISK_KEYWORDS);
 const SUSPICIOUS_RE = buildKeywordRegex(URL_SAFETY_CONFIG.SUSPICIOUS_KEYWORDS);
+
+function isAsciiKeyword(keyword: string): boolean {
+	return Array.from(keyword).every((char) => char.charCodeAt(0) <= 0x7f);
+}
 
 function buildKeywordRegex(keywords: readonly string[]): RegExp {
 	const patterns = keywords.map((kw) => {
 		const escaped = kw.replace(/[.*+?^${}()|[\\\]]/g, "\\$&");
-		if (kw.length <= 3 && /^[\x00-\x7F]+$/.test(kw)) {
+		if (kw.length <= 3 && isAsciiKeyword(kw)) {
 			return `\\b${escaped}\\b`;
 		}
 		return escaped;
 	});
 	return new RegExp(patterns.join("|"), "gi");
+}
+
+function uniqueMatches(text: string, regex: RegExp): string[] {
+	return Array.from(new Set(text.match(regex) || []));
 }
 
 function extractHostname(url: string): string {
@@ -160,19 +169,28 @@ function checkMetaKeywords(meta: FetchMeta): string | null {
 	const text = [meta.title, meta.description, meta.keywords].join(" ");
 	if (!text.trim()) return null;
 
-	const highMatches = text.match(HIGH_RISK_RE);
-	if (highMatches) {
-		const unique = Array.from(new Set(highMatches)).slice(0, 3);
+	const highMatches = uniqueMatches(text, HIGH_RISK_RE);
+	if (highMatches.length > 0) {
+		const unique = highMatches.slice(0, 3);
 		return `页面 meta 包含违规关键词: ${unique.join(", ")}`;
 	}
 
-	const suspMatches = text.match(SUSPICIOUS_RE);
-	if (suspMatches) {
-		const uniqueSusp = new Set(suspMatches);
-		if (uniqueSusp.size >= 2) {
-			const list = Array.from(uniqueSusp).slice(0, 3);
-			return `页面 meta 可疑关键词组合: ${list.join(", ")}`;
-		}
+	const contextualMatches = uniqueMatches(text, CONTEXTUAL_RISK_RE);
+	const suspiciousMatches = uniqueMatches(text, SUSPICIOUS_RE);
+
+	if (contextualMatches.length >= URL_SAFETY_CONFIG.META_CONTEXTUAL_RISK_THRESHOLD) {
+		const list = contextualMatches.slice(0, 3);
+		return `页面 meta 包含上下文风险关键词组合: ${list.join(", ")}`;
+	}
+
+	if (contextualMatches.length >= 2 && suspiciousMatches.length >= 1) {
+		const list = [...contextualMatches, ...suspiciousMatches].slice(0, 3);
+		return `页面 meta 包含风险关键词组合: ${list.join(", ")}`;
+	}
+
+	if (suspiciousMatches.length >= 2) {
+		const list = suspiciousMatches.slice(0, 3);
+		return `页面 meta 可疑关键词组合: ${list.join(", ")}`;
 	}
 
 	return null;
@@ -181,19 +199,28 @@ function checkMetaKeywords(meta: FetchMeta): string | null {
 function checkBodyKeywords(bodyText: string): string | null {
 	if (!bodyText.trim()) return null;
 
-	const highMatches = bodyText.match(HIGH_RISK_RE);
-	if (highMatches) {
-		const unique = Array.from(new Set(highMatches)).slice(0, 3);
+	const highMatches = uniqueMatches(bodyText, HIGH_RISK_RE);
+	if (highMatches.length > 0) {
+		const unique = highMatches.slice(0, 3);
 		return `页面内容包含违规关键词: ${unique.join(", ")}`;
 	}
 
-	const suspMatches = bodyText.match(SUSPICIOUS_RE);
-	if (suspMatches) {
-		const uniqueSusp = new Set(suspMatches);
-		if (uniqueSusp.size >= 3) {
-			const list = Array.from(uniqueSusp).slice(0, 3);
-			return `页面内容可疑关键词组合: ${list.join(", ")}`;
-		}
+	const contextualMatches = uniqueMatches(bodyText, CONTEXTUAL_RISK_RE);
+	const suspiciousMatches = uniqueMatches(bodyText, SUSPICIOUS_RE);
+
+	if (contextualMatches.length >= URL_SAFETY_CONFIG.BODY_CONTEXTUAL_RISK_THRESHOLD) {
+		const list = contextualMatches.slice(0, 3);
+		return `页面内容包含上下文风险关键词组合: ${list.join(", ")}`;
+	}
+
+	if (contextualMatches.length >= 2 && suspiciousMatches.length >= 2) {
+		const list = [...contextualMatches, ...suspiciousMatches].slice(0, 3);
+		return `页面内容包含风险关键词组合: ${list.join(", ")}`;
+	}
+
+	if (suspiciousMatches.length >= 3) {
+		const list = suspiciousMatches.slice(0, 3);
+		return `页面内容可疑关键词组合: ${list.join(", ")}`;
 	}
 
 	return null;
@@ -264,7 +291,7 @@ function generateExpressions(canonicalUrl: string): string[] {
 	paths.add("/");
 	const pathParts = path.split("/").filter(Boolean);
 	for (let j = 1; j <= Math.min(pathParts.length, 4); j++) {
-		paths.add("/" + pathParts.slice(0, j).join("/") + "/");
+		paths.add(`/${pathParts.slice(0, j).join("/")}/`);
 	}
 
 	const expressions = new Set<string>();
@@ -423,7 +450,9 @@ async function googleSafeBrowsingCheck(url: string): Promise<string | null> {
 				}
 			}
 		}
-	} catch {}
+	} catch (error) {
+		console.error("Google Safe Browsing API 检查失败:", error);
+	}
 
 	return null;
 }

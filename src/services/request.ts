@@ -43,6 +43,10 @@ export interface FetchApiOptions {
 	headers?: Record<string, string>;
 	auth?: boolean;
 	throwOnError?: boolean;
+	/** 请求超时时间（毫秒），默认 15000ms */
+	timeout?: number;
+	/** 429 自动重试次数，默认 2 */
+	maxRetries?: number;
 }
 
 /**
@@ -50,93 +54,132 @@ export interface FetchApiOptions {
  */
 export async function fetchApi<T = unknown>(
 	url: string,
-	{ method = "GET", body, headers = {}, auth = true, throwOnError = true }: FetchApiOptions = {},
+	{
+		method = "GET",
+		body,
+		headers = {},
+		auth = true,
+		throwOnError = true,
+		timeout = 15000,
+		maxRetries = 2,
+	}: FetchApiOptions = {},
 ): Promise<ApiResponse<T>> {
-	try {
-		// 准备请求头
-		const requestHeaders = { ...headers };
+	let lastError: ApiError | null = null;
 
-		// 如果需要认证，获取当前 session 并添加到请求头
-		if (auth) {
-			const session = await getSession();
-			if (session?.access_token) {
-				requestHeaders.Authorization = `Bearer ${session.access_token}`;
+	for (let attempt = 0; attempt <= maxRetries; attempt++) {
+		if (attempt > 0) {
+			const delay = Math.min(1000 * 2 ** (attempt - 1), 5000);
+			await new Promise((resolve) => setTimeout(resolve, delay));
+		}
+
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+		try {
+			// 准备请求头
+			const requestHeaders = { ...headers };
+
+			// 如果需要认证，获取当前 session 并添加到请求头
+			if (auth) {
+				const session = await getSession();
+				if (session?.access_token) {
+					requestHeaders.Authorization = `Bearer ${session.access_token}`;
+				}
 			}
-		}
 
-		// 构建请求选项
-		const fetchOptions: RequestInit = {
-			method,
-			headers: requestHeaders,
-		};
+			// 构建请求选项
+			const fetchOptions: RequestInit = {
+				method,
+				headers: requestHeaders,
+				signal: controller.signal,
+			};
 
-		// 如果有请求体，添加 Content-Type 和序列化 body
-		if (body !== undefined && body !== null) {
-			requestHeaders["Content-Type"] = "application/json;charset=utf-8";
-			fetchOptions.headers = requestHeaders;
-			fetchOptions.body = JSON.stringify(body);
-		}
+			// 如果有请求体，添加 Content-Type 和序列化 body
+			if (body !== undefined && body !== null) {
+				requestHeaders["Content-Type"] = "application/json;charset=utf-8";
+				fetchOptions.headers = requestHeaders;
+				fetchOptions.body = JSON.stringify(body);
+			}
 
-		// 发送请求
-		const response = await fetch(url, fetchOptions);
+			// 发送请求
+			const response = await fetch(url, fetchOptions);
+			clearTimeout(timeoutId);
 
-		// 解析响应
-		let data: ApiResponse<T>;
-		const contentType = response.headers.get("content-type");
-		if (contentType?.includes("application/json")) {
-			data = await response.json();
-		} else {
-			// 非 JSON 响应
-			const text = await response.text();
-			data = { code: response.status, msg: text };
-		}
+			// 解析响应
+			let data: ApiResponse<T>;
+			const contentType = response.headers.get("content-type");
+			if (contentType?.includes("application/json")) {
+				data = await response.json();
+			} else {
+				// 非 JSON 响应
+				const text = await response.text();
+				data = { code: response.status, msg: text };
+			}
 
-		// 处理成功响应
-		if (data.code === 200 || data.code === 201) {
+			// 处理成功响应
+			if (data.code === 200 || data.code === 201) {
+				return data;
+			}
+
+			// 处理错误响应
+			if (throwOnError) {
+				const errorMessage = data.msg || ERROR_CODE_MAP[data.code] || "请求失败";
+				const error = new ApiError(errorMessage, data.code, data.data);
+
+				// 特殊错误码处理
+				if (data.code === 409) {
+					error.code = "DUPLICATE_LINK";
+					error.existingLink = data.data;
+				} else if (data.code === 403) {
+					error.code = "FORBIDDEN";
+				} else if (data.code === 401) {
+					error.code = "UNAUTHORIZED";
+				} else if (data.code === 429) {
+					error.code = "RATE_LIMITED";
+					error.retryAfter = (data as any).retryAfter || (data.data as any)?.retryAfter;
+					lastError = error;
+					continue;
+				}
+
+				throw error;
+			}
+
 			return data;
-		}
+		} catch (error) {
+			clearTimeout(timeoutId);
 
-		// 处理错误响应
-		if (throwOnError) {
-			const errorMessage = data.msg || ERROR_CODE_MAP[data.code] || "请求失败";
-			const error = new ApiError(errorMessage, data.code, data.data);
-
-			// 特殊错误码处理
-			if (data.code === 409) {
-				error.code = "DUPLICATE_LINK";
-				error.existingLink = data.data;
-			} else if (data.code === 403) {
-				error.code = "FORBIDDEN";
-			} else if (data.code === 401) {
-				error.code = "UNAUTHORIZED";
-			} else if (data.code === 429) {
-				error.code = "RATE_LIMITED";
-				error.retryAfter = (data as any).retryAfter || (data.data as any)?.retryAfter;
+			if (error instanceof ApiError) {
+				throw error;
 			}
 
-			throw error;
+			const err = error as Error;
+
+			if (err.name === "AbortError") {
+				const message = "请求超时";
+				if (throwOnError) {
+					throw new ApiError(message, "TIMEOUT", null);
+				}
+				return { code: 0, msg: message } as ApiResponse<T>;
+			}
+
+			console.error("API 请求失败:", err);
+
+			if (throwOnError) {
+				throw new ApiError(err.message || "网络请求失败", "NETWORK_ERROR", null);
+			}
+
+			return {
+				code: 0,
+				msg: err.message || "网络请求失败",
+			} as ApiResponse<T>;
 		}
-
-		return data;
-	} catch (error) {
-		// 如果已经是 ApiError，直接抛出
-		if (error instanceof ApiError) {
-			throw error;
-		}
-
-		// 网络错误或其他错误
-		const err = error as Error;
-		console.error("API 请求失败:", err);
-
-		if (throwOnError) {
-			throw new ApiError(err.message || "网络请求失败", "NETWORK_ERROR", null);
-		}
-
-		return {
-			code: 0,
-			msg: err.message || "网络请求失败",
-		} as ApiResponse<T>;
 	}
+
+	if (lastError && throwOnError) {
+		throw lastError;
+	}
+
+	return { code: 429, msg: "请求过于频繁，请稍后再试" } as ApiResponse<T>;
 }
 
 /**

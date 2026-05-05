@@ -82,7 +82,7 @@
                 :rules="[
                     { required: true, message: '请再次输入密码' },
                     {
-                        validator: (value, cb) => {
+                        validator: (value: unknown, cb: (msg?: string) => void) => {
                             if (value !== form.password) {
                                 cb('两次输入的密码不一致');
                             } else {

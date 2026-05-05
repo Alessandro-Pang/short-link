@@ -1,21 +1,23 @@
 import * as authController from "../controllers/auth.js";
 import { authenticate } from "../middlewares/auth.js";
 import * as authService from "../services/auth.js";
+import type { AuthenticatedRequest } from "../types/index.js";
 
 /**
  * Debug 路由组 - 用于调试和检查用户状态
  */
-export default async function debugRoutes(fastify) {
+export default async function debugRoutes(fastify: import("fastify").FastifyInstance) {
 	// 调试用户信息 - 显示完整的认证数据
 	fastify.get("/me", { preHandler: authenticate }, async (request, reply) => {
+		const user = (request as AuthenticatedRequest).user!;
 		return reply.send({
 			code: "SUCCESS",
 			msg: "Debug user info",
 			data: {
-				user: request.user,
-				hasIsAdmin: "is_admin" in request.user,
-				isAdminValue: request.user.is_admin,
-				isAdminType: typeof request.user.is_admin,
+				user,
+				hasIsAdmin: "is_admin" in user,
+				isAdminValue: user.is_admin,
+				isAdminType: typeof user.is_admin,
 			},
 		});
 	});
@@ -23,7 +25,7 @@ export default async function debugRoutes(fastify) {
 	// 调试接口 - 通过 query 参数传递 token (无需 Authorization header)
 	fastify.get("/token-info", async (request, reply) => {
 		try {
-			const token = request.query.token;
+			const token = (request.query as { token?: string }).token;
 			if (!token) {
 				return reply.status(400).send({
 					code: 400,

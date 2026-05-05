@@ -23,6 +23,7 @@ import {
 	toggleUserStatus,
 	updateUser,
 } from "@/services/admin";
+import { formatDate } from "@/utils/date";
 
 // State
 const isLoading = ref(false);
@@ -66,19 +67,6 @@ const loadUsers = async () => {
 	} finally {
 		isLoading.value = false;
 	}
-};
-
-// 格式化日期
-const formatDate = (dateString) => {
-	if (!dateString) return "-";
-	const date = new Date(dateString);
-	return date.toLocaleString("zh-CN", {
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
 };
 
 // 获取用户状态

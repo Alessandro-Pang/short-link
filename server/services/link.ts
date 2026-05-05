@@ -52,7 +52,7 @@ export function parseDeviceType(userAgent: string | undefined): string {
  * @param {string} cidr - CIDR 格式的地址范围
  * @returns {boolean}
  */
-function ipInCidr(ip, cidr) {
+function ipInCidr(ip: string, cidr: string) {
 	try {
 		const [range, bits = "32"] = cidr.split("/");
 		const mask = ~(2 ** (32 - parseInt(bits, 10)) - 1);
@@ -76,7 +76,7 @@ function ipInCidr(ip, cidr) {
  * @param {Array} ipList - IP/CIDR 列表
  * @returns {boolean}
  */
-function checkIpInList(ip, ipList) {
+function checkIpInList(ip: string, ipList: string[]) {
 	if (!ip || !ipList || ipList.length === 0) return false;
 
 	for (const item of ipList) {
@@ -174,7 +174,7 @@ export function validateAccessRestrictions(
  * @param {boolean} passQueryParams - 是否透传参数
  * @returns {string} 最终重定向 URL
  */
-export function buildRedirectUrl(targetUrl, queryString, passQueryParams) {
+export function buildRedirectUrl(targetUrl: string, queryString: string, passQueryParams: boolean) {
 	if (!passQueryParams || !queryString) {
 		return targetUrl;
 	}
@@ -263,7 +263,9 @@ export async function getUrl(
  * @param {number} retryCount - 当前重试次数
  * @returns {Promise<{hash: string|null, error: string|null}>}
  */
-async function generateUniqueHash(retryCount = 0) {
+async function generateUniqueHash(
+	retryCount = 0,
+): Promise<{ hash: string | null; error?: string }> {
 	if (retryCount >= MAX_HASH_RETRIES) {
 		return {
 			hash: null,
@@ -561,7 +563,7 @@ export async function updateLinkConfig(
 		];
 
 		// 过滤只保留允许更新的字段
-		const filteredUpdates = {};
+		const filteredUpdates: Record<string, unknown> = {};
 		for (const field of allowedFields) {
 			if (updates[field] !== undefined) {
 				// 特殊处理密码字段

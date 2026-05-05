@@ -7,7 +7,9 @@
  * @FilePath: /short-link/api/controllers/admin
  */
 
-import * as dashboardService from "../services/dashboard.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import * as leaderboardService from "../services/leaderboard.js";
+import * as linkAdminService from "../services/link-admin.js";
 import * as loginLogService from "../services/log.js";
 import * as userManagementService from "../services/user.js";
 import { badRequest, notFound, serverError, success, validationError } from "../utils/response.js";
@@ -23,12 +25,12 @@ import {
 /**
  * 获取系统统计信息
  */
-export async function getSystemStats(request, reply) {
+export async function getSystemStats(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const stats = await dashboardService.getGlobalStats();
+		const stats = await linkAdminService.getGlobalStats();
 		return success(reply, stats);
 	} catch (error) {
-		request.log.error("获取系统统计失败:", error);
+		request.log.error(error, "获取系统统计失败:");
 		return serverError(reply, "获取系统统计失败");
 	}
 }
@@ -36,14 +38,14 @@ export async function getSystemStats(request, reply) {
 /**
  * 获取管理员统计数据（别名）
  */
-export async function getAdminStats(request, reply) {
+export async function getAdminStats(request: FastifyRequest, reply: FastifyReply) {
 	return getSystemStats(request, reply);
 }
 
 /**
  * 获取所有短链接（管理员）
  */
-export async function getAllLinks(request, reply) {
+export async function getAllLinks(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		const {
 			page,
@@ -57,7 +59,7 @@ export async function getAllLinks(request, reply) {
 			linkId = null,
 			keyword = null,
 			userId = null,
-		} = request.query;
+		} = request.query as Record<string, string>;
 
 		// 验证分页参数
 		const paginationResult = validatePagination({ page, pageSize });
@@ -67,12 +69,16 @@ export async function getAllLinks(request, reply) {
 		// 支持两种分页方式：
 		// 1. page + pageSize (传统分页)
 		// 2. limit + offset (直接偏移)
-		const finalLimit = limit ? parseInt(limit, 10) : pageSize ? parseInt(pageSize, 10) : 10;
+		const finalLimit = limit
+			? parseInt(String(limit), 10)
+			: pageSize
+				? parseInt(String(pageSize), 10)
+				: 10;
 		const finalOffset =
 			offset !== undefined
-				? parseInt(offset, 10)
+				? parseInt(String(offset), 10)
 				: page
-					? (parseInt(page, 10) - 1) * finalLimit
+					? (parseInt(String(page), 10) - 1) * finalLimit
 					: 0;
 
 		// 支持两种排序字段名：sortBy 或 orderBy
@@ -80,9 +86,11 @@ export async function getAllLinks(request, reply) {
 
 		// 支持两种排序方向：sortOrder 或 ascending
 		const finalAscending =
-			ascending !== undefined ? ascending === "true" || ascending === true : sortOrder === "asc";
+			ascending !== undefined
+				? ascending === "true" || (ascending as unknown) === true
+				: sortOrder === "asc";
 
-		const result = await dashboardService.getAllLinks({
+		const result = await linkAdminService.getAllLinks({
 			limit: finalLimit,
 			offset: finalOffset,
 			orderBy: finalOrderBy,
@@ -94,7 +102,7 @@ export async function getAllLinks(request, reply) {
 
 		return success(reply, result);
 	} catch (error) {
-		request.log.error("获取链接列表失败:", error);
+		request.log.error(error, "获取链接列表失败:");
 		return serverError(reply, "获取链接列表失败");
 	}
 }
@@ -102,15 +110,15 @@ export async function getAllLinks(request, reply) {
 /**
  * 获取短链接详情（管理员）
  */
-export async function getLinkDetails(request, reply) {
+export async function getLinkDetails(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const linkId = parseInt(request.params.id, 10);
+		const linkId = parseInt((request.params as Record<string, string>).id, 10);
 
 		if (Number.isNaN(linkId) || linkId < 1) {
 			return badRequest(reply, "无效的链接 ID");
 		}
 
-		const result = await dashboardService.getLinkDetailAdmin(linkId);
+		const result = await linkAdminService.getLinkDetailAdmin(linkId);
 
 		if (!result) {
 			return notFound(reply, "链接不存在");
@@ -118,7 +126,7 @@ export async function getLinkDetails(request, reply) {
 
 		return success(reply, result);
 	} catch (error) {
-		request.log.error("获取链接详情失败:", error);
+		request.log.error(error, "获取链接详情失败:");
 		return serverError(reply, "获取链接详情失败");
 	}
 }
@@ -126,22 +134,27 @@ export async function getLinkDetails(request, reply) {
 /**
  * 获取短链接访问日志（管理员）
  */
-export async function getLinkAccessLogs(request, reply) {
+export async function getLinkAccessLogs(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const linkId = parseInt(request.params.id, 10);
+		const linkId = parseInt((request.params as Record<string, string>).id, 10);
 
 		if (Number.isNaN(linkId) || linkId < 1) {
 			return badRequest(reply, "无效的链接 ID");
 		}
 
-		const result = await dashboardService.getLinkAccessLogsAdmin(linkId, {
-			limit: parseInt(request.query.limit || request.query.pageSize || 50, 10),
-			offset: parseInt(request.query.offset || 0, 10),
+		const result = await linkAdminService.getLinkAccessLogsAdmin(linkId, {
+			limit: parseInt(
+				(request.query as Record<string, string>).limit ||
+					(request.query as Record<string, string>).pageSize ||
+					"50",
+				10,
+			),
+			offset: parseInt((request.query as Record<string, string>).offset || "0", 10),
 		});
 
 		return success(reply, result);
 	} catch (error) {
-		request.log.error("获取访问日志失败:", error);
+		request.log.error(error, "获取访问日志失败:");
 		return serverError(reply, "获取访问日志失败");
 	}
 }
@@ -149,10 +162,10 @@ export async function getLinkAccessLogs(request, reply) {
 /**
  * 更新短链接（管理员）
  */
-export async function updateLink(request, reply) {
+export async function updateLink(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const linkId = parseInt(request.params.id, 10);
-		const updates = request.body;
+		const linkId = parseInt((request.params as Record<string, string>).id, 10);
+		const updates = request.body as Record<string, unknown>;
 
 		if (Number.isNaN(linkId) || linkId < 1) {
 			return badRequest(reply, "无效的链接 ID");
@@ -165,14 +178,14 @@ export async function updateLink(request, reply) {
 
 		// 处理 max_clicks 转换
 		if (updates.max_clicks !== undefined && updates.max_clicks !== null) {
-			updates.max_clicks = parseInt(updates.max_clicks, 10);
+			updates.max_clicks = parseInt(String(updates.max_clicks), 10);
 		}
 
-		const result = await dashboardService.updateLinkAdmin(linkId, updates);
+		const result = await linkAdminService.updateLinkAdmin(linkId, updates);
 
 		return success(reply, result, "链接更新成功");
 	} catch (error) {
-		request.log.error("更新链接失败:", error);
+		request.log.error(error, "更新链接失败:");
 		return serverError(reply, "更新链接失败");
 	}
 }
@@ -180,10 +193,10 @@ export async function updateLink(request, reply) {
 /**
  * 切换短链接状态（管理员）
  */
-export async function toggleLinkStatus(request, reply) {
+export async function toggleLinkStatus(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const linkId = parseInt(request.params.id, 10);
-		const { is_active } = request.body;
+		const linkId = parseInt((request.params as Record<string, string>).id, 10);
+		const { is_active } = request.body as Record<string, unknown>;
 
 		if (Number.isNaN(linkId) || linkId < 1) {
 			return badRequest(reply, "无效的链接 ID");
@@ -198,11 +211,11 @@ export async function toggleLinkStatus(request, reply) {
 			return badRequest(reply, "is_active 是必填参数");
 		}
 
-		const result = await dashboardService.batchToggleLinksAdmin([linkId], is_active);
+		const result = await linkAdminService.batchToggleLinksAdmin([linkId], is_active as boolean);
 
 		return success(reply, result, "链接状态更新成功");
 	} catch (error) {
-		request.log.error("更新链接状态失败:", error);
+		request.log.error(error, "更新链接状态失败:");
 		return serverError(reply, "更新链接状态失败");
 	}
 }
@@ -210,19 +223,19 @@ export async function toggleLinkStatus(request, reply) {
 /**
  * 删除短链接（管理员）
  */
-export async function deleteLink(request, reply) {
+export async function deleteLink(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const linkId = parseInt(request.params.id, 10);
+		const linkId = parseInt((request.params as Record<string, string>).id, 10);
 
 		if (Number.isNaN(linkId) || linkId < 1) {
 			return badRequest(reply, "无效的链接 ID");
 		}
 
-		await dashboardService.deleteLinkAdmin(linkId);
+		await linkAdminService.deleteLinkAdmin(linkId);
 
 		return success(reply, null, "链接删除成功");
 	} catch (error) {
-		request.log.error("删除链接失败:", error);
+		request.log.error(error, "删除链接失败:");
 		return serverError(reply, "删除链接失败");
 	}
 }
@@ -230,20 +243,20 @@ export async function deleteLink(request, reply) {
 /**
  * 批量删除短链接（管理员）
  */
-export async function batchDeleteLinks(request, reply) {
+export async function batchDeleteLinks(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const { linkIds } = request.body;
+		const { linkIds } = request.body as Record<string, unknown>;
 
 		// 验证 linkIds
-		const idsResult = validateBatchIds(linkIds);
+		const idsResult = validateBatchIds(linkIds as (string | number)[]);
 		const idsErr = validationError(reply, idsResult);
 		if (idsErr) return idsErr;
 
-		const result = await dashboardService.batchDeleteLinksAdmin(linkIds);
+		const result = await linkAdminService.batchDeleteLinksAdmin(linkIds as number[]);
 
 		return success(reply, result, "批量删除成功");
 	} catch (error) {
-		request.log.error("批量删除链接失败:", error);
+		request.log.error(error, "批量删除链接失败:");
 		return serverError(reply, "批量删除失败");
 	}
 }
@@ -251,12 +264,12 @@ export async function batchDeleteLinks(request, reply) {
 /**
  * 批量更新短链接状态（管理员）
  */
-export async function batchUpdateLinkStatus(request, reply) {
+export async function batchUpdateLinkStatus(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const { linkIds, is_active } = request.body;
+		const { linkIds, is_active } = request.body as Record<string, unknown>;
 
 		// 验证 linkIds
-		const idsResult = validateBatchIds(linkIds);
+		const idsResult = validateBatchIds(linkIds as (string | number)[]);
 		const idsErr = validationError(reply, idsResult);
 		if (idsErr) return idsErr;
 
@@ -269,12 +282,15 @@ export async function batchUpdateLinkStatus(request, reply) {
 			return badRequest(reply, "is_active 是必填参数");
 		}
 
-		const result = await dashboardService.batchToggleLinksAdmin(linkIds, is_active);
+		const result = await linkAdminService.batchToggleLinksAdmin(
+			linkIds as number[],
+			is_active as boolean,
+		);
 
 		const action = is_active ? "启用" : "禁用";
 		return success(reply, result, `批量${action}成功`);
 	} catch (error) {
-		request.log.error("批量更新链接状态失败:", error);
+		request.log.error(error, "批量更新链接状态失败:");
 		return serverError(reply, "批量更新状态失败");
 	}
 }
@@ -282,9 +298,9 @@ export async function batchUpdateLinkStatus(request, reply) {
 /**
  * 获取所有用户列表（管理员）
  */
-export async function getAllUsers(request, reply) {
+export async function getAllUsers(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const { page = 1, perPage = 50 } = request.query;
+		const { page = 1, perPage = 50 } = request.query as Record<string, string>;
 
 		// 验证分页参数
 		const paginationResult = validatePagination({ page, pageSize: perPage });
@@ -292,13 +308,13 @@ export async function getAllUsers(request, reply) {
 		if (paginationErr) return paginationErr;
 
 		const result = await userManagementService.getAllUsers({
-			page: parseInt(page, 10),
-			perPage: parseInt(perPage, 10),
+			page: parseInt(String(page), 10),
+			perPage: parseInt(String(perPage), 10),
 		});
 
 		return success(reply, result);
 	} catch (error) {
-		request.log.error("获取用户列表失败:", error);
+		request.log.error(error, "获取用户列表失败:");
 		return serverError(reply, "获取用户列表失败");
 	}
 }
@@ -306,9 +322,9 @@ export async function getAllUsers(request, reply) {
 /**
  * 获取用户详情（管理员）
  */
-export async function getUserDetails(request, reply) {
+export async function getUserDetails(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const userId = request.params.id;
+		const userId = (request.params as Record<string, string>).id;
 
 		if (!userId) {
 			return badRequest(reply, "无效的用户 ID");
@@ -322,7 +338,7 @@ export async function getUserDetails(request, reply) {
 
 		return success(reply, result);
 	} catch (error) {
-		request.log.error("获取用户详情失败:", error);
+		request.log.error(error, "获取用户详情失败:");
 		return serverError(reply, "获取用户详情失败");
 	}
 }
@@ -330,25 +346,28 @@ export async function getUserDetails(request, reply) {
 /**
  * 创建新用户（管理员）
  */
-export async function createUser(request, reply) {
+export async function createUser(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const { email, password } = request.body;
+		const { email, password } = request.body as Record<string, unknown>;
 
 		// 验证邮箱
-		const emailResult = validateEmail(email);
+		const emailResult = validateEmail(email as string);
 		const emailErr = validationError(reply, emailResult);
 		if (emailErr) return emailErr;
 
 		// 验证密码
-		const passwordResult = validatePassword(password);
+		const passwordResult = validatePassword(password as string);
 		const passwordErr = validationError(reply, passwordResult);
 		if (passwordErr) return passwordErr;
 
-		const result = await userManagementService.createUser({ email, password });
+		const result = await userManagementService.createUser({
+			email: email as string,
+			password: password as string,
+		});
 
 		return success(reply, result, "用户创建成功");
 	} catch (error) {
-		request.log.error("创建用户失败:", error);
+		request.log.error(error, "创建用户失败:");
 		return serverError(reply, error.message || "创建用户失败");
 	}
 }
@@ -356,10 +375,10 @@ export async function createUser(request, reply) {
 /**
  * 更新用户信息（管理员）
  */
-export async function updateUser(request, reply) {
+export async function updateUser(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const userId = request.params.id;
-		const updates = request.body;
+		const userId = (request.params as Record<string, string>).id;
+		const updates = request.body as Record<string, unknown>;
 
 		if (!userId) {
 			return badRequest(reply, "无效的用户 ID");
@@ -369,7 +388,7 @@ export async function updateUser(request, reply) {
 
 		return success(reply, result, "用户信息更新成功");
 	} catch (error) {
-		request.log.error("更新用户信息失败:", error);
+		request.log.error(error, "更新用户信息失败:");
 		return serverError(reply, error.message || "更新用户信息失败");
 	}
 }
@@ -377,9 +396,9 @@ export async function updateUser(request, reply) {
 /**
  * 删除用户（管理员）
  */
-export async function deleteUser(request, reply) {
+export async function deleteUser(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const userId = request.params.id;
+		const userId = (request.params as Record<string, string>).id;
 
 		if (!userId) {
 			return badRequest(reply, "无效的用户 ID");
@@ -389,7 +408,7 @@ export async function deleteUser(request, reply) {
 
 		return success(reply, null, "用户删除成功");
 	} catch (error) {
-		request.log.error("删除用户失败:", error);
+		request.log.error(error, "删除用户失败:");
 		return serverError(reply, error.message || "删除用户失败");
 	}
 }
@@ -397,25 +416,25 @@ export async function deleteUser(request, reply) {
 /**
  * 重置用户密码（管理员）
  */
-export async function resetPassword(request, reply) {
+export async function resetPassword(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const userId = request.params.id;
-		const { password } = request.body;
+		const userId = (request.params as Record<string, string>).id;
+		const { password } = request.body as Record<string, unknown>;
 
 		if (!userId) {
 			return badRequest(reply, "无效的用户 ID");
 		}
 
 		// 验证密码
-		const passwordResult = validatePassword(password);
+		const passwordResult = validatePassword(password as string);
 		const passwordErr = validationError(reply, passwordResult);
 		if (passwordErr) return passwordErr;
 
-		await userManagementService.resetPassword(userId, password);
+		await userManagementService.resetPassword(userId, password as string);
 
 		return success(reply, null, "密码重置成功");
 	} catch (error) {
-		request.log.error("重置密码失败:", error);
+		request.log.error(error, "重置密码失败:");
 		return serverError(reply, error.message || "重置密码失败");
 	}
 }
@@ -423,10 +442,10 @@ export async function resetPassword(request, reply) {
 /**
  * 切换用户封禁状态（管理员）
  */
-export async function toggleBanStatus(request, reply) {
+export async function toggleBanStatus(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const userId = request.params.id;
-		const { banned } = request.body;
+		const userId = (request.params as Record<string, string>).id;
+		const { banned } = request.body as Record<string, unknown>;
 
 		if (!userId) {
 			return badRequest(reply, "无效的用户 ID");
@@ -441,11 +460,11 @@ export async function toggleBanStatus(request, reply) {
 			return badRequest(reply, "banned 是必填参数");
 		}
 
-		const result = await userManagementService.toggleBanStatus(userId, banned);
+		const result = await userManagementService.toggleBanStatus(userId, banned as boolean);
 
 		return success(reply, result, banned ? "用户已禁用" : "用户已启用");
 	} catch (error) {
-		request.log.error("切换用户封禁状态失败:", error);
+		request.log.error(error, "切换用户封禁状态失败:");
 		return serverError(reply, error.message || "操作失败");
 	}
 }
@@ -453,7 +472,7 @@ export async function toggleBanStatus(request, reply) {
 /**
  * 获取登录日志（管理员）
  */
-export async function getLoginLogs(request, reply) {
+export async function getLoginLogs(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		const {
 			limit = 50,
@@ -462,10 +481,10 @@ export async function getLoginLogs(request, reply) {
 			success: successFilter = null,
 			startDate = null,
 			endDate = null,
-		} = request.query;
+		} = request.query as Record<string, string>;
 
-		const parsedLimit = parseInt(limit, 10);
-		const parsedOffset = parseInt(offset, 10);
+		const parsedLimit = parseInt(String(limit), 10);
+		const parsedOffset = parseInt(String(offset), 10);
 
 		if (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
 			return badRequest(reply, "limit 必须是 1-100 之间的整数");
@@ -486,7 +505,7 @@ export async function getLoginLogs(request, reply) {
 
 		return success(reply, result);
 	} catch (error) {
-		request.log.error("获取登录日志失败:", error);
+		request.log.error(error, "获取登录日志失败:");
 		return serverError(reply, "获取登录日志失败");
 	}
 }
@@ -494,7 +513,7 @@ export async function getLoginLogs(request, reply) {
 /**
  * 获取访问日志（管理员）
  */
-export async function getAccessLogs(request, reply) {
+export async function getAccessLogs(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		const {
 			limit = 50,
@@ -502,10 +521,10 @@ export async function getAccessLogs(request, reply) {
 			linkId = null,
 			startDate = null,
 			endDate = null,
-		} = request.query;
+		} = request.query as Record<string, string>;
 
-		const parsedLimit = parseInt(limit, 10);
-		const parsedOffset = parseInt(offset, 10);
+		const parsedLimit = parseInt(String(limit), 10);
+		const parsedOffset = parseInt(String(offset), 10);
 
 		if (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
 			return badRequest(reply, "limit 必须是 1-100 之间的整数");
@@ -515,37 +534,17 @@ export async function getAccessLogs(request, reply) {
 			return badRequest(reply, "offset 必须是非负整数");
 		}
 
-		// 构建查询
-		let query = (await import("../database/client")).default
-			.from("link_access_logs")
-			.select("*", { count: "exact" })
-			.order("accessed_at", { ascending: false })
-			.range(parsedOffset, parsedOffset + parsedLimit - 1);
-
-		if (linkId) {
-			query = query.eq("link_id", parseInt(linkId, 10));
-		}
-
-		if (startDate) {
-			query = query.gte("accessed_at", startDate);
-		}
-
-		if (endDate) {
-			query = query.lte("accessed_at", endDate);
-		}
-
-		const { data, error, count } = await query;
-
-		if (error) {
-			throw error;
-		}
-
-		return success(reply, {
-			logs: data || [],
-			total: count || 0,
+		const result = await linkAdminService.getAccessLogs({
+			limit: parsedLimit,
+			offset: parsedOffset,
+			linkId: linkId ? parseInt(linkId, 10) : null,
+			startDate,
+			endDate,
 		});
+
+		return success(reply, result);
 	} catch (error) {
-		request.log.error("获取访问日志失败:", error);
+		request.log.error(error, "获取访问日志失败:");
 		return serverError(reply, "获取访问日志失败");
 	}
 }
@@ -553,15 +552,15 @@ export async function getAccessLogs(request, reply) {
 /**
  * 获取登录统计（管理员）
  */
-export async function getLoginStats(request, reply) {
+export async function getLoginStats(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const { userId = null } = request.query;
+		const { userId = null } = request.query as Record<string, string>;
 
 		const stats = await loginLogService.getLoginStats(userId);
 
 		return success(reply, stats);
 	} catch (error) {
-		request.log.error("获取登录统计失败:", error);
+		request.log.error(error, "获取登录统计失败:");
 		return serverError(reply, "获取登录统计失败");
 	}
 }
@@ -569,10 +568,10 @@ export async function getLoginStats(request, reply) {
 /**
  * 获取全局排行榜（管理员）
  */
-export async function getTopLinks(request, reply) {
+export async function getTopLinks(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const period = request.query.period || "daily";
-		const limit = parseInt(request.query.limit || 20, 10);
+		const period = (request.query as Record<string, string>).period || "daily";
+		const limit = parseInt((request.query as Record<string, string>).limit || "20", 10);
 
 		// 验证 period 参数
 		if (!["daily", "weekly", "monthly"].includes(period)) {
@@ -584,11 +583,11 @@ export async function getTopLinks(request, reply) {
 			return badRequest(reply, "limit 必须是 1-100 之间的数字");
 		}
 
-		const result = await dashboardService.getGlobalTopLinks(period, limit);
+		const result = await leaderboardService.getGlobalTopLinks(period, limit);
 
 		return success(reply, result);
 	} catch (error) {
-		request.log.error("获取全局排行榜失败:", error);
+		request.log.error(error, "获取全局排行榜失败:");
 		return serverError(reply, "获取全局排行榜失败");
 	}
 }
