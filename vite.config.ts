@@ -85,10 +85,6 @@ export default defineConfig(({ mode }): UserConfig => {
 						) {
 							return "vue-vendor";
 						}
-						// Arco Design 图标（按需加载，体积大）
-						if (id.includes("@arco-design/web-vue/es/icon")) {
-							return "arco-icons";
-						}
 						// Arco Design UI 组件库
 						if (id.includes("node_modules/@arco-design")) {
 							return "arco-vendor";
