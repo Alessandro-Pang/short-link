@@ -199,6 +199,32 @@ pnpm type-check
 | `VITE_SUPABASE_ANON_KEY` | 前端 Supabase Key | ✅ |
 | `ALLOWED_ORIGINS` | CORS 允许的域名（逗号分隔） | ❌ |
 | `DEV_SERVER_PORT` | 开发服务器端口（默认 3000） | ❌ |
+| `URL_SAFETY_ENABLED` | URL Safe 安全检测开关，设为 `false` 时关闭（默认开启） | ❌ |
+| `GOOGLE_SAFE_BROWSING_KEY` | Google Safe Browsing API Key，配置后启用 Google Safe Browsing 检测 | ❌ |
+
+### URL Safe 安全检测配置
+
+创建短链接时，服务端会对目标 URL 执行安全检测，当前检测链路包括域名黑白名单、可疑内容抓取与关键词检测，以及可选的 Google Safe Browsing 检测。
+
+默认情况下，URL Safe 安全检测处于开启状态：
+
+```env
+URL_SAFETY_ENABLED=true
+```
+
+如需关闭安全检测，可以在服务端环境变量中设置：
+
+```env
+URL_SAFETY_ENABLED=false
+```
+
+Google Safe Browsing 检测默认不会启用。获取 Google Safe Browsing API Key 后，配置以下环境变量即可启用：
+
+```env
+GOOGLE_SAFE_BROWSING_KEY=your_google_safe_browsing_api_key
+```
+
+> 注意：`GOOGLE_SAFE_BROWSING_KEY` 只在 `URL_SAFETY_ENABLED` 未关闭时生效。安全检测异常时，创建短链接请求会被拒绝，以避免在检测不可用时放行高风险链接。
 
 ## 👑 管理员设置
 
@@ -245,6 +271,14 @@ SELECT * FROM user_profiles WHERE is_admin = true;
 - 禁止危险端口（22, 3306, 5432, 6379 等）
 - 禁止云服务元数据端点
 - 禁止危险协议（javascript, data, file 等）
+
+### URL Safe 安全检测
+
+- 默认开启，可通过 `URL_SAFETY_ENABLED=false` 关闭
+- 支持域名黑白名单和高风险 TLD 检测
+- 支持页面标题、描述、正文关键词检测
+- 配置 `GOOGLE_SAFE_BROWSING_KEY` 后启用 Google Safe Browsing 检测
+- 检测未通过时会拒绝创建短链接，并在前端展示风险提示与申诉入口
 
 ## 📸 界面预览
 
