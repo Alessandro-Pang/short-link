@@ -17,7 +17,7 @@ import type {
 	UpdateLinkRequest,
 	UserResponse,
 } from "../../types/api";
-import type { Link, LinkCreateOptions } from "../../types/shared";
+import type { AccessRestrictions, Link, LinkCreateOptions } from "../../types/shared";
 import { ApiError, fetchApi } from "./request";
 import { dashboardLinkApi } from "./link-api";
 
@@ -173,7 +173,7 @@ export async function verifyUser(): Promise<ApiResponse<UserResponse>> {
 /**
  * 访问限制配置模板
  */
-export const ACCESS_RESTRICTIONS_TEMPLATE = {
+export const ACCESS_RESTRICTIONS_TEMPLATE: Required<AccessRestrictions> = {
 	// IP 白名单（只允许这些 IP 访问）
 	ip_whitelist: [],
 	// IP 黑名单（禁止这些 IP 访问）

@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import { getClientIp } from "../middlewares/utils.js";
 import * as authService from "../services/auth.js";
 import * as loginLogService from "../services/log.js";
@@ -6,9 +7,9 @@ import * as loginLogService from "../services/log.js";
 /**
  * 验证 Token
  */
-export async function validateToken(request, reply) {
+export async function validateToken(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const { token } = request.body;
+		const { token } = request.body as { token?: string };
 		if (!token) {
 			return reply.status(400).send({
 				code: 400,
@@ -33,9 +34,15 @@ export async function validateToken(request, reply) {
 /**
  * 记录登录尝试
  */
-export async function logLoginAttempt(request, reply) {
+export async function logLoginAttempt(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const { email, success, failure_reason, login_method, user_agent } = request.body;
+		const { email, success, failure_reason, login_method, user_agent } = request.body as {
+			email?: string;
+			success?: boolean;
+			failure_reason?: string;
+			login_method?: string;
+			user_agent?: string;
+		};
 
 		if (!email) {
 			return reply.status(400).send({
@@ -55,7 +62,7 @@ export async function logLoginAttempt(request, reply) {
 						userId = user.id;
 					}
 				} catch (err) {
-					request.log.warn("Failed to extract user from token:", err.message);
+					request.log.warn({ err }, "Failed to extract user from token");
 				}
 			}
 		}
@@ -88,7 +95,7 @@ export async function logLoginAttempt(request, reply) {
 /**
  * 获取当前用户信息
  */
-export async function getCurrentUser(request, reply) {
+export async function getCurrentUser(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		const authHeader = request.headers.authorization;
 		if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -136,7 +143,7 @@ export async function getCurrentUser(request, reply) {
 					login_method: "jwt",
 				});
 			} catch (logError) {
-				request.log.warn("Failed to log banned user attempt:", logError);
+				request.log.warn(logError, "Failed to log banned user attempt:");
 			}
 
 			return reply.status(403).send({
@@ -157,7 +164,7 @@ export async function getCurrentUser(request, reply) {
 			},
 		});
 	} catch (error) {
-		request.log.error("getCurrentUser error:", error);
+		request.log.error(error, "getCurrentUser error:");
 		return reply.status(500).send({
 			code: 500,
 			msg: error.message || "获取用户数据失败",

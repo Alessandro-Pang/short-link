@@ -15,7 +15,7 @@ import { optionalAuthenticate } from "../middlewares/auth.js";
 /**
  * API 路由组 - 公开接口
  */
-export default async function apiRoutes(fastify) {
+export default async function apiRoutes(fastify: import("fastify").FastifyInstance) {
 	// 认证相关
 	fastify.post("/validate-token", authController.validateToken);
 
@@ -30,7 +30,10 @@ export default async function apiRoutes(fastify) {
 				rateLimit: {
 					max: RATE_LIMIT_CONFIG.LOGIN.MAX, // 使用登录限制防止暴力破解
 					timeWindow: RATE_LIMIT_CONFIG.LOGIN.TIME_WINDOW,
-					errorResponseBuilder: (_request, context) => {
+					errorResponseBuilder: (
+						_request: import("fastify").FastifyRequest,
+						context: { ttl: number; max: number; after: string },
+					) => {
 						return {
 							code: 429,
 							msg: "密码验证过于频繁，请稍后再试",
@@ -53,7 +56,10 @@ export default async function apiRoutes(fastify) {
 					max: RATE_LIMIT_CONFIG.CREATE_LINK.MAX,
 					timeWindow: RATE_LIMIT_CONFIG.CREATE_LINK.TIME_WINDOW,
 					// 自定义错误响应
-					errorResponseBuilder: (_request, context) => {
+					errorResponseBuilder: (
+						_request: import("fastify").FastifyRequest,
+						context: { ttl: number; max: number; after: string },
+					) => {
 						return {
 							code: 429,
 							msg: "创建短链接过于频繁，请稍后再试",
@@ -74,7 +80,10 @@ export default async function apiRoutes(fastify) {
 				rateLimit: {
 					max: RATE_LIMIT_CONFIG.LOGIN.MAX,
 					timeWindow: RATE_LIMIT_CONFIG.LOGIN.TIME_WINDOW,
-					errorResponseBuilder: (_request, context) => {
+					errorResponseBuilder: (
+						_request: import("fastify").FastifyRequest,
+						context: { ttl: number; max: number; after: string },
+					) => {
 						return {
 							code: 429,
 							msg: "登录尝试过于频繁，请稍后再试",

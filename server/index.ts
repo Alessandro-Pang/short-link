@@ -69,7 +69,7 @@ if (process.env.NODE_ENV !== "production") {
 
 // 启用 CORS
 app.register(cors as any, {
-	origin: (origin, cb) => {
+	origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
 		// 允许无 origin 的请求（如服务端请求、curl 等）
 		if (!origin) {
 			cb(null, true);
@@ -103,7 +103,10 @@ app.register(rateLimit as any, {
 		"retry-after": RATE_LIMIT_CONFIG.ADD_RETRY_AFTER_HEADER,
 	},
 	// 自定义错误响应
-	errorResponseBuilder: (_request, context) => {
+	errorResponseBuilder: (
+		_request: import("fastify").FastifyRequest,
+		context: { ttl: number; max: number; after: string },
+	) => {
 		return {
 			code: 429,
 			msg: "请求过于频繁，请稍后再试",
@@ -111,7 +114,7 @@ app.register(rateLimit as any, {
 		};
 	},
 	// 从请求中获取唯一标识（IP 地址）
-	keyGenerator: (request) => {
+	keyGenerator: (request: import("fastify").FastifyRequest) => {
 		const forwardedFor = request.headers["x-forwarded-for"];
 		const forwardedIp =
 			typeof forwardedFor === "string"
@@ -122,7 +125,7 @@ app.register(rateLimit as any, {
 
 		return forwardedIp || request.headers["x-real-ip"] || request.ip;
 	},
-	allowList: (request) => {
+	allowList: (request: import("fastify").FastifyRequest) => {
 		return request.url === "/health";
 	},
 });
@@ -188,7 +191,10 @@ app.get("/", async (_request, reply) => {
 });
 
 // Vercel 导出
-export default async function handler(req, reply) {
+export default async function handler(
+	req: import("node:http").IncomingMessage,
+	reply: import("node:http").ServerResponse,
+) {
 	await app.ready();
 	app.server.emit("request", req, reply);
 }

@@ -4,6 +4,8 @@
  */
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
+import type { UpdateLinkRequest } from "../../types/api";
+import type { Link } from "../../types/shared";
 import {
 	batchDisableLinks,
 	batchEnableLinks,
@@ -151,7 +153,7 @@ export const useLinksStore = defineStore("links", () => {
 	 * 加载链接详情
 	 * @param {number} linkId - 链接 ID
 	 */
-	async function fetchLinkDetail(linkId) {
+	async function fetchLinkDetail(linkId: number) {
 		try {
 			const data = await getLinkDetailById(linkId);
 			currentLink.value = data;
@@ -167,7 +169,7 @@ export const useLinksStore = defineStore("links", () => {
 	 * @param {number} linkId - 链接 ID
 	 * @param {Object} updates - 更新数据
 	 */
-	async function updateLink(linkId, updates) {
+	async function updateLink(linkId: number, updates: UpdateLinkRequest) {
 		try {
 			const data = await updateLinkConfig(linkId, updates);
 
@@ -193,7 +195,7 @@ export const useLinksStore = defineStore("links", () => {
 	 * 删除链接
 	 * @param {number} linkId - 链接 ID
 	 */
-	async function deleteLink(linkId) {
+	async function deleteLink(linkId: number) {
 		try {
 			await removeLinkById(linkId);
 
@@ -221,7 +223,7 @@ export const useLinksStore = defineStore("links", () => {
 	 * @param {number} linkId - 链接 ID
 	 * @param {boolean} isActive - 是否启用
 	 */
-	async function toggleLinkStatus(linkId, isActive) {
+	async function toggleLinkStatus(linkId: number, isActive: boolean) {
 		togglingIds.value.add(linkId);
 		try {
 			const data = await toggleLink(linkId, isActive);
@@ -323,7 +325,7 @@ export const useLinksStore = defineStore("links", () => {
 	 * @param {number} linkId - 链接 ID
 	 * @param {Object} options - 查询选项
 	 */
-	async function fetchLinkLogs(linkId, options = {}) {
+	async function fetchLinkLogs(linkId: number, options: { limit?: number; offset?: number } = {}) {
 		try {
 			const result = await getLinkLogs(linkId, options);
 			currentLinkLogs.value = result.logs || [];
@@ -340,7 +342,7 @@ export const useLinksStore = defineStore("links", () => {
 	 * @param {number} page - 页码
 	 * @param {number} pageSize - 每页数量
 	 */
-	function setPagination(page, pageSize) {
+	function setPagination(page: number, pageSize?: number) {
 		pagination.value.current = page;
 		if (pageSize) {
 			pagination.value.pageSize = pageSize;
@@ -351,7 +353,7 @@ export const useLinksStore = defineStore("links", () => {
 	 * 设置搜索关键词
 	 * @param {string} keyword - 关键词
 	 */
-	function setSearchKeyword(keyword) {
+	function setSearchKeyword(keyword: string) {
 		searchKeyword.value = keyword;
 		pagination.value.current = 1; // 重置分页
 	}
@@ -360,7 +362,7 @@ export const useLinksStore = defineStore("links", () => {
 	 * 设置链接 ID 筛选
 	 * @param {number|null} linkId - 链接 ID
 	 */
-	function setFilterLinkId(linkId) {
+	function setFilterLinkId(linkId: number | null) {
 		filterLinkId.value = linkId;
 		pagination.value.current = 1; // 重置分页
 	}
@@ -379,7 +381,7 @@ export const useLinksStore = defineStore("links", () => {
 	 * @param {string} field - 排序字段
 	 * @param {string} order - 排序顺序 ('ascend' | 'descend')
 	 */
-	function setSort(field, order) {
+	function setSort(field: string, order: "ascend" | "descend") {
 		sortField.value = field;
 		sortOrder.value = order;
 		pagination.value.current = 1; // 重置分页
@@ -389,7 +391,7 @@ export const useLinksStore = defineStore("links", () => {
 	 * 选择链接
 	 * @param {Array<number>} ids - 链接 ID 数组
 	 */
-	function setSelectedLinkIds(ids) {
+	function setSelectedLinkIds(ids: number[]) {
 		selectedLinkIds.value = ids;
 	}
 
@@ -413,7 +415,7 @@ export const useLinksStore = defineStore("links", () => {
 	 * 添加新链接到列表（用于创建后立即更新列表）
 	 * @param {Object} link - 链接数据
 	 */
-	function addLink(link) {
+	function addLink(link: Link) {
 		links.value.unshift(link);
 		total.value += 1;
 		stats.value.total_links += 1;

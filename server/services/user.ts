@@ -97,7 +97,7 @@ export async function getAllUsers(options: Partial<UserListOptions> = {}) {
  * @param {string} userId - 用户 ID
  * @returns {Promise<Object>} 用户详情
  */
-export async function getUserDetails(userId) {
+export async function getUserDetails(userId: string) {
 	try {
 		// 从 auth.users 获取用户基本信息
 		const { data: authData, error: authError } = await (supabase.auth as any).admin.getUserById(
@@ -163,7 +163,11 @@ export async function getUserDetails(userId) {
  * @param {Object} userData - 用户数据
  * @returns {Promise<Object>} 创建结果
  */
-export async function createUser(userData) {
+export async function createUser(userData: {
+	email: string;
+	password: string;
+	[k: string]: unknown;
+}) {
 	try {
 		const { email, password } = userData;
 
@@ -257,7 +261,7 @@ export async function updateUser(userId: string, updates: Partial<UserUpdateData
  * @param {string} userId - 用户 ID
  * @returns {Promise<Object>} 删除结果
  */
-export async function deleteUser(userId) {
+export async function deleteUser(userId: string) {
 	try {
 		// 删除用户（这会级联删除相关数据）
 		const { error } = await (supabase.auth as any).admin.deleteUser(userId);
@@ -283,7 +287,7 @@ export async function deleteUser(userId) {
  * @param {string} password - 新密码
  * @returns {Promise<Object>} 重置结果
  */
-export async function resetPassword(userId, password) {
+export async function resetPassword(userId: string, password: string) {
 	try {
 		if (!password) {
 			throw new Error("密码不能为空");
@@ -314,7 +318,7 @@ export async function resetPassword(userId, password) {
  * @param {boolean} banned - 是否封禁
  * @returns {Promise<Object>} 更新结果
  */
-export async function toggleBanStatus(userId, banned) {
+export async function toggleBanStatus(userId: string, banned: boolean) {
 	try {
 		if (typeof banned !== "boolean") {
 			throw new Error("banned 必须是布尔值");

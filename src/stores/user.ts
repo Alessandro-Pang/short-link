@@ -17,6 +17,7 @@ const USER_CACHE_CONFIG = {
 };
 
 import { computed, ref } from "vue";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { getCurrentUserWithAdminStatus } from "@/services/admin";
 import {
 	signOut as authSignOut,
@@ -89,7 +90,7 @@ export const useUserStore = defineStore("user", () => {
 	// 认证提供商
 	const authProvider = computed(() => {
 		const provider = appMetadata.value?.provider;
-		const providerMap = {
+		const providerMap: Record<string, string> = {
 			email: "邮箱密码",
 			google: "Google",
 			github: "GitHub",
@@ -175,7 +176,7 @@ export const useUserStore = defineStore("user", () => {
 	/**
 	 * 邮箱密码登录
 	 */
-	async function loginWithEmail(email, password) {
+	async function loginWithEmail(email: string, password: string) {
 		isLoading.value = true;
 		authError.value = null;
 
@@ -234,7 +235,11 @@ export const useUserStore = defineStore("user", () => {
 	/**
 	 * 邮箱注册
 	 */
-	async function registerWithEmail(email, password, metadata = {}) {
+	async function registerWithEmail(
+		email: string,
+		password: string,
+		metadata: Record<string, unknown> = {},
+	) {
 		isLoading.value = true;
 		authError.value = null;
 
@@ -271,7 +276,7 @@ export const useUserStore = defineStore("user", () => {
 	 * 更新用户资料
 	 * @param {Object} updates - 要更新的用户信息
 	 */
-	async function updateProfile(updates) {
+	async function updateProfile(updates: Record<string, unknown>) {
 		isLoading.value = true;
 		authError.value = null;
 
@@ -327,8 +332,8 @@ export const useUserStore = defineStore("user", () => {
 	 * 设置认证状态变化监听
 	 * @param {Function} callback - 状态变化回调函数
 	 */
-	function setupAuthListener(callback) {
-		return onAuthStateChange((event, session) => {
+	function setupAuthListener(callback?: (event: AuthChangeEvent, session: Session | null) => void) {
+		return onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
 			if (event === "SIGNED_IN" && session?.user) {
 				user.value = session.user;
 				isAuthenticated.value = true;

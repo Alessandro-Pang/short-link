@@ -16,7 +16,7 @@ import { authenticate } from "../middlewares/auth.js";
 /**
  * Dashboard 路由组 - 需要用户认证
  */
-export default async function dashboardRoutes(fastify) {
+export default async function dashboardRoutes(fastify: import("fastify").FastifyInstance) {
 	// 所有 dashboard 路由都需要认证
 	fastify.addHook("preHandler", authenticate);
 
@@ -26,7 +26,10 @@ export default async function dashboardRoutes(fastify) {
 			rateLimit: {
 				max: RATE_LIMIT_CONFIG.GLOBAL.MAX,
 				timeWindow: RATE_LIMIT_CONFIG.GLOBAL.TIME_WINDOW,
-				errorResponseBuilder: (_request, context) => {
+				errorResponseBuilder: (
+					_request: import("fastify").FastifyRequest,
+					context: { ttl: number; max: number; after: string },
+				) => {
 					return {
 						code: 429,
 						msg: "请求过于频繁，请稍后再试",
@@ -43,7 +46,10 @@ export default async function dashboardRoutes(fastify) {
 			rateLimit: {
 				max: 20, // 每分钟最多 20 次批量操作
 				timeWindow: "1 minute",
-				errorResponseBuilder: (_request, context) => {
+				errorResponseBuilder: (
+					_request: import("fastify").FastifyRequest,
+					context: { ttl: number; max: number; after: string },
+				) => {
 					return {
 						code: 429,
 						msg: "批量操作过于频繁，请稍后再试",
@@ -60,7 +66,10 @@ export default async function dashboardRoutes(fastify) {
 			rateLimit: {
 				max: 30, // 每分钟最多 30 次写操作
 				timeWindow: "1 minute",
-				errorResponseBuilder: (_request, context) => {
+				errorResponseBuilder: (
+					_request: import("fastify").FastifyRequest,
+					context: { ttl: number; max: number; after: string },
+				) => {
 					return {
 						code: 429,
 						msg: "操作过于频繁，请稍后再试",

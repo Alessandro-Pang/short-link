@@ -8,7 +8,7 @@
  * @param {string} url - 要验证的URL
  * @returns {boolean} - 验证结果
  */
-export function validateUrl(url) {
+export function validateUrl(url: string) {
 	const urlPattern = /^(https?:\/\/|#小程序:\/\/).+/;
 	return urlPattern.test(url);
 }
@@ -25,7 +25,15 @@ export function validateUrl(url) {
  * @param {string} [params.email]
  * @returns {{ valid: boolean, message: string }}
  */
-export function validatePasswordStrength({ password, username = "", email = "" }) {
+export function validatePasswordStrength({
+	password,
+	username = "",
+	email = "",
+}: {
+	password: string;
+	username?: string;
+	email?: string;
+}) {
 	const pwd = String(password || "");
 
 	if (pwd.length < 6) {
@@ -79,7 +87,7 @@ export function makePasswordRules({
 		{ required: true, message: requiredMessage },
 		{ minLength: 6, message: "密码长度至少 6 个字符" },
 		{
-			validator: (value, cb) => {
+			validator: (value: unknown, cb: (msg?: string) => void) => {
 				const result = validatePasswordStrength({
 					password: String(value || ""),
 					username: typeof getUsername === "function" ? getUsername() : "",
