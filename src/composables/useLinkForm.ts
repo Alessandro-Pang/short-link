@@ -3,11 +3,11 @@
  * 用于 LinkEditDrawer 和 AdminLinkEditDrawer
  */
 
-import { formatDate } from "@/utils/date";
 import dayjs from "dayjs";
 import type { Ref } from "vue";
 import { computed, reactive, ref } from "vue";
 import { getExpirationOptions } from "@/services/api";
+import { formatDate } from "@/utils/date";
 import type { ApiResponse, LinkDetailResponse, UpdateLinkRequest } from "../../types/api";
 import type {
 	AccessRestrictions,
@@ -110,7 +110,9 @@ export function useLinkForm(
 			linkData.value = result.data || null;
 
 			// Extract the link data for form population
-			const data = linkData.value;
+			const data = linkData.value as typeof linkData.value & {
+				expiration_option_id?: number | null;
+			};
 			if (!data) return;
 
 			// 填充表单数据 - avoiding destructuring to prevent deep type recursion

@@ -191,11 +191,11 @@
 <script setup>
 import { Message, Modal } from "@arco-design/web-vue";
 import {
-    IconCheck,
-    IconCopy,
-    IconLink,
-    IconQrcode,
-    IconSettings,
+	IconCheck,
+	IconCopy,
+	IconLink,
+	IconQrcode,
+	IconSettings,
 } from "@arco-design/web-vue/es/icon";
 import QRCode from "qrcode";
 import { nextTick, ref } from "vue";
@@ -219,116 +219,112 @@ const advancedConfig = ref(null);
 
 // 打开高级配置
 const openAdvancedConfig = () => {
-    const inputUrl = urlInput.value.trim();
-    if (!inputUrl) {
-        Message.warning("请先输入链接");
-        return;
-    }
+	const inputUrl = urlInput.value.trim();
+	if (!inputUrl) {
+		Message.warning("请先输入链接");
+		return;
+	}
 
-    if (!validateUrl(inputUrl)) {
-        Message.error(
-            "请输入有效的链接，必须以 http://、https:// 或 #小程序:// 开头",
-        );
-        return;
-    }
+	if (!validateUrl(inputUrl)) {
+		Message.error("请输入有效的链接，必须以 http://、https:// 或 #小程序:// 开头");
+		return;
+	}
 
-    showAdvancedDrawer.value = true;
+	showAdvancedDrawer.value = true;
 };
 
 // 高级配置确认回调
 const handleAdvancedConfigConfirm = (configData) => {
-    advancedConfig.value = configData;
-    Message.success("配置已保存，请点击创建短链接按钮完成创建");
+	advancedConfig.value = configData;
+	Message.success("配置已保存，请点击创建短链接按钮完成创建");
 };
 
 const generateShortLink = async () => {
-    const inputUrl = urlInput.value.trim();
-    if (!inputUrl) {
-        Message.warning("请输入链接");
-        return;
-    }
+	const inputUrl = urlInput.value.trim();
+	if (!inputUrl) {
+		Message.warning("请输入链接");
+		return;
+	}
 
-    if (!validateUrl(inputUrl)) {
-        Message.error(
-            "请输入有效的链接，必须以 http://、https:// 或 #小程序:// 开头",
-        );
-        return;
-    }
+	if (!validateUrl(inputUrl)) {
+		Message.error("请输入有效的链接，必须以 http://、https:// 或 #小程序:// 开头");
+		return;
+	}
 
-    isLoading.value = true;
-    currentShortUrl.value = "";
+	isLoading.value = true;
+	currentShortUrl.value = "";
 
-    try {
-        // 使用高级配置（如果有）或默认配置
-        const config = advancedConfig.value || {};
+	try {
+		// 使用高级配置（如果有）或默认配置
+		const config = advancedConfig.value || {};
 
-        const { data } = await addUrl(inputUrl, config);
-        if (data?.short) {
-            currentShortUrl.value = `${window.location.origin}/u/${data.short}`;
-        } else if (data?.url) {
-            currentShortUrl.value = window.location.origin + data.url;
-        } else {
-            throw new Error("生成短链接失败，返回数据格式错误");
-        }
-        Message.success("短链接生成成功");
-        // 清空高级配置
-        advancedConfig.value = null;
-    } catch (error) {
-        // 处理重复链接的特殊错误
-        if (error.code === "DUPLICATE_LINK" && error.existingLink) {
-            const existingLinkId = error.existingLink.id;
-            Modal.confirm({
-                title: "链接已存在",
-                content: "您已创建过该链接的短链接，是否前往控制台管理？",
-                okText: "前往控制台",
-                cancelText: "取消",
-                onOk: () => {
-                    router.push({
-                        path: "/dashboard/links",
-                        query: { linkId: existingLinkId },
-                    });
-                },
-            });
-        } else if (error.code === "FORBIDDEN") {
-            showSafetyBlockModal({
-                url: inputUrl,
-                reason: error.message || "该 URL 因安全原因被拒绝",
-            });
-        } else {
-            Message.error({
-                content: `生成失败: ${error.message || "未知错误"}`,
-                duration: 5000,
-            });
-        }
-    } finally {
-        isLoading.value = false;
-    }
+		const { data } = await addUrl(inputUrl, config);
+		if (data?.short) {
+			currentShortUrl.value = `${window.location.origin}/u/${data.short}`;
+		} else if (data?.url) {
+			currentShortUrl.value = window.location.origin + data.url;
+		} else {
+			throw new Error("生成短链接失败，返回数据格式错误");
+		}
+		Message.success("短链接生成成功");
+		// 清空高级配置
+		advancedConfig.value = null;
+	} catch (error) {
+		// 处理重复链接的特殊错误
+		if (error.code === "DUPLICATE_LINK" && error.existingLink) {
+			const existingLinkId = error.existingLink.id;
+			Modal.confirm({
+				title: "链接已存在",
+				content: "您已创建过该链接的短链接，是否前往控制台管理？",
+				okText: "前往控制台",
+				cancelText: "取消",
+				onOk: () => {
+					router.push({
+						path: "/dashboard/links",
+						query: { linkId: existingLinkId },
+					});
+				},
+			});
+		} else if (error.code === "FORBIDDEN") {
+			showSafetyBlockModal({
+				url: inputUrl,
+				reason: error.message || "该 URL 因安全原因被拒绝",
+			});
+		} else {
+			Message.error({
+				content: `生成失败: ${error.message || "未知错误"}`,
+				duration: 5000,
+			});
+		}
+	} finally {
+		isLoading.value = false;
+	}
 };
 
 const copyLink = async () => {
-    if (!currentShortUrl.value) return;
-    try {
-        await navigator.clipboard.writeText(currentShortUrl.value);
-        Message.success("链接已复制到剪贴板");
-    } catch (err) {
-        Message.error("复制失败，请手动复制");
-    }
+	if (!currentShortUrl.value) return;
+	try {
+		await navigator.clipboard.writeText(currentShortUrl.value);
+		Message.success("链接已复制到剪贴板");
+	} catch (err) {
+		Message.error("复制失败，请手动复制");
+	}
 };
 
 const showQRCodeModal = async () => {
-    if (!currentShortUrl.value) return;
-    qrcodeModalVisible.value = true;
-    await nextTick();
-    if (qrcodeCanvas.value) {
-        QRCode.toCanvas(
-            qrcodeCanvas.value,
-            currentShortUrl.value,
-            { width: 200, margin: 1 },
-            (error) => {
-                if (error) console.error(error);
-            },
-        );
-    }
+	if (!currentShortUrl.value) return;
+	qrcodeModalVisible.value = true;
+	await nextTick();
+	if (qrcodeCanvas.value) {
+		QRCode.toCanvas(
+			qrcodeCanvas.value,
+			currentShortUrl.value,
+			{ width: 200, margin: 1 },
+			(error) => {
+				if (error) console.error(error);
+			},
+		);
+	}
 };
 </script>
 

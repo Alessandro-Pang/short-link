@@ -85,14 +85,14 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
 import { IconExclamationCircle } from "@arco-design/web-vue/es/icon";
+import { ref } from "vue";
 
 const props = defineProps({
-    deleting: {
-        type: Boolean,
-        default: false,
-    },
+	deleting: {
+		type: Boolean,
+		default: false,
+	},
 });
 
 const emit = defineEmits(["delete-account"]);
@@ -101,11 +101,11 @@ const deleteModalVisible = ref(false);
 const deleteReason = ref("");
 
 const showDeleteConfirm = () => {
-    deleteModalVisible.value = true;
-    deleteReason.value = "";
+	deleteModalVisible.value = true;
+	deleteReason.value = "";
 };
 
 const confirmDeleteAccount = () => {
-    emit("delete-account", deleteReason.value);
+	emit("delete-account", deleteReason.value);
 };
 </script>

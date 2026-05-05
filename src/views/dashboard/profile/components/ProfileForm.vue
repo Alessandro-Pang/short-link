@@ -187,32 +187,32 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
 import {
-    IconEmail,
-    IconUser,
-    IconImage,
-    IconSave,
-    IconRefresh,
+	IconEmail,
+	IconImage,
+	IconRefresh,
+	IconSave,
+	IconUser,
 } from "@arco-design/web-vue/es/icon";
+import { ref } from "vue";
 
 const props = defineProps({
-    formData: {
-        type: Object,
-        required: true,
-    },
-    isLoading: {
-        type: Boolean,
-        default: false,
-    },
-    isSaving: {
-        type: Boolean,
-        default: false,
-    },
-    avatarError: {
-        type: Boolean,
-        default: false,
-    },
+	formData: {
+		type: Object,
+		required: true,
+	},
+	isLoading: {
+		type: Boolean,
+		default: false,
+	},
+	isSaving: {
+		type: Boolean,
+		default: false,
+	},
+	avatarError: {
+		type: Boolean,
+		default: false,
+	},
 });
 
 const emit = defineEmits(["save", "reset", "update:avatarError"]);
@@ -222,29 +222,29 @@ const rules = {};
 
 // URL 验证
 const validateUrl = (value, callback) => {
-    if (!value) {
-        callback();
-        return;
-    }
-    try {
-        const url = new URL(value);
-        if (url.protocol !== "https:") {
-            callback("头像链接必须使用 https:// 协议");
-        } else {
-            callback();
-        }
-    } catch {
-        callback("请输入有效的 URL 地址");
-    }
+	if (!value) {
+		callback();
+		return;
+	}
+	try {
+		const url = new URL(value);
+		if (url.protocol !== "https:") {
+			callback("头像链接必须使用 https:// 协议");
+		} else {
+			callback();
+		}
+	} catch {
+		callback("请输入有效的 URL 地址");
+	}
 };
 
 // 头像加载错误处理
 const handleAvatarError = () => {
-    emit("update:avatarError", true);
+	emit("update:avatarError", true);
 };
 
 defineExpose({
-    validate: () => formRef.value?.validate(),
-    clearValidate: () => formRef.value?.clearValidate(),
+	validate: () => formRef.value?.validate(),
+	clearValidate: () => formRef.value?.clearValidate(),
 });
 </script>

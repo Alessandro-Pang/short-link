@@ -16,8 +16,8 @@ const USER_CACHE_CONFIG = {
 	INIT_CHECK_INTERVAL: 50,
 };
 
-import { computed, ref } from "vue";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import { computed, ref } from "vue";
 import { getCurrentUserWithAdminStatus } from "@/services/admin";
 import {
 	signOut as authSignOut,

@@ -99,11 +99,11 @@
 <script setup>
 import { Message } from "@arco-design/web-vue";
 import {
-    IconDashboard,
-    IconDown,
-    IconExport,
-    IconGithub,
-    IconUser,
+	IconDashboard,
+	IconDown,
+	IconExport,
+	IconGithub,
+	IconUser,
 } from "@arco-design/web-vue/es/icon";
 import { useRouter } from "vue-router";
 import ThemeToggle from "@/components/ThemeToggle.vue";
@@ -113,17 +113,17 @@ const router = useRouter();
 const userStore = useUserStore();
 
 const handleDropdownSelect = async (value) => {
-    if (value === "logout") {
-        try {
-            await userStore.logout();
-            Message.success("已退出登录");
-        } catch (error) {
-            Message.error("退出登录失败");
-        }
-    } else if (value === "dashboard") {
-        router.push("/dashboard");
-    } else if (value === "profile") {
-        router.push("/dashboard/profile");
-    }
+	if (value === "logout") {
+		try {
+			await userStore.logout();
+			Message.success("已退出登录");
+		} catch (error) {
+			Message.error("退出登录失败");
+		}
+	} else if (value === "dashboard") {
+		router.push("/dashboard");
+	} else if (value === "profile") {
+		router.push("/dashboard/profile");
+	}
 };
 </script>

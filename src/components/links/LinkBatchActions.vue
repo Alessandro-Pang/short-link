@@ -1,9 +1,5 @@
 <script setup>
-import {
-	IconCheck,
-	IconClose,
-	IconDelete,
-} from "@arco-design/web-vue/es/icon";
+import { IconCheck, IconClose, IconDelete } from "@arco-design/web-vue/es/icon";
 
 const props = defineProps({
 	selectedCount: {
@@ -24,12 +20,7 @@ const props = defineProps({
 	},
 });
 
-const emit = defineEmits([
-	"clear-selection",
-	"batch-enable",
-	"batch-disable",
-	"batch-delete",
-]);
+const emit = defineEmits(["clear-selection", "batch-enable", "batch-disable", "batch-delete"]);
 </script>
 
 <template>

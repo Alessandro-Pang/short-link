@@ -38,14 +38,9 @@ watch(
 		if (newVal && props.url) {
 			await nextTick();
 			if (qrcodeCanvas.value) {
-				QRCode.toCanvas(
-					qrcodeCanvas.value,
-					props.url,
-					{ width: 200, margin: 1 },
-					(error) => {
-						if (error) console.error(error);
-					},
-				);
+				QRCode.toCanvas(qrcodeCanvas.value, props.url, { width: 200, margin: 1 }, (error) => {
+					if (error) console.error(error);
+				});
 			}
 		}
 	},

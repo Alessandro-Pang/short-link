@@ -7,9 +7,9 @@
  * @FilePath: /short-link/api/utils/input-validation
  */
 
-import { VALIDATION_LIMITS, result } from "./validation-types.js";
-import type { ValidationResult } from "./validation-types.js";
 import { validateUrl } from "./url-validation.js";
+import type { ValidationResult } from "./validation-types.js";
+import { result, VALIDATION_LIMITS } from "./validation-types.js";
 
 /**
  * 有效的重定向类型
