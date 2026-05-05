@@ -34,7 +34,7 @@ export default defineConfig(({ mode }): UserConfig => {
 			Components({
 				resolvers: [
 					ArcoResolver({
-						sideEffect: false,
+						sideEffect: true,
 					}),
 				],
 			}),
@@ -76,7 +76,7 @@ export default defineConfig(({ mode }): UserConfig => {
 				output: {
 					// 手动分割代码块
 					manualChunks: (id) => {
-						// Vue 核心库
+						// Vue 核心库（首屏必需）
 						if (
 							id.includes("node_modules/vue") ||
 							id.includes("node_modules/@vue") ||
@@ -85,17 +85,25 @@ export default defineConfig(({ mode }): UserConfig => {
 						) {
 							return "vue-vendor";
 						}
+						// Arco Design 图标（按需加载，体积大）
+						if (id.includes("@arco-design/web-vue/es/icon")) {
+							return "arco-icons";
+						}
 						// Arco Design UI 组件库
 						if (id.includes("node_modules/@arco-design")) {
 							return "arco-vendor";
 						}
-						// 工具库
-						if (
-							id.includes("node_modules/dayjs") ||
-							id.includes("node_modules/nanoid") ||
-							id.includes("node_modules/qrcode")
-						) {
-							return "utils";
+						// QR Code（仅链接详情页需要，非首屏）
+						if (id.includes("node_modules/qrcode")) {
+							return "qrcode";
+						}
+						// dayjs（轻量，首屏可能需要）
+						if (id.includes("node_modules/dayjs")) {
+							return "dayjs";
+						}
+						// Supabase（认证相关，首屏需要）
+						if (id.includes("node_modules/@supabase")) {
+							return "supabase";
 						}
 					},
 					// 优化 chunk 文件名
