@@ -1,27 +1,27 @@
 export const DRUGS_KEYWORDS = `
 	毒品, 吸毒, 贩毒, 制毒, 毒贩, 毒枭, 毒窝,
-	大麻, marijuana, weed, cannabis, hemp, pot,
-	冰毒, 甲基苯丙胺, methamphetamine, meth, crystal, ice,
+	大麻, marijuana, cannabis,
+	冰毒, 甲基苯丙胺, methamphetamine, meth,
 	摇头丸, MDMA, ecstasy, molly,
 	K粉, 氯胺酮, ketamine, special K, K仔,
 	麻古, 麻果, yaba, 海洛因, heroin, 白粉, 白面,
 	可卡因, cocaine, coke, crack, 可可精,
 	鸦片, opium, 阿片, 大烟, 吗啡, morphine,
-	迷幻药, 致幻剂, LSD, acid, 蘑菇, magic mushroom,
+	迷幻药, 致幻剂, LSD, magic mushroom,
 	迷药, 迷魂药, 听话水, 乖乖水, 蒙汗药,
 	催情, 催情药, 春药, aphrodisiac, 性药,
 	安眠药, 安定, 舒乐安定, 三唑仑, 氟硝西泮,
 	笑气, 一氧化二氮, nitrous oxide, whippets,
 	止咳水, 可待因, codeine, purple drank,
-	注射器, 针筒, 针头, 吸管, 锡纸,
+	注射器, 针筒,
 
 	販毒, 製毒, 毒販, 毒梟, 毒窩, 搖頭丸, 鴉片,
   大煙, 嗎啡, 迷幻藥, 致幻劑, 迷藥, 迷魂藥, 聽話水,
   蒙汗藥, 催情藥, 春藥, 性藥, 安眠藥, 舒樂安定, 三唑侖,
-  笑氣, 針筒, 針頭, 錫紙,
+  笑氣, 針筒,
 
 	麻薬, 薬物, ドラッグ, 覚醒剤, 覚せい剤,
-	大麻, マリファナ, ガンジャ, ハシシ,
+	大麻, マリファナ,
 	覚醒剤, シャブ, スピード, アイス, クリスタル,
 	MDMA, エクスタシー, ヘロイン, 白い粉,
 	ケタミン, K, スペシャルK,
@@ -30,10 +30,8 @@ export const DRUGS_KEYWORDS = `
 	LSD, 幻覚剤, マジックマッシュルーム,
 	媚薬, 催淫剤, 睡眠薬, 睡眠導入剤,
 
-	drug, drugs, narcotic, narcotics, dope, substance,
-	dealer, pusher, trafficker, smuggler, cartel,
-	high, stoned, wasted, trip, tripping,
-	inject, injection, snort, snorting, smoke, smoking,
-	pill, tablet, powder, crystal, rock,
-	bong, pipe, syringe, needle, spoon, foil
+	drug, drugs, narcotic, narcotics, dope,
+	trafficker, smuggler, cartel,
+	stoned, tripping,
+	bong, syringe
 `;
