@@ -43,6 +43,8 @@ export interface FetchApiOptions {
 	headers?: Record<string, string>;
 	auth?: boolean;
 	throwOnError?: boolean;
+	/** 请求超时时间（毫秒），默认 15000ms */
+	timeout?: number;
 }
 
 /**
@@ -50,8 +52,18 @@ export interface FetchApiOptions {
  */
 export async function fetchApi<T = unknown>(
 	url: string,
-	{ method = "GET", body, headers = {}, auth = true, throwOnError = true }: FetchApiOptions = {},
+	{
+		method = "GET",
+		body,
+		headers = {},
+		auth = true,
+		throwOnError = true,
+		timeout = 15000,
+	}: FetchApiOptions = {},
 ): Promise<ApiResponse<T>> {
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), timeout);
+
 	try {
 		// 准备请求头
 		const requestHeaders = { ...headers };
@@ -68,6 +80,7 @@ export async function fetchApi<T = unknown>(
 		const fetchOptions: RequestInit = {
 			method,
 			headers: requestHeaders,
+			signal: controller.signal,
 		};
 
 		// 如果有请求体，添加 Content-Type 和序列化 body
@@ -79,6 +92,7 @@ export async function fetchApi<T = unknown>(
 
 		// 发送请求
 		const response = await fetch(url, fetchOptions);
+		clearTimeout(timeoutId);
 
 		// 解析响应
 		let data: ApiResponse<T>;
@@ -119,13 +133,22 @@ export async function fetchApi<T = unknown>(
 
 		return data;
 	} catch (error) {
-		// 如果已经是 ApiError，直接抛出
+		clearTimeout(timeoutId);
+
 		if (error instanceof ApiError) {
 			throw error;
 		}
 
-		// 网络错误或其他错误
 		const err = error as Error;
+
+		if (err.name === "AbortError") {
+			const message = "请求超时";
+			if (throwOnError) {
+				throw new ApiError(message, "TIMEOUT", null);
+			}
+			return { code: 0, msg: message } as ApiResponse<T>;
+		}
+
 		console.error("API 请求失败:", err);
 
 		if (throwOnError) {

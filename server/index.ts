@@ -122,13 +122,8 @@ app.register(rateLimit as any, {
 
 		return forwardedIp || request.headers["x-real-ip"] || request.ip;
 	},
-	// 跳过某些请求的速率限制
-	skipOnError: (request) => {
-		// 健康检查端点不限制
-		if (request.url === "/health") {
-			return true;
-		}
-		return false;
+	allowList: (request) => {
+		return request.url === "/health";
 	},
 });
 

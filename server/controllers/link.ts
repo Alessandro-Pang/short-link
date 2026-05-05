@@ -169,7 +169,9 @@ export async function redirectShortLink(request, reply) {
 			referrer: visitorInfo.referrer,
 			country: visitorInfo.country,
 		};
-		await linkService.logAccess(linkData.id, accessInfo);
+		linkService.logAccess(linkData.id, accessInfo).catch((err) => {
+			request.log.error("记录访问日志失败:", err);
+		});
 
 		let targetUrl = linkData.link;
 
@@ -246,7 +248,9 @@ export async function verifyLinkPassword(request, reply) {
 			referrer: visitorInfo.referrer,
 			country: visitorInfo.country,
 		};
-		await linkService.logAccess(linkData.id, accessInfo);
+		linkService.logAccess(linkData.id, accessInfo).catch((err) => {
+			request.log.error("记录访问日志失败:", err);
+		});
 
 		let targetUrl = linkData.link;
 

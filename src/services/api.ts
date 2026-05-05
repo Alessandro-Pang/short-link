@@ -61,6 +61,17 @@ export async function getUrl(shortCode: string): Promise<ApiResponse<Link>> {
 	return fetchApi<Link>(`/api/getUrl/${shortCode}`);
 }
 
+export async function verifyLinkPassword(
+	shortCode: string,
+	password: string,
+): Promise<ApiResponse<{ url: string }>> {
+	return fetchApi<{ url: string }>(`/api/verify-password/${shortCode}`, {
+		method: "POST",
+		body: { password },
+		auth: false,
+	});
+}
+
 /**
  * 获取用户统计数据
  * @returns {Promise} - 返回统计数据

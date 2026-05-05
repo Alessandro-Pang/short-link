@@ -423,7 +423,9 @@ async function googleSafeBrowsingCheck(url: string): Promise<string | null> {
 				}
 			}
 		}
-	} catch {}
+	} catch (error) {
+		console.error("Google Safe Browsing API 检查失败:", error);
+	}
 
 	return null;
 }

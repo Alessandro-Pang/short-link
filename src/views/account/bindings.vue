@@ -280,6 +280,7 @@
 <script>
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { formatDate } from "@/utils/date";
 import {
 	deleteAccount,
 	formatIdentities,
@@ -433,17 +434,6 @@ export default {
 				alert(`删除失败: ${error.message}`);
 				deleting.value = false;
 			}
-		};
-
-		// 格式化日期
-		const formatDate = (dateString) => {
-			if (!dateString) return "";
-			const date = new Date(dateString);
-			return date.toLocaleDateString("zh-CN", {
-				year: "numeric",
-				month: "long",
-				day: "numeric",
-			});
 		};
 
 		// 处理 OAuth 绑定回调

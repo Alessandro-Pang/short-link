@@ -193,6 +193,7 @@ import { Message } from "@arco-design/web-vue";
 import { IconCheckCircle, IconInfoCircle, IconLeft, IconLock } from "@arco-design/web-vue/es/icon";
 import { onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { verifyLinkPassword } from "@/services/api";
 
 const route = useRoute();
 const router = useRouter();
@@ -236,31 +237,19 @@ const handleSubmit = async (data?: any) => {
 	errorMessage.value = "";
 
 	try {
-		const response = await fetch(`/api/verify-password/${shortCode.value}`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ password: pwd }),
-		});
+		const result = await verifyLinkPassword(shortCode.value, pwd);
 
-		const result = await response.json();
-
-		if (response.ok && result.code === 200) {
-			// 密码正确，显示成功提示
+		if (result.code === 200 && result.data?.url) {
 			Message.success("密码验证成功，正在跳转...");
-
-			// 延迟跳转，让用户看到成功提示
 			setTimeout(() => {
-				window.location.href = result.data.url;
+				window.location.href = result.data!.url;
 			}, 500);
 		} else {
 			errorMessage.value = result.msg || "密码错误，请重试";
 			formData.password = "";
 		}
 	} catch (error: any) {
-		console.error("密码验证失败:", error);
-		errorMessage.value = "验证失败，请稍后重试";
+		errorMessage.value = error.message || "验证失败，请稍后重试";
 		Message.error("验证失败，请稍后重试");
 		formData.password = "";
 	} finally {

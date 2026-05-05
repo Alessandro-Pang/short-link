@@ -18,6 +18,7 @@ import { useRoute, useRouter } from "vue-router";
 import UnifiedLinkConfigDrawer from "@/components/UnifiedLinkConfigDrawer.vue";
 import { updateLinkPassword } from "@/services/api";
 import { useLinksStore } from "@/stores";
+import { formatDate, isExpired } from "@/utils/date";
 
 const router = useRouter();
 const route = useRoute();
@@ -146,23 +147,6 @@ const showQRCode = async (short) => {
 			if (error) console.error(error);
 		});
 	}
-};
-
-const formatDate = (dateString) => {
-	if (!dateString) return "-";
-	const date = new Date(dateString);
-	return date.toLocaleString("zh-CN", {
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-};
-
-const isExpired = (dateString) => {
-	if (!dateString) return false;
-	return new Date(dateString) < new Date();
 };
 
 const hasAdvancedConfig = (record) => {

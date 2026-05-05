@@ -662,6 +662,7 @@ import {
 	unlinkIdentity,
 } from "@/services/account";
 import { useUserStore } from "@/stores";
+import { formatDate } from "@/utils/date";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -729,17 +730,6 @@ const validateUrl = (value, callback) => {
 	} catch {
 		callback("请输入有效的 URL 地址");
 	}
-};
-
-// 格式化日期
-const formatDate = (dateString) => {
-	if (!dateString) return "-";
-	const date = new Date(dateString);
-	return date.toLocaleString("zh-CN", {
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-	});
 };
 
 // 获取认证方式
