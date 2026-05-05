@@ -1,6 +1,7 @@
 import { URLSearchParams } from "node:url";
 import { getClientIp } from "../middlewares/utils.js";
-import * as dashboardService from "../services/dashboard.js";
+import * as leaderboardService from "../services/leaderboard.js";
+import * as linkDashboardService from "../services/link-dashboard.js";
 import * as linkService from "../services/link.js";
 import { checkUrlSafety } from "../services/url-safety.js";
 import {
@@ -277,7 +278,7 @@ export async function verifyLinkPassword(request, reply) {
  */
 export async function getUserStats(request, reply) {
 	try {
-		const stats = await dashboardService.getUserStats(request.user.id);
+		const stats = await linkDashboardService.getUserStats(request.user.id);
 		return success(reply, stats);
 	} catch (error) {
 		request.log.error(error);
@@ -297,7 +298,7 @@ export async function getUserLinks(request, reply) {
 		const paginationErr = validationError(reply, paginationValidation);
 		if (paginationErr) return paginationErr;
 
-		const result = await dashboardService.getUserLinks(request.user.id, {
+		const result = await linkDashboardService.getUserLinks(request.user.id, {
 			limit: parseInt(pageSize, 10),
 			offset: (parseInt(page, 10) - 1) * parseInt(pageSize, 10),
 			sortBy,
@@ -325,7 +326,7 @@ export async function getLinkDetails(request, reply) {
 			});
 		}
 
-		const result = await dashboardService.getLinkDetail(linkId, request.user.id);
+		const result = await linkDashboardService.getLinkDetail(linkId, request.user.id);
 
 		if (!result) {
 			return notFound(reply, "链接不存在或无权访问");
@@ -349,7 +350,7 @@ export async function getLinkAccessLogs(request, reply) {
 			return badRequest(reply, "无效的链接 ID");
 		}
 
-		const result = await dashboardService.getLinkAccessLogs(linkId, request.user.id, {
+		const result = await linkDashboardService.getLinkAccessLogs(linkId, request.user.id, {
 			limit: parseInt(request.query.pageSize || 50, 10),
 			offset: parseInt(request.query.offset || 0, 10),
 		});
@@ -387,7 +388,7 @@ export async function updateLink(request, reply) {
 			updates.max_clicks = parseInt(updates.max_clicks, 10);
 		}
 
-		const result = await dashboardService.updateLink(linkId, request.user.id, updates);
+		const result = await linkDashboardService.updateLink(linkId, request.user.id, updates);
 
 		return success(reply, result, "链接更新成功");
 	} catch (error) {
@@ -416,7 +417,11 @@ export async function toggleLinkStatus(request, reply) {
 			return badRequest(reply, "is_active 是必填参数");
 		}
 
-		const result = await dashboardService.batchToggleLinks([linkId], request.user.id, is_active);
+		const result = await linkDashboardService.batchToggleLinks(
+			[linkId],
+			request.user.id,
+			is_active,
+		);
 
 		return success(reply, result, "链接状态更新成功");
 	} catch (error) {
@@ -436,7 +441,7 @@ export async function deleteLink(request, reply) {
 			return badRequest(reply, "无效的链接 ID");
 		}
 
-		const result = await dashboardService.deleteLink(linkId, request.user.id);
+		const result = await linkDashboardService.deleteLink(linkId, request.user.id);
 
 		if (!result || result.error) {
 			return notFound(reply, "链接不存在或无权访问");
@@ -465,7 +470,7 @@ export async function batchDeleteLinks(request, reply) {
 			});
 		}
 
-		const result = await dashboardService.batchDeleteLinks(linkIds, request.user.id);
+		const result = await linkDashboardService.batchDeleteLinks(linkIds, request.user.id);
 
 		return success(reply, result, "批量删除成功");
 	} catch (error) {
@@ -501,7 +506,7 @@ export async function batchUpdateLinkStatus(request, reply) {
 			});
 		}
 
-		const result = await dashboardService.batchToggleLinks(linkIds, request.user.id, is_active);
+		const result = await linkDashboardService.batchToggleLinks(linkIds, request.user.id, is_active);
 
 		const action = is_active ? "启用" : "禁用";
 		return success(reply, result, `批量${action}成功`);
@@ -529,7 +534,7 @@ export async function getTopLinks(request, reply) {
 			return badRequest(reply, "limit 必须是 1-100 之间的数字");
 		}
 
-		const result = await dashboardService.getTopLinks(request.user.id, period, limit);
+		const result = await leaderboardService.getTopLinks(request.user.id, period, limit);
 
 		return success(reply, result);
 	} catch (error) {

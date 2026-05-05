@@ -139,3 +139,17 @@ export function verifyPassword(password: string, hash: string): boolean {
 	}
 	return hashPassword(password) === hash;
 }
+
+/**
+ * 处理密码字段更新：将明文密码转为 hash，空值表示删除密码
+ * @returns password_hash 值（string | null），undefined 表示不需要更新
+ */
+export function processPasswordUpdate(value: unknown): string | null | undefined {
+	if (value === null || value === "") {
+		return null;
+	}
+	if (typeof value === "string") {
+		return hashPassword(value);
+	}
+	return undefined;
+}

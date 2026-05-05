@@ -7,7 +7,8 @@
  * @FilePath: /short-link/api/controllers/admin
  */
 
-import * as dashboardService from "../services/dashboard.js";
+import * as leaderboardService from "../services/leaderboard.js";
+import * as linkAdminService from "../services/link-admin.js";
 import * as loginLogService from "../services/log.js";
 import * as userManagementService from "../services/user.js";
 import { badRequest, notFound, serverError, success, validationError } from "../utils/response.js";
@@ -25,7 +26,7 @@ import {
  */
 export async function getSystemStats(request, reply) {
 	try {
-		const stats = await dashboardService.getGlobalStats();
+		const stats = await linkAdminService.getGlobalStats();
 		return success(reply, stats);
 	} catch (error) {
 		request.log.error("获取系统统计失败:", error);
@@ -82,7 +83,7 @@ export async function getAllLinks(request, reply) {
 		const finalAscending =
 			ascending !== undefined ? ascending === "true" || ascending === true : sortOrder === "asc";
 
-		const result = await dashboardService.getAllLinks({
+		const result = await linkAdminService.getAllLinks({
 			limit: finalLimit,
 			offset: finalOffset,
 			orderBy: finalOrderBy,
@@ -110,7 +111,7 @@ export async function getLinkDetails(request, reply) {
 			return badRequest(reply, "无效的链接 ID");
 		}
 
-		const result = await dashboardService.getLinkDetailAdmin(linkId);
+		const result = await linkAdminService.getLinkDetailAdmin(linkId);
 
 		if (!result) {
 			return notFound(reply, "链接不存在");
@@ -134,7 +135,7 @@ export async function getLinkAccessLogs(request, reply) {
 			return badRequest(reply, "无效的链接 ID");
 		}
 
-		const result = await dashboardService.getLinkAccessLogsAdmin(linkId, {
+		const result = await linkAdminService.getLinkAccessLogsAdmin(linkId, {
 			limit: parseInt(request.query.limit || request.query.pageSize || 50, 10),
 			offset: parseInt(request.query.offset || 0, 10),
 		});
@@ -168,7 +169,7 @@ export async function updateLink(request, reply) {
 			updates.max_clicks = parseInt(updates.max_clicks, 10);
 		}
 
-		const result = await dashboardService.updateLinkAdmin(linkId, updates);
+		const result = await linkAdminService.updateLinkAdmin(linkId, updates);
 
 		return success(reply, result, "链接更新成功");
 	} catch (error) {
@@ -198,7 +199,7 @@ export async function toggleLinkStatus(request, reply) {
 			return badRequest(reply, "is_active 是必填参数");
 		}
 
-		const result = await dashboardService.batchToggleLinksAdmin([linkId], is_active);
+		const result = await linkAdminService.batchToggleLinksAdmin([linkId], is_active);
 
 		return success(reply, result, "链接状态更新成功");
 	} catch (error) {
@@ -218,7 +219,7 @@ export async function deleteLink(request, reply) {
 			return badRequest(reply, "无效的链接 ID");
 		}
 
-		await dashboardService.deleteLinkAdmin(linkId);
+		await linkAdminService.deleteLinkAdmin(linkId);
 
 		return success(reply, null, "链接删除成功");
 	} catch (error) {
@@ -239,7 +240,7 @@ export async function batchDeleteLinks(request, reply) {
 		const idsErr = validationError(reply, idsResult);
 		if (idsErr) return idsErr;
 
-		const result = await dashboardService.batchDeleteLinksAdmin(linkIds);
+		const result = await linkAdminService.batchDeleteLinksAdmin(linkIds);
 
 		return success(reply, result, "批量删除成功");
 	} catch (error) {
@@ -269,7 +270,7 @@ export async function batchUpdateLinkStatus(request, reply) {
 			return badRequest(reply, "is_active 是必填参数");
 		}
 
-		const result = await dashboardService.batchToggleLinksAdmin(linkIds, is_active);
+		const result = await linkAdminService.batchToggleLinksAdmin(linkIds, is_active);
 
 		const action = is_active ? "启用" : "禁用";
 		return success(reply, result, `批量${action}成功`);
@@ -515,35 +516,15 @@ export async function getAccessLogs(request, reply) {
 			return badRequest(reply, "offset 必须是非负整数");
 		}
 
-		// 构建查询
-		let query = (await import("../database/client")).default
-			.from("link_access_logs")
-			.select("*", { count: "exact" })
-			.order("accessed_at", { ascending: false })
-			.range(parsedOffset, parsedOffset + parsedLimit - 1);
-
-		if (linkId) {
-			query = query.eq("link_id", parseInt(linkId, 10));
-		}
-
-		if (startDate) {
-			query = query.gte("accessed_at", startDate);
-		}
-
-		if (endDate) {
-			query = query.lte("accessed_at", endDate);
-		}
-
-		const { data, error, count } = await query;
-
-		if (error) {
-			throw error;
-		}
-
-		return success(reply, {
-			logs: data || [],
-			total: count || 0,
+		const result = await linkAdminService.getAccessLogs({
+			limit: parsedLimit,
+			offset: parsedOffset,
+			linkId: linkId ? parseInt(linkId, 10) : null,
+			startDate,
+			endDate,
 		});
+
+		return success(reply, result);
 	} catch (error) {
 		request.log.error("获取访问日志失败:", error);
 		return serverError(reply, "获取访问日志失败");
@@ -584,7 +565,7 @@ export async function getTopLinks(request, reply) {
 			return badRequest(reply, "limit 必须是 1-100 之间的数字");
 		}
 
-		const result = await dashboardService.getGlobalTopLinks(period, limit);
+		const result = await leaderboardService.getGlobalTopLinks(period, limit);
 
 		return success(reply, result);
 	} catch (error) {
