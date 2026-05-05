@@ -13,7 +13,7 @@ import FormSection from "@/components/base/FormSection.vue";
 import SwitchRow from "@/components/base/SwitchRow.vue";
 import AccessRestrictions from "@/components/link-config/AccessRestrictions.vue";
 import ExpirationSelector from "@/components/link-config/ExpirationSelector.vue";
-import { useLinkForm } from "@/composables/useLinkForm";
+import { showSafetyBlockModal, useLinkForm } from "@/composables";
 import * as adminApi from "@/services/admin";
 import * as userApi from "@/services/api";
 import { REDIRECT_TYPE_OPTIONS } from "@/services/api";
@@ -138,7 +138,14 @@ const handleSubmit = async () => {
 		handleClose();
 	} catch (error: any) {
 		console.error("提交失败:", error);
-		Message.error(error.message || "操作失败");
+		if (error.code === "FORBIDDEN") {
+			showSafetyBlockModal({
+				url: formData.link || "",
+				reason: error.message || "该 URL 因安全原因被拒绝",
+			});
+		} else {
+			Message.error(error.message || "操作失败");
+		}
 	}
 };
 

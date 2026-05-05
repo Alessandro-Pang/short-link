@@ -555,6 +555,7 @@ import { nextTick, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import ThemeToggle from "@/components/ThemeToggle.vue";
 import UnifiedLinkConfigDrawer from "@/components/UnifiedLinkConfigDrawer.vue";
+import { showSafetyBlockModal } from "@/composables";
 import { addUrl } from "@/services/api";
 import { useUserStore } from "@/stores";
 import { validateUrl } from "@/utils/validator";
@@ -661,6 +662,11 @@ const generateShortLink = async () => {
                         query: { linkId: existingLinkId },
                     });
                 },
+            });
+        } else if (error.code === "FORBIDDEN") {
+            showSafetyBlockModal({
+                url: inputUrl,
+                reason: error.message || "该 URL 因安全原因被拒绝",
             });
         } else {
             Message.error({

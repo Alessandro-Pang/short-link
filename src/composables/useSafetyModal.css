@@ -1,0 +1,365 @@
+/* Safety Block Modal */
+.safety-block-modal {
+	position: relative;
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 24px 80px rgba(15, 23, 42, 0.18);
+}
+
+.safety-block-modal .arco-modal-header {
+	position: absolute;
+	inset: 0 0 auto;
+	z-index: 1;
+	height: 0;
+	padding: 0;
+	border-bottom: none;
+}
+
+.safety-block-modal .arco-modal-body {
+	padding: 40px 44px 0;
+}
+
+.safety-block-modal .arco-modal-footer {
+	padding: 22px 44px 34px;
+	border-top: none;
+}
+
+.safety-block-modal .arco-modal-close-btn {
+	position: absolute;
+	top: 22px;
+	right: 22px;
+	color: #4b5563;
+	font-size: 24px;
+}
+
+.safety-block-modal .arco-modal-close-btn:hover {
+	color: #111827;
+	background: transparent;
+}
+
+.safety-block-modal .arco-icon-hover::before {
+	width: 30px;
+	height: 30px;
+}
+
+.safety-modal-body {
+	display: flex;
+	flex-direction: column;
+	gap: 22px;
+}
+
+.safety-modal-hero {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 24px;
+}
+
+.safety-modal-warning-badge {
+	position: relative;
+	display: flex;
+	width: 72px;
+	height: 72px;
+	align-items: center;
+	justify-content: center;
+	border-radius: 999px;
+	background:
+		radial-gradient(circle, rgba(248, 113, 113, 0.2) 0 44%, transparent 45%),
+		rgba(248, 113, 113, 0.12);
+}
+
+.safety-modal-warning-icon {
+	color: #ef233c;
+	font-size: 40px;
+	filter: drop-shadow(0 8px 14px rgba(239, 35, 60, 0.2));
+}
+
+.safety-modal-heading h2 {
+	margin: 0;
+	color: #111827;
+	font-size: 26px;
+	font-weight: 700;
+	line-height: 1.2;
+	letter-spacing: -0.02em;
+}
+
+.safety-modal-heading p {
+	margin: 8px 0 0;
+	color: #6b7280;
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.safety-modal-risk-card {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 20px 24px;
+	background: #fff1f2;
+	border: 1px solid #fecdd3;
+	border-radius: 12px;
+}
+
+.safety-modal-risk-title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #e11d48;
+	font-size: 15px;
+	font-weight: 700;
+}
+
+.safety-modal-risk-title-icon {
+	font-size: 16px;
+}
+
+.safety-modal-url-box {
+	display: flex;
+	min-height: 56px;
+	align-items: center;
+	gap: 12px;
+	padding: 0 18px;
+	background: #ffffff;
+	border: 1px solid #f1d2d6;
+	border-radius: 10px;
+}
+
+.safety-modal-url-icon {
+	flex: 0 0 auto;
+	color: #4b5563;
+	font-size: 22px;
+}
+
+.safety-modal-url-value {
+	min-width: 0;
+	flex: 1;
+	color: #111827;
+	font-size: 15px;
+	line-height: 1.5;
+	word-break: break-all;
+}
+
+.safety-modal-copy-button {
+	display: inline-flex;
+	flex: 0 0 auto;
+	align-items: center;
+	gap: 5px;
+	padding: 0;
+	color: #e11d48;
+	font-size: 14px;
+	font-weight: 600;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+}
+
+.safety-modal-copy-button:hover {
+	color: #be123c;
+}
+
+.safety-modal-reason {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	color: #6b7280;
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.safety-modal-reason-icon {
+	flex: 0 0 auto;
+	margin-top: 3px;
+	color: #fb7185;
+	font-size: 17px;
+}
+
+.safety-modal-appeal-banner {
+	display: flex;
+	width: 100%;
+	min-height: 54px;
+	align-items: center;
+	justify-content: space-between;
+	gap: 14px;
+	padding: 0 22px;
+	color: #4b5563;
+	text-align: left;
+	background: #f1f5f9;
+	border: none;
+	border-radius: 10px;
+	cursor: pointer;
+}
+
+.safety-modal-appeal-banner:hover {
+	background: #eaf1fb;
+}
+
+.safety-modal-appeal-content {
+	display: inline-flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.safety-modal-appeal-icon {
+	flex: 0 0 auto;
+	color: #3b82f6;
+	font-size: 18px;
+}
+
+.safety-modal-appeal-arrow {
+	flex: 0 0 auto;
+	color: #111827;
+	font-size: 18px;
+}
+
+.safety-modal-actions {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px;
+	width: 100%;
+}
+
+.safety-modal-action {
+	display: inline-flex;
+	height: 44px;
+	align-items: center;
+	justify-content: center;
+	padding: 0 18px;
+	font-size: 14px;
+	font-weight: 600;
+	border-radius: 7px;
+	cursor: pointer;
+	transition:
+		color 0.2s ease,
+		background-color 0.2s ease,
+		border-color 0.2s ease,
+		box-shadow 0.2s ease;
+}
+
+.safety-modal-action-secondary {
+	color: #374151;
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+}
+
+.safety-modal-action-secondary:hover {
+	background: #f9fafb;
+	border-color: #d1d5db;
+}
+
+.safety-modal-action-outline {
+	color: #3b82f6;
+	background: #ffffff;
+	border: 1px solid #93c5fd;
+}
+
+.safety-modal-action-outline:hover {
+	background: #eff6ff;
+	border-color: #60a5fa;
+}
+
+.dark .safety-block-modal {
+	background: #1f2937;
+	box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.dark .safety-block-modal .arco-modal-close-btn {
+	color: #d1d5db;
+}
+
+.dark .safety-block-modal .arco-modal-close-btn:hover {
+	color: #ffffff;
+}
+
+.dark .safety-modal-heading h2,
+.dark .safety-modal-url-value,
+.dark .safety-modal-appeal-arrow {
+	color: #f9fafb;
+}
+
+.dark .safety-modal-heading p,
+.dark .safety-modal-reason,
+.dark .safety-modal-appeal-banner {
+	color: #d1d5db;
+}
+
+.dark .safety-modal-risk-card {
+	background: rgba(239, 68, 68, 0.1);
+	border-color: rgba(248, 113, 113, 0.28);
+}
+
+.dark .safety-modal-url-box {
+	background: #111827;
+	border-color: rgba(248, 113, 113, 0.24);
+}
+
+.dark .safety-modal-url-icon {
+	color: #d1d5db;
+}
+
+.dark .safety-modal-appeal-banner {
+	background: rgba(59, 130, 246, 0.12);
+}
+
+.dark .safety-modal-appeal-banner:hover {
+	background: rgba(59, 130, 246, 0.18);
+}
+
+.dark .safety-modal-action-secondary,
+.dark .safety-modal-action-outline {
+	background: #1f2937;
+}
+
+.dark .safety-modal-action-secondary {
+	color: #e5e7eb;
+	border-color: #4b5563;
+}
+
+.dark .safety-modal-action-secondary:hover {
+	background: #374151;
+	border-color: #6b7280;
+}
+
+.dark .safety-modal-action-outline {
+	color: #93c5fd;
+	border-color: #3b82f6;
+}
+
+.dark .safety-modal-action-outline:hover {
+	background: rgba(59, 130, 246, 0.12);
+}
+
+@media (max-width: 640px) {
+	.safety-block-modal .arco-modal-body {
+		padding: 34px 20px 0;
+	}
+
+	.safety-block-modal .arco-modal-footer {
+		padding: 22px 20px 28px;
+	}
+
+	.safety-modal-hero {
+		flex-direction: column;
+		gap: 18px;
+		text-align: center;
+	}
+
+	.safety-modal-heading h2 {
+		font-size: 24px;
+	}
+
+	.safety-modal-risk-card {
+		padding: 20px;
+	}
+
+	.safety-modal-url-box {
+		align-items: flex-start;
+		padding: 16px;
+	}
+
+	.safety-modal-actions {
+		grid-template-columns: 1fr;
+		gap: 12px;
+	}
+}
