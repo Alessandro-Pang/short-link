@@ -18,6 +18,9 @@ import QRCode from "qrcode";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import UnifiedLinkConfigDrawer from "@/components/UnifiedLinkConfigDrawer.vue";
+import LinkBatchActions from "@/components/links/LinkBatchActions.vue";
+import PasswordModal from "@/components/links/PasswordModal.vue";
+import QRCodeModal from "@/components/links/QRCodeModal.vue";
 import {
 	batchDeleteLinks,
 	batchToggleLinks,
@@ -42,16 +45,11 @@ const filterUserId = ref(null);
 const togglingIds = ref([]);
 const qrcodeModalVisible = ref(false);
 const currentQrUrl = ref("");
-const qrcodeCanvas = ref(null);
 const editDrawerVisible = ref(false);
 const editingLinkId = ref(null);
 const filterLinkId = ref(null);
 const passwordModalVisible = ref(false);
-const passwordFormData = ref({
-	linkId: null,
-	password: "",
-});
-const isPasswordSubmitting = ref(false);
+const currentPasswordLinkId = ref(null);
 
 // 批量选择相关状态
 const selectedRowKeys = ref([]);
@@ -183,12 +181,6 @@ const showQRCode = async (short) => {
 	const url = `${origin}/u/${short}`;
 	currentQrUrl.value = url;
 	qrcodeModalVisible.value = true;
-	await nextTick();
-	if (qrcodeCanvas.value) {
-		QRCode.toCanvas(qrcodeCanvas.value, url, { width: 200, margin: 1 }, (error) => {
-			if (error) console.error(error);
-		});
-	}
 };
 
 const hasAdvancedConfig = (record) => {
@@ -255,30 +247,8 @@ const handleEditDelete = () => {
 
 // 密码管理
 const openPasswordModal = (record) => {
-	passwordFormData.value = {
-		linkId: record.id,
-		password: "",
-	};
+	currentPasswordLinkId.value = record.id;
 	passwordModalVisible.value = true;
-};
-
-const handlePasswordSubmit = async () => {
-	if (!passwordFormData.value.password) {
-		Message.warning("请输入新密码");
-		return;
-	}
-
-	isPasswordSubmitting.value = true;
-	try {
-		await updateLinkPassword(passwordFormData.value.linkId, passwordFormData.value.password);
-		Message.success("密码修改成功");
-		passwordModalVisible.value = false;
-		loadData();
-	} catch (error) {
-		Message.error(error.message || "修改密码失败");
-	} finally {
-		isPasswordSubmitting.value = false;
-	}
 };
 
 const handlePasswordDelete = async (linkId) => {
@@ -413,66 +383,17 @@ defineExpose({
             </div>
 
             <!-- 批量操作栏 -->
-            <div
+            <LinkBatchActions
                 v-if="hasSelected"
-                class="px-6 py-3 bg-orange-50 dark:bg-orange-900/20 border-b border-orange-100 dark:border-orange-900/30 flex items-center justify-between"
-            >
-                <div class="flex items-center gap-2 text-gray-600">
-                    <span class="text-orange-600 font-medium"
-                        >已选择 {{ selectedCount }} 项</span
-                    >
-                    <a-link @click="clearSelection" class="text-sm"
-                        >取消选择</a-link
-                    >
-                </div>
-                <div class="flex items-center gap-2">
-                    <a-popconfirm
-                        content="确定要启用选中的链接吗？"
-                        type="info"
-                        @ok="handleBatchEnable"
-                    >
-                        <a-button
-                            size="small"
-                            type="outline"
-                            status="success"
-                            :loading="isBatchOperating"
-                        >
-                            <template #icon><icon-check /></template>
-                            批量启用
-                        </a-button>
-                    </a-popconfirm>
-                    <a-popconfirm
-                        content="确定要禁用选中的链接吗？"
-                        type="warning"
-                        @ok="handleBatchDisable"
-                    >
-                        <a-button
-                            size="small"
-                            type="outline"
-                            status="warning"
-                            :loading="isBatchOperating"
-                        >
-                            <template #icon><icon-close /></template>
-                            批量禁用
-                        </a-button>
-                    </a-popconfirm>
-                    <a-popconfirm
-                        content="确定要删除选中的链接吗？此操作不可恢复！"
-                        type="error"
-                        @ok="handleBatchDelete"
-                    >
-                        <a-button
-                            size="small"
-                            type="outline"
-                            status="danger"
-                            :loading="isBatchOperating"
-                        >
-                            <template #icon><icon-delete /></template>
-                            批量删除
-                        </a-button>
-                    </a-popconfirm>
-                </div>
-            </div>
+                :selected-count="selectedCount"
+                :is-batch-operating="isBatchOperating"
+                theme-class="bg-orange-50 dark:bg-orange-900/20 border-orange-100 dark:border-orange-900/30"
+                text-class="text-orange-600"
+                @clear-selection="clearSelection"
+                @batch-enable="handleBatchEnable"
+                @batch-disable="handleBatchDisable"
+                @batch-delete="handleBatchDelete"
+            />
 
             <a-spin :loading="isLoading" class="w-full">
                 <a-table
@@ -841,91 +762,18 @@ defineExpose({
         </div>
 
         <!-- QR Code Modal -->
-        <a-modal
+        <QRCodeModal
             v-model:visible="qrcodeModalVisible"
-            title="链接二维码"
-            :footer="false"
-            :width="340"
-            modal-class="rounded-xl!"
-        >
-            <div class="flex flex-col items-center">
-                <div
-                    class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6"
-                >
-                    <canvas ref="qrcodeCanvas" class="block"></canvas>
-                </div>
-                <div class="w-full">
-                    <div class="text-xs text-gray-400 mb-2 text-center">
-                        短链接地址
-                    </div>
-                    <div
-                        class="flex items-center justify-between bg-gray-50 px-4 py-3 rounded-lg border border-gray-100"
-                    >
-                        <span
-                            style="width: calc(100% - 40px)"
-                            class="text-gray-700 text-sm truncate mr-4 font-medium"
-                            >{{ currentQrUrl }}</span
-                        >
-                        <a-link
-                            class="w-[38px]! px-0!"
-                            @click="copyLink(currentQrUrl.split('/u/').pop())"
-                            >复制</a-link
-                        >
-                    </div>
-                </div>
-                <a-button
-                    type="primary"
-                    long
-                    class="mt-4! rounded-lg!"
-                    @click="qrcodeModalVisible = false"
-                >
-                    完成
-                </a-button>
-            </div>
-        </a-modal>
+            :url="currentQrUrl"
+        />
 
         <!-- 密码管理 Modal -->
-        <a-modal
+        <PasswordModal
             v-model:visible="passwordModalVisible"
-            title="修改访问密码"
-            :width="400"
-            @ok="handlePasswordSubmit"
-            @cancel="passwordModalVisible = false"
-        >
-            <a-form layout="vertical" :model="passwordFormData">
-                <a-form-item label="新密码" required>
-                    <a-input-password
-                        v-model="passwordFormData.password"
-                        placeholder="请输入新密码"
-                        :max-length="50"
-                        allow-clear
-                    >
-                        <template #prefix>
-                            <icon-lock />
-                        </template>
-                    </a-input-password>
-                    <template #extra>
-                        <span class="text-xs text-gray-400">
-                            设置后访问短链接需要输入此密码
-                        </span>
-                    </template>
-                </a-form-item>
-            </a-form>
-            <template #footer>
-                <a-space>
-                    <a-button @click="passwordModalVisible = false"
-                        >取消</a-button
-                    >
-                    <a-button
-                        type="primary"
-                        :loading="isPasswordSubmitting"
-                        @click="handlePasswordSubmit"
-                    >
-                        确定
-                    </a-button>
-                </a-space>
-            </template>
-        </a-modal>
+            :link-id="currentPasswordLinkId"
+            :update-fn="updateLinkPassword"
+            @success="loadData"
+        />
 
         <!-- Admin Link Edit Drawer -->
         <UnifiedLinkConfigDrawer
