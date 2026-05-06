@@ -8,8 +8,8 @@
  */
 
 import type { UrlValidationOptions } from "../types/index.js";
-import { VALIDATION_LIMITS, result } from "./validation-types.js";
 import type { ValidationResult } from "./validation-types.js";
+import { result, VALIDATION_LIMITS } from "./validation-types.js";
 
 /**
  * 禁止的 URL 协议（防止 XSS 和其他攻击）

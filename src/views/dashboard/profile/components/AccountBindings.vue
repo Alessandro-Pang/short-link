@@ -247,32 +247,29 @@
 </template>
 
 <script setup>
-import {
-    IconEmail,
-    IconInfoCircle,
-} from "@arco-design/web-vue/es/icon";
+import { IconEmail, IconInfoCircle } from "@arco-design/web-vue/es/icon";
 
 const props = defineProps({
-    bindings: {
-        type: Object,
-        required: true,
-    },
-    loadingIdentities: {
-        type: Boolean,
-        default: false,
-    },
-    canUnlink: {
-        type: Boolean,
-        default: false,
-    },
-    linking: {
-        type: String,
-        default: null,
-    },
-    unlinking: {
-        type: String,
-        default: null,
-    },
+	bindings: {
+		type: Object,
+		required: true,
+	},
+	loadingIdentities: {
+		type: Boolean,
+		default: false,
+	},
+	canUnlink: {
+		type: Boolean,
+		default: false,
+	},
+	linking: {
+		type: String,
+		default: null,
+	},
+	unlinking: {
+		type: String,
+		default: null,
+	},
 });
 
 const emit = defineEmits(["link-provider", "unlink-account"]);

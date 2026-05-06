@@ -61,9 +61,5 @@
 </template>
 
 <script setup>
-import {
-    IconBarChart,
-    IconClockCircle,
-    IconDashboard,
-} from "@arco-design/web-vue/es/icon";
+import { IconBarChart, IconClockCircle, IconDashboard } from "@arco-design/web-vue/es/icon";
 </script>

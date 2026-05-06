@@ -8,7 +8,7 @@ import type { AuthenticatedRequest } from "../types/index.js";
 export async function getUserIdentities(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		const identities = await authService.getUserIdentities(
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 		);
 		return reply.send({
 			code: 200,
@@ -50,7 +50,7 @@ export async function bindIdentity(request: FastifyRequest, reply: FastifyReply)
 			});
 		}
 
-		const result = await authService.bindUserIdentity((request as AuthenticatedRequest).user!.id, {
+		const result = await authService.bindUserIdentity((request as AuthenticatedRequest).user.id, {
 			provider,
 			provider_user_id,
 			provider_email,
@@ -86,7 +86,7 @@ export async function unbindIdentity(request: FastifyRequest, reply: FastifyRepl
 		}
 
 		const result = await authService.unbindUserIdentity(
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 			provider,
 		);
 
@@ -112,7 +112,7 @@ export async function deleteAccount(request: FastifyRequest, reply: FastifyReply
 		const { reason } = request.body as { reason?: string };
 
 		const result = await authService.deleteUserAccount(
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 			reason as string,
 		);
 

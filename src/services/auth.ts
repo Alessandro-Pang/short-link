@@ -3,8 +3,8 @@
  * 基于 Supabase Auth 实现用户认证功能
  */
 
-import dayjs from "dayjs";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import dayjs from "dayjs";
 import { ApiError } from "./request";
 import { supabase } from "./supabase";
 

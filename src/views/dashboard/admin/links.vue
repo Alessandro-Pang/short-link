@@ -17,10 +17,10 @@ import {
 import QRCode from "qrcode";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import UnifiedLinkConfigDrawer from "@/components/UnifiedLinkConfigDrawer.vue";
 import LinkBatchActions from "@/components/links/LinkBatchActions.vue";
 import PasswordModal from "@/components/links/PasswordModal.vue";
 import QRCodeModal from "@/components/links/QRCodeModal.vue";
+import UnifiedLinkConfigDrawer from "@/components/UnifiedLinkConfigDrawer.vue";
 import {
 	batchDeleteLinks,
 	batchToggleLinks,

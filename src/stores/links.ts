@@ -4,8 +4,6 @@
  */
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import type { UpdateLinkRequest } from "../../types/api";
-import type { Link } from "../../types/shared";
 import {
 	batchDisableLinks,
 	batchEnableLinks,
@@ -21,6 +19,8 @@ import {
 	toggleLink,
 	updateLinkConfig,
 } from "@/services/dashboard";
+import type { UpdateLinkRequest } from "../../types/api";
+import type { Link } from "../../types/shared";
 
 interface fetchLinkOptions {
 	limit: number;

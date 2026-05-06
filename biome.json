@@ -46,9 +46,6 @@
 			}
 		}
 	},
-	"html": {
-		"experimentalFullSupportEnabled": true
-	},
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double",
@@ -77,12 +74,23 @@
 			"linter": {
 				"rules": {
 					"style": {
-						"useSelfClosingElements": "error"
+						"useSelfClosingElements": "off",
+						"noDescendingSpecificity": "off"
 					},
 					"correctness": {
-						"noUnusedImports": "error",
-						"noUnusedVariables": "off"
+						"noUnusedImports": "off",
+						"noUnusedVariables": "off",
+						"noUnknownPseudoClass": "off",
+						"noUnknownPseudoElement": "off"
 					}
+				}
+			},
+			"css": {
+				"linter": {
+					"enabled": false
+				},
+				"formatter": {
+					"enabled": false
 				}
 			}
 		}

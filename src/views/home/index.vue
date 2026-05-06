@@ -32,7 +32,7 @@ import HomeHeader from "./components/HomeHeader.vue";
 const userStore = useUserStore();
 
 onMounted(async () => {
-    // 初始化用户状态（使用缓存，避免重复请求）
-    await userStore.initialize();
+	// 初始化用户状态（使用缓存，避免重复请求）
+	await userStore.initialize();
 });
 </script>

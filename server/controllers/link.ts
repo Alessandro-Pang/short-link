@@ -2,8 +2,8 @@ import { URLSearchParams } from "node:url";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { getClientIp } from "../middlewares/utils.js";
 import * as leaderboardService from "../services/leaderboard.js";
-import * as linkDashboardService from "../services/link-dashboard.js";
 import * as linkService from "../services/link.js";
+import * as linkDashboardService from "../services/link-dashboard.js";
 import { checkUrlSafety } from "../services/url-safety.js";
 import type { AuthenticatedRequest } from "../types/index.js";
 import {
@@ -42,10 +42,13 @@ export async function getExpirationOptions(request: FastifyRequest, reply: Fasti
  * 创建短链接
  */
 export async function createShortLink(request: FastifyRequest, reply: FastifyReply) {
-	const body = (request.body || {}) as { url?: string; options?: Record<string, unknown> };
+	const body = (request.body || {}) as {
+		url?: string;
+		options?: Record<string, unknown>;
+	};
 	const { url, options = {} } = body;
 	const inputUrl = url;
-	const userId = (request as AuthenticatedRequest).user?.id || null;
+	const userId = (request as AuthenticatedRequest).user.id || null;
 
 	// 未登录用户不允许使用高级配置
 	if (!userId) {
@@ -287,7 +290,7 @@ export async function verifyLinkPassword(request: FastifyRequest, reply: Fastify
 export async function getUserStats(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		const stats = await linkDashboardService.getUserStats(
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 		);
 		return success(reply, stats);
 	} catch (error) {
@@ -314,7 +317,7 @@ export async function getUserLinks(request: FastifyRequest, reply: FastifyReply)
 		if (paginationErr) return paginationErr;
 
 		const result = await linkDashboardService.getUserLinks(
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 			{
 				limit: parseInt(String(pageSize), 10),
 				offset: (parseInt(String(page), 10) - 1) * parseInt(String(pageSize), 10),
@@ -346,7 +349,7 @@ export async function getLinkDetails(request: FastifyRequest, reply: FastifyRepl
 
 		const result = await linkDashboardService.getLinkDetail(
 			linkId,
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 		);
 
 		if (!result) {
@@ -373,7 +376,7 @@ export async function getLinkAccessLogs(request: FastifyRequest, reply: FastifyR
 
 		const result = await linkDashboardService.getLinkAccessLogs(
 			linkId,
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 			{
 				limit: parseInt((request.query as Record<string, string>).pageSize || "50", 10),
 				offset: parseInt((request.query as Record<string, string>).offset || "0", 10),
@@ -415,7 +418,7 @@ export async function updateLink(request: FastifyRequest, reply: FastifyReply) {
 
 		const result = await linkDashboardService.updateLink(
 			linkId,
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 			updates,
 		);
 
@@ -448,7 +451,7 @@ export async function toggleLinkStatus(request: FastifyRequest, reply: FastifyRe
 
 		const result = await linkDashboardService.batchToggleLinks(
 			[linkId],
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 			is_active as boolean,
 		);
 
@@ -472,7 +475,7 @@ export async function deleteLink(request: FastifyRequest, reply: FastifyReply) {
 
 		const result = await linkDashboardService.deleteLink(
 			linkId,
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 		);
 
 		if (!result || result.error) {
@@ -504,7 +507,7 @@ export async function batchDeleteLinks(request: FastifyRequest, reply: FastifyRe
 
 		const result = await linkDashboardService.batchDeleteLinks(
 			linkIds as number[],
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 		);
 
 		return success(reply, result, "批量删除成功");
@@ -543,7 +546,7 @@ export async function batchUpdateLinkStatus(request: FastifyRequest, reply: Fast
 
 		const result = await linkDashboardService.batchToggleLinks(
 			linkIds as number[],
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 			is_active as boolean,
 		);
 
@@ -574,7 +577,7 @@ export async function getTopLinks(request: FastifyRequest, reply: FastifyReply) 
 		}
 
 		const result = await leaderboardService.getTopLinks(
-			(request as AuthenticatedRequest).user!.id,
+			(request as AuthenticatedRequest).user.id,
 			period,
 			limit,
 		);

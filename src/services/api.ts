@@ -18,8 +18,8 @@ import type {
 	UserResponse,
 } from "../../types/api";
 import type { AccessRestrictions, Link, LinkCreateOptions } from "../../types/shared";
-import { ApiError, fetchApi } from "./request";
 import { dashboardLinkApi } from "./link-api";
+import { ApiError, fetchApi } from "./request";
 
 // 导出 ApiError 供外部使用
 export { ApiError };
