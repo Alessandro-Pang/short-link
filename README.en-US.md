@@ -2,6 +2,8 @@
 
 # Short Link Service (Short Link V2.0)
 
+[简体中文](./README.md) | [English](./README.en-US.md)
+
 A fully-featured URL shortening service built with Vue 3, Fastify, Vercel, and Supabase.
 
 > Note:
