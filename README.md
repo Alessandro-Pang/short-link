@@ -1,5 +1,7 @@
 # 短链接服务 (Short Link V2.0)
 
+[简体中文](./README.md) | [English](./README.en-US.md)
+
 一个功能完善的 URL 缩短服务，基于 Vue 3、Fastify、Vercel 和 Supabase 构建。
 
 > 注意：

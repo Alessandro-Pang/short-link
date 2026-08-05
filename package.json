@@ -16,6 +16,7 @@
 		"build": "vite build",
 		"build:analyze": "cross-env ANALYZE=true vite build",
 		"preview": "vite preview",
+		"type-check": "vue-tsc --noEmit",
 		"lint": "vue-tsc --noEmit && biome check --write",
 		"prepare": "husky"
 	},
